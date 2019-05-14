@@ -8,7 +8,7 @@ This project aims to be governed in a transparent, accessible way for the benefi
 
 The contributor role is the starting role for anyone participating in the project and wishing to contribute code.
 
-# Process for becoming a contributor
+### Process for becoming a contributor
 
 * Review the CONTRIBUTING.md guidelines to ensure your contribution is inline with the project's coding and styling guidelines.
 * Submit your code as a PR with the appropriate DCO signoff
