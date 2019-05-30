@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+					 xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+ 
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This sample demonstrates the use of workflow to workflow execution. Three types of approaches to specify the called 
+	 workflow are demonstrated in different steps:
+	 Step simpleWf2wf - simplest sample which only use calledWorkflowID
+	 Step varMapping - sample of using a union of calledWorkflowDefinitionFile, calledWorkflowID and calledWorkflowVersion
+	 Step demoMD5 - sample of using MD5
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+ 
+<workflowInfo>
+	<workflowID>wf2wfSample</workflowID>
+	<workflowDescription>This is a sample to demonstrate the use of workflow to workflow execution.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1.0</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- ++++++++++++++ VARIABLE DEFINITION ++++++++++++++ -->
+<variable name="st_user">
+	<label>User ID</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.</description>
+	<category>Started</category>
+	<string>
+		<default>TESTUSER</default>
+	</string>
+</variable>
+<variable name="String1">
+	<label>Simple String1</label>
+	<abstract>Basic simple variable String1.</abstract>
+	<description>This sample shows a simple basic variable String1.</description>
+	<category>String Variables</category>
+	<string>
+		<default>String01</default>
+	</string>
+</variable>
+<variable name="String2">
+	<label>Simple String2</label>
+	<abstract>Basic simple variable String2.</abstract>
+	<description>This sample shows a simple basic variable String2.</description>
+	<category>String Variables</category>
+	<string>
+		<default>String02</default>
+	</string>
+</variable>
+<variable name="sampleString">
+	<label>Simple Variable sampleString</label>
+	<abstract>Basic simple variable sampleString.</abstract>
+	<description>This sample shows a simple basic test variable sampleString.</description>
+	<category>Sample</category>
+	<string>
+		<default>Sample01</default>
+	</string>
+</variable>
+<!-- =========================== STEP DEFINITION =========================== -->
+<!-- This is a very simple sample to demo the use of workflow to workflow execution feature, in this step, only mondatory elements for this feature are specified:
+		- callingStepWeight
+		- calledWorkflowDescription
+		- calledWorkflowID
+		As the element calledWorkflowDefinitionFile is NOT specified in this step, user has to input their own valid definition file path when prompt for user to create the called workflow instance.
+		The element calledWorkflowID is specified to indicate that the called workflow instance should has the same workflowID in its definition file.
+		Here the called workflow will be workflow_sample_calledwfBasic.xml.
+		If a instance with the specified calledWorkflowID already exist, workflow will directly open this instance when user start perform it, if the instance does not exist or multiple instances
+		with the calledWorkflowID exist, a dialog will pop up for user to create a new called workflow instance.
+	 -->
+<step name="simpleWf2wf">
+	<title>A very simple sample of workflow to workflow execution.</title>
+	<description>This is a very simple demo of using workflow to worfklow execution in which only the one mondatory element named calledWorkflowID is specified.</description>
+	<callingStepWeight>2</callingStepWeight>
+	<calledWorkflowDescription>The workflow definition file more likely locates under directory: /usr/lpp/zosmf/samples.</calledWorkflowDescription>
+	<calledWorkflowID>workflow.sample.calledwfBasic</calledWorkflowID>
+</step>
+ 
+<!-- This step is used for user to input below variable values some of which will be used to transfer to the following called workflow:
+		String1
+		String2
+		sampleString
+ -->
+<step name="prepareVariables" >
+	<title>Prepare Variable Step</title>
+	<description>In this step, you enter some variable values to see if they can be transferred to the called workflow in the following step.</description>
+	<variableValue name="String1"/>
+	<variableValue name="String2"/>
+	<variableValue name="sampleString"/>
+	<instructions>User can input some values for the variables in this step, those values can be transfered to the called workflow if they satisfy the mapping rules that user specified in the following step.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+</step>
+ 
+<!-- This step demonstrates the use of variableMapping element for user to transfer variable values from calling workflow to called workflow.
+		When the called workflow instance is created successfully, variables that satisfy either the regular expression or the variableName
+		mapping will be transferred from calling workflow to called workflow.  In this case, below variables satisfy the <regExpression> and their
+		values will be transferred from calling workflow to called workflow:
+			- String1
+			- String2
+		Additionally, <variableName> element will map the variable "sampleString" in this calling workflow to the variable "demoString" in the called workflow
+		and transfer its value to demoString in called workflow.
+		
+		Note: When user specify the XML definition and create the called workflow successfully, the variables that meet the mapping rules will be transferred
+		from the calling workflow to the called workflow only once, that means, no matter how many times the user perform the calling step in future, those 
+		variable values will not be transferred any more. But if user decide to change the existing called workflow, this will be treated as creating a new called
+		workflow, so the mapped variables will be transferred again in this case.
+ -->
+<step name="varMappingFromCalling2Called">
+	<title>Variable Mapping Step1</title>
+	<description>The variable String1,String2 and sampleString will be transferred from the calling workflow to the called workflow.</description>
+	<variableMapping>
+		<!-- Under the element fromCallingToCalled, all variables satisfy below conditions will be copied to the called workflow:
+				- Variable name is made up with either characters or numbers
+				- Length of the variable less than 10 characters.
+				Additionally, the value of variable "sampleString" in calling workflow will also be copied to the variable named demoString in called workflow.
+				That means a union of those variables that either satisfy the regular expression or indicated by element variableName will be copied
+				from calling workflow to called workflow.
+		-->
+		<fromCallingToCalled>
+			<regExpression>[a-zA-Z0-9]{1,10}</regExpression>
+			<variableName mapTo="demoString">sampleString</variableName>
+		</fromCallingToCalled>
+	</variableMapping>
+	<callingStepWeight>3</callingStepWeight>
+	<callingStepSkills>System Programmer</callingStepSkills>
+	<calledWorkflowDefinitionFile>/usr/lpp/zosmf/samples/workflow_sample_calledwfVarMapping1.xml</calledWorkflowDefinitionFile>
+	<calledWorkflowDescription>The workflow definition file more likely locates under directory: /usr/lpp/zosmf/samples.</calledWorkflowDescription>
+	<calledWorkflowID>workflow.sample.calledwfVarMapping1</calledWorkflowID>
+	<calledWorkflowVersion>1.0</calledWorkflowVersion>
+</step>
+ 
+<!-- This step demonstrates the use of variableMapping element for user to transfer variable values from called workflow to calling workflow.
+		The element <variableName> under the element <fromCalledToCalling indicates that when the called workflow become Complete status, 
+		the variable "userID" in the called workflow will be mapped to the variable "st_user" in the calling workflow, additionally, the variable
+		value will also be set to st_user in the calling workflow when the called workflow become to Complete status.
+		
+		Note: When the called workflow is performed and become Complete status, the variables that meet the mapping rules will be transferred
+		from the called workflow to the calling workflow, this will also happen only once no matter how the status of the called workflow change
+		later.
+-->
+<step name="varMappingFromCalled2Calling">
+	<title>Variable Mapping Step2</title>
+	<description>In this step, variable userID in called workflow will be mapped to variable st_user in calling workflow and its value will be transferred from called workflow to calling workflow.</description>
+	<variableMapping>
+		<!-- Set the value of variable userID in the called workflow to the variable st_user in the calling workflow. -->
+		<fromCalledToCalling override="true">
+			<variableName mapTo="st_user">userID</variableName>
+		</fromCalledToCalling>
+	</variableMapping>
+	<callingStepWeight>3</callingStepWeight>
+	<callingStepSkills>System Programmer</callingStepSkills>
+	<calledWorkflowDefinitionFile>/usr/lpp/zosmf/samples/workflow_sample_calledwfVarMapping2.xml</calledWorkflowDefinitionFile>
+	<calledWorkflowDescription>The workflow definition file more likely locates under directory: /usr/lpp/zosmf/samples.</calledWorkflowDescription>
+	<calledWorkflowID>workflow.sample.calledwfVarMapping2</calledWorkflowID>
+	<calledWorkflowVersion>1.0</calledWorkflowVersion>
+</step>
+<!-- User can check if the value of variable st_user is already transferred from the called workflow in the above step varMappingFromCalled2Calling -->
+<step name="checkVarFromCalled">
+	<title>Check Variable from Called Workflow</title>
+	<description>This is a simple step to display the value of variable st_user in the current calling workflow.</description>
+	<variableValue name="st_user"/>
+	<instructions>In this step, user can check if the value of variable st_user is successfully transferred from the called workflow in previous step.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+</step>
+ 
+<!-- This step demonstrates the use of MD5 to specify the called workflow. If exactly 1 workflow instance exist which is created from the
+		XML definition that has the specified MD5 code in this step, this instance will be opened directly when user try to perform this step, 
+		otherwise, a new dialog will be pop up for user to specify the XML definition file which has the same MD5 code with this step.
+-->
+<step name="demoMD5">
+	<title>Demo of Using MD5.</title>
+	<description>In this step, a MD5 code is used to indicate the appropriate called workflow.</description>
+	<callingStepWeight>2</callingStepWeight>
+	<callingStepSkills>System Programmer</callingStepSkills>
+	<calledWorkflowDefinitionFile>/usr/lpp/zosmf/samples/workflow_sample_calledwfMD5.xml</calledWorkflowDefinitionFile>
+	<calledWorkflowDescription>The workflow definition file more likely locates under directory: /usr/lpp/zosmf/samples.</calledWorkflowDescription>
+	<calledWorkflowMD5>eac6c7a7223e6ff081ff67925bb1dc66</calledWorkflowMD5>
+</step>
+ 
+</workflow>

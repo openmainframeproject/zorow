@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+ 
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This sample demonstrates the use of predefined variables in workflow steps.  
+ 
+	 A predefined variable is treated as a string substitution for the current step only. 
+	 Therefore, you do not include the scope prefix "instance-" or "global-" in the variable 
+	 reference, as you would for other types of workflow variables.  
+ 
+	 You can specify multiple predefined variables per step.
+ 
+	 Note that predefined variables are intended for use by workflow authors only.
+	 Users of workflows cannot add predefined variables when editing the template 
+	 JCL in the Workflows task user interface.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+<workflowInfo>
+	<workflowID>predefinedVariable</workflowID>
+	<workflowDescription>Sample demonstrating predefined variable usage.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<variable name="st_user">
+	<label>User ID</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.</description>
+	<category>Predefined Variables</category>
+	<string>
+		<default>STUSER</default>
+	</string>
+</variable>
+ 
+<!-- This is the first sample step that testing predefined variables and do substitution with the values in this step. -->
+<step name="predefVariable1">
+	<title>Predefined Variable Step 1</title>
+	<description>This is the first step in which predefined variables are used for user to dynamically refer outside template files.</description>
+	<variableValue name="st_user" required="true"/>
+	<instructions>User will get specific content from referred template file with substitution of different predefined variables.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+	<template>
+		<fileTemplate substitution="true">MyTemplate.txt</fileTemplate>
+		<submitAs>shell-JCL</submitAs>
+		<saveAsDataset substitution="true">PEV000.DATA.TESTFB(MEM001)</saveAsDataset>
+		<predefinedVariable name="st_group">GRP01</predefinedVariable>
+		<predefinedVariable name="st_gid">5001</predefinedVariable>
+	</template>
+</step>
+ 
+<!-- This is the second sample step that testing predefined variables, in this step, different predefined variable values 
+		are provided to substitute place holders in the referenced MyTemplate.txt and will generate different template content. 
+-->
+<step name="predefVariable2">
+	<title>Predefined Variable Step 2</title>
+	<description>This is the second step in which predefined variables are used for user to dynamically refer outside template files.</description>
+	<variableValue name="st_user" required="true"/>
+	<instructions>User will get specific content from referred template file with substitution of different predefined variables.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+	<template>
+		<fileTemplate substitution="true">MyTemplate.txt</fileTemplate>
+		<submitAs>shell-JCL</submitAs>
+		<saveAsDataset substitution="true">PEV000.DATA.TESTFB(MEM002)</saveAsDataset>
+		<predefinedVariable name="st_group">GRP02</predefinedVariable>
+		<predefinedVariable name="st_gid">5002</predefinedVariable>
+	</template>
+</step>
+</workflow>

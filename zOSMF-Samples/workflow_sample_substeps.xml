@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+                          
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This sample demonstrates the use of sub-steps, and the use of step pre-reqs to 
+	 establish dependency chains.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->                          
+ 
+<workflowInfo>
+	<workflowID>substepSample</workflowID>
+	<workflowDescription>Sample demonstrating sub-steps and dependencies</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<step name="Step1" >
+        <title>Top-level step 1</title>
+        <description>This is a top-level step.</description>
+		<step name="subStep1_1">
+			<title>Second-level step</title>
+			<description>This is a second-level step.</description>
+			<step name="subStep1_1_1">
+				<title>Third-level step</title>
+				<description>This is a third-level step.</description>
+				<!-- A step cannot pre-req itself or any ancestor step -->
+				<!-- <prereqStep name="subStep1_1"/>     !ERROR!  -->
+				<step name="subStep1_1_1_1">
+					<title>Forth-level step</title>
+					<description>This is a forth-level step.</description>
+					<step name="subStep1_1_1_1_1">
+						<title>Fifth-level step</title>
+						<description>This is a fifth-level step.</description>
+						<instructions>Examine this sample</instructions>
+						<weight>1</weight>
+							<!-- !ERROR! Too many levels of step nesting.
+							<step name="subStep1_1_1_1_1_1">
+								<title>6-level deep</title>
+								<description>A sixth-level step such as this is not valid.</description>
+								<instructions>A workflow is limited to five levels of nesting.</instructions>
+								<weight>0</weight>
+							</step>
+							-->
+					</step>
+				</step>
+			</step>
+		</step>
+		<step name="subStep2">
+			<title>Sub-step 2</title>
+			<description>This is a second-level step.</description>
+			<!-- A step can pre-req a step that precedes it, as long as it is not an ancestor -->
+			<prereqStep name="subStep1_1_1_1_1"/>
+			<instructions>Examine this sample</instructions>
+			<weight>1</weight>
+		</step>
+		<step name="subStep3">
+			<title>Sub-step 3</title>
+			<description>This is a second-level step.</description>
+			<instructions>Examine this sample</instructions>
+			<weight>1</weight>
+		</step>
+		<step name="subStep4">
+			<title>Sub-step 4</title>
+			<description>This is a second-level step.</description>
+			<instructions>Examine this sample</instructions>
+			<weight>1</weight>
+		</step>
+		<step name="subStep5">
+			<title>Sub-step 5</title>
+			<description>This is a second-level step.</description>
+			<instructions>Examine this sample</instructions>
+			<weight>1</weight>
+		</step>
+		<step name="subStep6">
+			<title>Sub-step 6</title>
+			<description>This is a second-level step.</description>
+			<instructions>Examine this sample</instructions>
+			<weight>1</weight>
+		</step>
+</step>
+ 
+<step name="Step2">
+	<title>Top-level step 2</title>
+	<description>This is a top-level step.</description>
+	<!-- Prereq-ing a step with sub-steps has the effect of prereq-ing all the substeps -->
+	<prereqStep name="Step1"/> 
+	<instructions>Examine this sample</instructions>
+	<weight>1</weight>
+</step>
+<step name="Step3">
+	<title>Top-level step 3</title>
+	<description>This is a top-level step.</description>
+	<prereqStep name="Step2"/> <!-- Step1 is a logical prereq since Step2 prereqs it -->
+	<instructions>Examine this sample</instructions>
+	<weight>1</weight>
+</step>
+<step name="Step4">
+	<title>Top-level step 4</title>
+	<description>This is a top-level step.</description>
+	<!-- A step cannot prereq a step that does not precede it -->
+	<!-- <prereqStep name="Step5"/>  !ERROR! -->
+	<instructions>Examine this sample</instructions>
+	<weight>1</weight>
+</step>
+<step name="Step5">
+	<title>Top-level step 5</title>
+	<description>This is a top-level step.</description>
+	<!-- A step can pre-req multiple steps -->
+	<prereqStep name="Step1"/> 
+	<prereqStep name="Step4"/>
+	<instructions>Examine this sample</instructions> 
+	<weight>1</weight>
+</step>
+ 
+</workflow>

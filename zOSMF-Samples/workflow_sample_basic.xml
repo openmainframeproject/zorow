@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+
+<!-- The processing instruction above must be the first line in the file, and it
+	 must start on column 1.
+-->
+ 
+<!-- Change the schema path name below to refer to your local copy if you want to use
+	 an XML-aware editor for writing workflows. Note that this location is ignored 
+	 by the Workflows task when a workflow is imported.  Also note that the Workflows 
+	 task performs additional validation that the schema itself does not perform.	 
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+                          
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 This sample represents the simplest possible workflow.  It is a "General" workflow
+	 (as opposed to a "Configuration" workflow), and contains a single step with only the
+	 required elements specified.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+ 
+<!--
+	The following section contains the workflow meta-data. It is a general
+	type workflow. The description is used as the basis for a default
+	workflow name when the file is imported into the workflow application.
+	The workflow name can be modified by the user during the import operation.
+-->	 
+<workflowInfo>
+	<workflowID>simpleSample</workflowID>
+	<workflowDefaultName>Default Workflow Name</workflowDefaultName>
+	<workflowDescription>A simple workflow with only one step</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<General/> <!-- This element is optional. It is empty, by default. -->
+</workflowInfo>
+ 
+<!--
+	Though a workflow typically contains a series of steps, this sample workflow contains only one. 
+	This sample shows the simplest possible workflow, with only one step, and only the required 
+	elements specified. The step name is not displayed in the workflow, but it is used to establish 
+	dependencies (not demonstrated here). Step numbers are generated automatically and displayed 
+	by the Workflows task.
+-->
+<step name="Manual-Step" >
+        <title>Simple workflow with only one step</title>
+        
+        <description>This sample shows a very basic workflow. It contains only one step.</description>
+        
+        <instructions>Use the Instructions area to describe in detail what the user needs to do to complete the step. On completion of the step, the user should press <strong>Finish</strong> to have the step marked complete in the Workflows task.</instructions>
+        
+        <!-- The weight is a subjective value that you assign to a step to indicate its difficulty 
+		     relative to the other steps in the workflow. The scale and the value are at your discretion 
+			 as the workflow author. The weight cannot be changed by the user.  The Workflows task uses 
+			 the weight to determine the percentage complete of the workflow, which it displays to the user. 
+		-->
+        <weight>1</weight>
+</step>
+ 
+</workflow>

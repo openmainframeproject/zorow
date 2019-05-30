@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd"> 
+                          
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This is a very simple called workflow to demonstrate workflow to workflow execution. In this workflow, the attribute
+	 "isCallable" is set to sysplex which means this workflow can be called by other workflows that under the same sysplex.
+	 The calling workflow should specify that the workflowID of called workflow equals to "workflow.sample.calledwfBasic".
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->                             
+ 
+<workflowInfo>
+	<!-- The attribute isCallable is set to sysplex, this means this workflow can be called by any other systems that within the same sysplex. -->
+	<workflowID isCallable="sysplex">workflow.sample.calledwfBasic</workflowID>
+	<workflowDescription>Demo of simple called workflow.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1.0</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- This is a simple step in which only some instructions are included and will be shown to user on workflow UI. -->
+<step name="simpleStep">
+      <title>Simple Step</title>
+      <description>This is a very simple step.</description>
+      <instructions>This step is a simple step which only contains some instructions.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+</step>
+ 
+</workflow>

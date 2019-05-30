@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+ 
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 This sample demonstrates the use of load variables from JCL/REXX/Shell script execution.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+ 
+<workflowInfo>
+	<workflowID>outputSample</workflowID>
+	<workflowDescription>Sample demonstrating output feature.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- Declare a set of variables for use below -->
+<variable name="outputFileNameVariable">
+	<label>File name for output file</label>
+	<abstract>Enter a name for the output properties file</abstract>
+	<description>This value is required. It is included in the JCL for output file path.</description>
+	<category>Output File</category>
+	<string>
+		<default>testOutput</default>
+	</string>
+</variable>
+ 
+<variable name="st_user">
+	<label>user ID</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.</description>
+	<category>Started</category>
+	<string>
+		<validationType>USERID</validationType>
+		<default>MYSTUSER</default>
+	</string>
+</variable>
+ 
+<variable name="setting0" scope="global">
+	<label>Global string variable</label>
+	<abstract>A global scope string variable.</abstract>
+	<description>This is a global scope string variable for output feature test.</description>
+	<category>Global Variable</category>
+	<string>
+		<default>setting0</default>
+	</string>
+</variable>
+ 
+<step name="submitEmptyJCL">
+	<title>Submit empty JCL</title>
+	<description>Submit an empy JCL job using IEFBR14.</description>
+	<variableValue name="st_user"/>
+	<instructions>This is a very simple JCL job submittion test setting1:${global-setting1} using IEFBR14 and nothing will be done here.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+	<template> 
+       		<inlineTemplate substitution="true">/* rexx */
+address "TSO"
+"oget 'WORKFLOW.SAMPLE.OUTPUT(MEMBER)' '$_output'"</inlineTemplate>
+       		<submitAs>TSO-REXX-JCL</submitAs>
+		<output substitution="true" needResolveConflicts="true">/u/lucy/${instance-st_user}</output>
+       	</template>
+</step>
+ 
+<!-- This step is a demo for the feature "load variables from a JCL/REXX/Shell script execution". -->
+<step name="output">
+	<title>A step with an output property file</title>
+	<description>In this step, you execute a JCL job to generate an output property file.</description>
+	<variableValue name="st_user" required="true"/>
+	<variableValue name="setting0" required="true" scope="global"/>
+	<variableValue name="outputFileNameVariable" required="true"/>
+	<instructions>
+		In this example step, some variable values are generated into a pre-specified output file and after perform, those variables will be loaded into workflows task after user resolves the variable conflicts if any.
+       	</instructions>
+	<weight>5</weight>
+	<skills>System Programmer</skills>
+	<template>
+       		<inlineTemplate substitution="true"># shell script to generate some variables from workflows task to the output property file
+echo st_user USER001 >> $_output
+echo setting0 global001 >> $_output
+       		</inlineTemplate>
+       		<submitAs maxRc="0">shell-JCL</submitAs>
+		<output substitution="true" needResolveConflicts="false">/u/tmp/${instance-outputFileNameVariable}</output>
+       	</template>
+</step>
+ 
+</workflow>
