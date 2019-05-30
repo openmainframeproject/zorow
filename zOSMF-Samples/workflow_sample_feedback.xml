@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+                          
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 This sample demonstrates the use of workflow feedback in workflow.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+ 
+<workflowInfo>
+	<workflowID>SampleWorkflowWithFeedback</workflowID>
+	<workflowDefaultName>Workflow with feedback questions</workflowDefaultName>
+	<workflowDescription>Sample workflow to demonstrate the use of feedback 
+	                     questions to collect user feedback.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<General/> <!-- This element is optional. It is empty, by default. -->
+</workflowInfo>
+ 
+<!-- ================= feedback definitions ================= -->
+ 
+<feedbackItem name="itemOne">
+   <question>How difficult was this step? (Select one)</question>
+   <!--The user must select one answer from the available choices-->
+   <answers>
+      <singleSelect hasOtherAnswer="true">
+      		<label value="difficult">Very difficult</label>
+			<label value="moderate">Somewhat difficult</label>
+			<label value="moderate">Neutral</label>
+			<label value="moderate">Somewhat easy</label>
+		    <label value="easy">Very easy</label>
+      </singleSelect>
+   </answers>
+</feedbackItem>
+ 
+<feedbackItem name="itemTwo">
+   <question>What did you like about this step? (Select all that apply)</question>
+   <!--The user can select more than one of the available choices-->
+   <answers>
+      <multipleSelect hasOtherAnswer="true">
+      	<label value="simple">Ease of use</label>
+		<label value="info">Instructions were helpful</label>
+             <label value="useful">Performed a useful function</label>
+             <label value="quick">Ran quickly</label>
+      </multipleSelect>
+   </answers>
+</feedbackItem>
+ 
+<feedbackItem name="itemThree">
+   <question>Provide a suggestion for improving this step.</question>
+   <!--The user supplies a text response (up to 500 characters) -->
+   <answers>
+		<text/>
+   </answers>
+</feedbackItem>
+ 
+<!-- ================= step with feedback items definitions ================= -->
+ 
+<!-- ================= step with feedback questions ================= -->
+<step name="StepOne" >
+        <title>A step with feedback</title>
+        <description>A step with feedback.</description>
+        <!--On the feedback tag, the attribute "name" identifies the 
+            feedback question. The attribute "required" indicates whether 
+            a user response is required or optional. -->
+		<feedback name="itemOne" required="true"/>
+		<feedback name="itemTwo" required="true"/>
+		<feedback name="itemThree" required="true"/>
+        <instructions>Perform the step and answer the three feedback questions.
+		              All of the questions require a response.</instructions>
+        <weight>1</weight>
+</step>
+ 
+<!-- ================= Another step with feedback questions ================= -->
+<step name="StepTwo" >
+        <title>Another step with feedback</title>
+        <description>Another step with feedback.</description>
+        <!--On the feedback tag, the attribute "name" identifies the 
+            feedback question. To indicate that a user response is required,
+            the attribute "required" is included and set to true. To indicate 
+            that a response is optional, you can set required to false or 
+            omit this attribute. -->
+        <feedback name="itemOne" required="true"/>
+		<feedback name="itemThree"/>
+        <instructions>Perform the step and answer the two feedback questions. 
+					  The first question is required, the second is optional.</instructions>
+        <weight>1</weight>    
+</step>
+ 
+<!-- ================= step without feedback items definitions ================= -->
+<step name="StepThree" >
+        <title>Step without a feedback question</title>
+        <description>Step without a feedback question.</description>
+		<!-- This step has no feedback questions. As a result, the Feedback tab 
+		in the Step Perform wizard is not enabled for this step. -->
+        <instructions>Perform the step. There are no feedback questions to answer.</instructions>
+        <weight>1</weight>
+</step>
+</workflow>

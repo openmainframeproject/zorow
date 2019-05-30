@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+ 
+<!-- 
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	This sample demonstrates the use of automation in Workflow, user can also specify the property file
+	named workflow_sample_automation_property.txt together with this sample XML during workflow creation
+	to avoid inputting variables manually from UI.
+	A variable of user ID named st_user is needed and will be checked in step verifyUserID, also variable st_group and st_gid
+	are needed as mandatory input for step defineRACFGroup.
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+ 
+<workflowInfo>
+	<workflowID>automationSample</workflowID>
+	<workflowDescription>Sample demonstrating the use of automated steps in workflow.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- Declare a set of variables -->
+<variable name="st_user">
+	<label>user ID</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.</description>
+	<category>Started</category>
+	<string>
+		<validationType>USERID</validationType>
+		<default>MYSTUSER</default>
+	</string>
+</variable>
+<variable name="st_group">
+	<label>group</label>
+	<abstract>Group name for the started task.</abstract>
+	<description>The group name under whose authority the started task will run.</description>
+	<category>Started</category>
+	<string>
+		<validationType>GROUP</validationType>
+		<default>SYS1</default>
+	</string>
+</variable>
+<variable name="st_gid">
+	<label>GID</label>
+	<abstract>z/OS UNIX System Services GID.</abstract>
+	<description>The UNIX group ID (GID) to be associated with the started task group.</description>
+	<category>Started</category>
+	<string>
+		<validationType>UNIXID</validationType>
+		<default>500</default>
+	</string>
+</variable>
+<!-- Declare a set of variables END -->
+ 
+<!-- This is a simple empty step which only specified as an automatable step -->
+<step name="simpleAutomatableStep" >
+	<title>Simple automatable step</title>
+	<description>This sample shows a very basic workflow automatable step.</description>
+	<instructions>Use the Instructions area to describe in detail what the user needs to do to complete the step. On completion of the step, the user should press <strong>Finish</strong> to have the step marked complete in the Workflows task. This step can be performed automatically.</instructions>
+	<weight>1</weight>
+	<autoEnable>true</autoEnable>
+</step>
+ 
+<!-- 
+	This step contains substeps and step dependencies, during automation, if the prerequisite step is complete, 
+    steps who depends on this step will become Ready automatically and then the automation will be able to continue.
+ -->
+<step name="rootStep">
+	<title>Root Step</title>
+	<description>This is a top-level step.</description>
+	<step name="subStep1">
+		<title>Second-level step 1</title>
+		<description>This is a second-level step 1.</description>
+		<step name="subStep1_1">
+			<title>Third-level step</title>
+			<description>This is a third-level step.</description>
+			<instructions>Examine this sample step.</instructions>
+			<weight>1</weight>
+			<autoEnable>true</autoEnable>
+		</step>
+	</step>
+	<step name="subStep2">
+		<title>Second-level step 2</title>
+		<description>This is a second-level step 2.</description>
+		<!-- This step take subStep1_1 as its prerequisite step. -->
+		<prereqStep name="subStep1_1"/>
+		<instructions>This step depends on the previous Third-level step.</instructions>
+		<weight>1</weight>
+		<autoEnable>true</autoEnable>
+	</step>
+</step>
+ 
+<!--
+	This step is a demo of not automated step, automation will stop when reach this step and a notification will be sent out to
+	both the workflow owner and step owner.
+-->
+<step name="nonAutomatedStep">
+	<title>Non-automated Step</title>
+	<description>This is a sample of non-automated step.</description>
+	<instructions>This is a simple sample to demonstrate steps that can not be performed automatically.</instructions>
+	<weight>1</weight>
+	<!-- specify the canAuto tag as false to disable the automation of this step, or just specify nothing and the default value(false) will be used. -->
+	<!-- <autoEnable>false</autoEnable> -->
+</step>
+ 
+<!-- This step demostrate a very simple JCL submittion to back end JES system during automation process. -->
+<step name="submitEmptyJCL">
+    <title>Submit an empty JCL job</title>
+    <description>Submit an empy JCL job to JES using IEFBR14.</description>
+	<instructions substitution="false">This is a very simple JCL job submittion test using IEFBR14 and nothing will be done here.</instructions>
+    <weight>1</weight>
+    <skills>Basic JCL</skills>
+    <autoEnable>true</autoEnable>
+    <template> 
+        <inlineTemplate substitution="false">//STEP1       EXEC  PGM=IEFBR14
+//SYSEXEC    DD    DUMMY
+//* PRINT DD SYSOUT=A
+/*
+       	</inlineTemplate>
+       	<submitAs>JCL</submitAs>
+    </template>
+</step>
+ 
+<!-- This step demonstrates execute shell script and save file to USS during automation -->
+<step name="verifyUserID">
+        <title>Verify the UID of the user using a shell script</title>
+        <description>In this step, you verify the UID of the user. This step involves running an in-line shell script.</description>
+        <variableValue name="st_user" required="true"/>
+        <instructions>In this example step, you enter a RACF command through an in-line shell script to verify the UNIX definitions. The output is written to the STDOUT DD of the submitted job.</instructions> 	
+        <weight>2</weight>
+        <skills>System Programmer</skills>
+        <autoEnable>true</autoEnable>
+        <template>      		
+       		<inlineTemplate substitution="true"># shell script to issue 'id' command against defined user 
+id $instance-st_user
+			</inlineTemplate>
+       		<submitAs>shell-JCL</submitAs>
+       		<!-- When user save unix file more than once, the previous file will be overridden by default during automation. -->
+       		<saveAsUnixFile substitution="true">/u/${instance-st_user}/myScript.sh</saveAsUnixFile>
+       	</template>
+</step>
+ 
+<!-- This step demonstrate submit of a JCL job in which contains variable substitution during automation -->
+<step name="defineRACFGroup">
+	<title>Define the RACF group using a JCL job</title>
+	<description>In this step, you define the RACF group. This step involves submitting a JCL job.</description>
+	<variableValue name="st_group" required="true"/>
+	<variableValue name="st_gid" required="true"/>
+	<instructions substitution="false">In this example step, you enter a RACF command through a JCL job.
+		<br/>
+		You will have the option to save a copy of the JCL <em>after</em> you have reviewed it for your approval.</instructions>
+	<weight>3</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template> 
+       		<inlineTemplate substitution="true">//STEP1       EXEC  PGM=IKJEFT01,DYNAMNBR=20 
+//SYSTSPRT    DD    SYSOUT=A
+//SYSTSIN     DD    *
+ADDGROUP     $instance-st_group OMVS(GID($instance-st_gid))
+/*
+       	    </inlineTemplate>
+       		<submitAs>JCL</submitAs>
+       	</template>
+</step>
+ 
+</workflow>

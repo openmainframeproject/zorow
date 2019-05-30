@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<!-- Following is the Document Type Definition (DTD) section of the XML document. Workflow
+	 XML files do not use the DTD to validate the XML document (a schema is used instead).
+	 However, the DTD is used to declare external files which contain portions of the 
+	 workflow XML. A file reference must be in the form of a relative path, and it must
+	 exist within the same "container" as this XML file (that is, if the XML file is 
+	 shipped in the UNIX file system, these external files must exist within the same 
+	 directory, or within a sub-directory. If the XML file is shipped in an MVS partitioned
+	 data set, these external files must exist as members within the same PDS).
+-->
+<!DOCTYPE workflow [<!ENTITY deploy-certs SYSTEM "workflow_sample_fragment0.xml" >
+                    <!ENTITY at-tls SYSTEM "workflow_sample_fragment1.xml" >
+				   ]>
+ 
+<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This sample demonstrates the use of external files to contain XML fragments.
+	 The files are defined in the DTD above, and are referenced below. This sample
+	 also demonstrates additional features of steps, and uses some HTML tags within
+	 a step description. 
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+ 
+<workflowInfo>
+	<workflowID>externalXmlFileSample</workflowID>
+	<workflowDescription>Sample workflow to show the use of an external XML file</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- This step demonstrates the use of the optional attribute. -->
+<step name="Verify-X" optional="true" >
+        <title>Determine whether Function X is enabled</title>
+        <description>In this step, you query the system to determine whether Function X is enabled.</description>
+        
+        <instructions>To determine whether Function X is enabled, enter the <code>XXX</code> command on the TSO/E command line. If so, there is nothing more to do.</instructions>
+        
+        <weight>1</weight>
+        
+        <!-- The skills element is a free-form field through which the XML author can
+        	 help the workflow owner determine to whom to assign the step. Use this 
+			 element to indicate a role or function, such as "network administration", 
+			 "digital certificate deployment", and so on. 
+			 -->
+        <skills>Security Administrator</skills>
+</step>
+ 
+<!-- Following is the notation used to include a file that is declared in the DTD.
+	 In the DTD, the symbol "deploy-certs" is associated with file "workflow_sample_fragment0.xml".  
+	 Note that workflow_sample_fragment0.xml embeds workflow_sample_fragment1.xml itself, 
+	 using the "at-tls" symbol defined in the DTD, thus demonstrating that file inclusion can be nested.
+	 -->
+&deploy-certs;  
+ 
+<!-- This step demonstrates the use of HTML.  You can specify HTML for any element
+	 defined in the schema as type nlsRichString or nlsRichVelocityString.
+	 -->
+<step name="Activate-X" >
+        <title>Activate Function X</title>
+        <description>In this step, you enter a command to activate Function X.</description>
+        <instructions>Enter the <code>ABC</code> command on the operator console to activate Function X.
+        	<br/><br/>Here, you might include any specific values the user needs to know, such as the values that the user should include on the command invocation. You might also describe how the user can verify that Function X is active, and what to do if an error is encountered.
+			<br/><br/>You can use HTML tags in the description to format how this text is displayed	in the Workflows task. You might, for example, specify tags for:
+        	<ul>
+        		<li>Lists, both ordered and unordered</li>
+        		<li>Tables</li>
+        		<li>Highlighting, such as <em>emphasis</em> and <strong>bold</strong>.</li>
+        		<li><a href="http://www.ibm.com">Hyper-links</a>, which open in a separate tab or browser window.</li> 	
+        	</ul> 
+        	<br/><br/>Not all HTML tags are supported. 	For a list of supported HTML tags, see the z/OSMF Programming book.
+        </instructions>
+        
+        <weight>5</weight>
+        <skills>Security Administrator</skills>
+</step>
+ 
+</workflow>

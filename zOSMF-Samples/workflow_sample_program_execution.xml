@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+ 
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This sample demonstrates how to run an executable program directly from a workflow 
+	 step. The program can be coded inline within the step or referenced from an external 
+	 file.  The program runs under a TSO address space on the host system.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+ 
+<workflowInfo>
+	<workflowID>programExecutionSample</workflowID>
+	<workflowDescription>Sample that demonstrates how to run an executable program from a step.
+	</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- Declare a set of variables for use below -->
+<variable name="st_user">
+	<label>User ID</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.
+	</description>
+	<category>Started</category>
+	<string>
+		<validationType>USERID</validationType>
+		<default>MYSTUSER</default>
+	</string>
+</variable>
+ 
+<variable name="st_group">
+	<label>group</label>
+	<abstract>Group name for the started task.</abstract>
+	<description>The group name under whose authority the started task will run.
+	</description>
+	<category>Started</category>
+	<string>
+		<validationType>GROUP</validationType>
+		<default>SYS1</default>
+	</string>
+</variable>
+ 
+<variable name="procNameVariable">
+	<label>Procedure name for the TSO/E address space</label>
+	<abstract>Enter a procedure name for running the program.</abstract>
+	<description>This value is used to specify a procedure name (proc name) for the TSO/E address space 
+	that is used to run the program.
+	</description>
+	<category>TSO procName</category>
+	<string/>
+</variable>
+ 
+<!-- This sample step uses a wizard to submit a UNIX shell script for immediate processing. -->
+<step name="TSO-UNIX-shell_Execution">
+        <title>A step that runs a UNIX shell script.</title>
+        <description>In this step, you submit an inline UNIX shell script for immediate processing 
+		on the host system. In this example, the step is expected to complete successfully.
+		</description>
+        <variableValue name="st_group" required="true"/>
+        <variableValue name="st_user" required="true"/>
+		<variableValue name="procNameVariable" required="true"/>
+		<instructions substitution="false">This step outputs some variables and prints a few words.
+        </instructions>
+        <weight>1</weight>
+        <skills>System Programmer</skills>
+        <template> 
+       		<inlineTemplate substitution="true">
+#!/bin/sh
+echo "this is a sample to submit shell script to run immediately"
+echo "the first parameter is :" $1 	
+echo ${instance-st_user}
+echo prefix:st_group = SYS123
+echo prefix:st_user = USERS
+echo "This symbol is used to indicate success"	
+echo "The program ran successfully !!"		
+            </inlineTemplate>
+       		<submitAs>TSO-UNIX-shell</submitAs>
+			<successPattern>success.*</successPattern>
+			<failedPattern>failed.*</failedPattern>  
+			<outputVariablesPrefix needResolveConflicts="true">prefix:</outputVariablesPrefix>
+			<scriptParameters>
+				<description>A simple parameter</description>
+				<value>para1</value>
+			</scriptParameters>
+			<procName substitution="true">${instance-procNameVariable}</procName>
+			<regionSize>50000</regionSize>
+			<timeout>60</timeout>
+       		<saveAsUnixFile substitution="true">/u/${instance-st_user}/savedStuff/myScript.sh</saveAsUnixFile>
+       	</template>
+</step>	 
+ 
+<!-- This sample step uses a wizard to submit a UNIX REXX exec for immediate processing. -->
+<step name="TSO-UNIX-REXX_Execution">
+        <title>A step that runs a UNIX REXX exec program.</title>
+        <description>In this step, you submit an inline UNIX REXX exec for immediate processing 
+		on the host system. In this example, the step is expected to fail.
+		</description>
+        <variableValue name="st_group" required="true"/>
+        <variableValue name="st_user" required="true"/>
+		<variableValue name="procNameVariable" required="true"/>
+		<instructions substitution="false">This step outputs some variables and prints a few words.
+        </instructions>
+        <weight>1</weight>
+        <skills>System Programmer</skills>
+        <template> 
+       		<inlineTemplate substitution="true">/*  rexx  */
+parse arg arg1
+SAY "this is a sample to submit UNIX REXX script to run immediately"
+SAY "the first parameter is :" arg1
+SAY ${instance-st_user}
+SAY "prefix:st_group =" SYS123
+SAY "prefix:st_user =" USERS
+SAY "This symbol is used to indicate failed"
+            </inlineTemplate>
+       		<submitAs>TSO-UNIX-REXX</submitAs>
+			<successPattern>success.*</successPattern>
+			<failedPattern>failed.*</failedPattern>  
+			<outputVariablesPrefix needResolveConflicts="true">prefix:</outputVariablesPrefix>
+			<scriptParameters>
+				<description>A simple parameter</description>
+				<value>para1</value>
+			</scriptParameters>
+			<procName substitution="true">${instance-procNameVariable}</procName>
+			<regionSize>50000</regionSize>
+			<timeout>60</timeout>
+       		<saveAsUnixFile substitution="true">/u/${instance-st_user}/savedStuff/myScript.sh</saveAsUnixFile>
+       	</template>
+</step>	  
+ 
+<!-- This sample step uses a wizard to submit a REXX exec for immediate processing. -->
+<step name="TSO-TSO-REXX_Execution">
+        <title>A step that runs a REXX exec program.</title>
+        <description>In this step, you submit an inline REXX exec for immediate processing 
+		on the host system. In this example, the processing is ended by a time-out condition.
+		</description>
+        <variableValue name="st_group" required="true"/>
+        <variableValue name="st_user" required="true"/>
+		<variableValue name="procNameVariable" required="true"/>
+		<instructions substitution="false">This step outputs some variables and prints a few words.
+        </instructions>
+        <weight>1</weight>
+        <skills>System Programmer</skills>
+        <template> 
+       		<inlineTemplate substitution="true">/*  rexx  */
+parse arg arg1
+SAY "this is a sample to submit TSO REXX script to run immediately"
+SAY "the first parameter is :" arg1
+SAY ${instance-st_user}
+SAY "prefix:st_group =" SYS123
+SAY "prefix:st_user =" USERS
+SAY "This execution will meets timeout."
+            </inlineTemplate>
+       		<submitAs>TSO-REXX</submitAs>
+			<successPattern>success.*</successPattern>
+			<failedPattern>failed.*</failedPattern>  
+			<outputVariablesPrefix needResolveConflicts="true">prefix:</outputVariablesPrefix>
+			<scriptParameters>
+				<description>A simple parameter</description>
+				<value>para1</value>
+			</scriptParameters>
+			<procName substitution="true">${instance-procNameVariable}</procName>
+			<regionSize>50000</regionSize>
+			<timeout>60</timeout>
+       		<saveAsUnixFile substitution="true">/u/${instance-st_user}/savedStuff/myScript.sh</saveAsUnixFile>
+       	</template>
+</step>	  
+</workflow>

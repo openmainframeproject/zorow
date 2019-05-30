@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<!-- This is an XML fragment.  As such, it will not validate against the schema by itself. 
+	 You might use a fragment like this for a step that is to be shared by a set of related workflows.   
+ -->
+<step name="Deploy-certs">
+	<title>Deploy digital certificates for Function X</title>
+	<description>Create and deploy the digital certificates that are used to protect the data that Function X sends across the network.</description>
+	<instructions>In the Instructions area, describe in detail what the user needs to do to complete the step. Include any specific values the user needs to know, based on your requirements for the work to be completed. If you are directing the user to enter a command such as RACF RACDCERT, for example, use this element to state which values should be included on the command invocation. Other information here might include, for example, directions for using PKI services or entering the System SSL gskkyman command.</instructions>
+ 
+	<!-- The weight is a subjective value that you, as the workflow author, assign to indicate the difficulty 
+	     of the step relative to the other steps in the workflow. The scale and the value are at your discretion, 
+		 and cannot be changed by the user.  The Workflows task uses the weight to determine the percentage complete 
+		 of the workflow, and displays this value to the user. 
+		-->
+	<weight>30</weight>
+ 
+	<!-- The skills element is a free-form field through which you (the workflow author) can suggest a skill or 
+	     role for performing the step, such as "network administration," "digital certificate deployment," and so on. 
+		 This information can help guide the workflow owner in determining whom to assign the step.  
+		 -->	
+	<skills>Security Administrator</skills>
+</step>
+<!-- Included below is another XML fragment. -->
+&at-tls;

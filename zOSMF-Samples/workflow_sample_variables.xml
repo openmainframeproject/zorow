@@ -1,0 +1,706 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/********************************************************************************/
+/* Copyright 2019 IBM Corp.                                                     */
+/*                                                                              */
+/* Licensed under the Apache License, Version 2.0 (the "License");              */
+/* you may not use this file except in compliance with the License.             */
+/* You may obtain a copy of the License at                                      */
+/*                                                                              */
+/*    http://www.apache.org/licenses/LICENSE-2.0                                */
+/*                                                                              */
+/* Unless required by applicable law or agreed to in writing, software          */
+/* distributed under the License is distributed on an "AS IS" BASIS,            */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     */
+/* See the License for the specific language governing permissions and          */
+/* limitations under the License.                                               */
+/********************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd"> 
+                          
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This sample demonstrates the use of variables, for which the Workflows task will 
+	 prompt the user for input.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->                             
+ 
+<workflowInfo>
+	<workflowID>variableSample</workflowID>
+	<workflowDescription>Sample workflow with variable prompting</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- Some variable attributes are translatable, as shown in the bundle definition below.   -->
+<translatedTextFiles>
+	<bundle name="myBundle">
+		<language name="ja" path="workflow_sample_bundle0.txt"/>
+	</bundle>
+</translatedTextFiles>
+ 
+<!-- 
+	 Prior to the list of steps, you can define a series of variables. Each variable 
+	 definition is contained within a <variable> element, which contains a number of 
+	 attributes and sub-elements.  
+	 
+	 The <label>, <abstract>, <description>, and <category> elements are common across
+	 all variable types, and are required.  The name= and scope= attributes of 
+	 the <variable> element are likewise common.  The combination of the name and scope
+	 attribute values must be unique across the entire XML.  The scope can have a value
+	 of "instance" or "global", with "instance" being the default.  A value of "global"
+	 results in the variable value being saved across all workflows, and can be 
+	 referenced by any step in any workflow.  As such, its name must be chosen carefully
+	 to avoid collisions.  A scope of "instance" means the variable is specific to this 
+	 workflow.  
+	 
+	 Steps can optionally reference variables by name and scope combination. When performing 
+	 a step that references a set of variables, the user is prompted to enter a value for each 
+	 variable.  See the comments for the <step> elements below to see how further behavior 
+	 regarding variable collection can be determined at the step level. 
+	 
+	 Following the common variable elements is an element identifying the variable type, 
+	 and containing attributes and sub-elements determining the widget that is to be 
+	 displayed for the variable, and optionally constraining the value which the user can
+	 enter for the variable.  The type-specific element can be <boolean>, <string>, <integer>,
+	 <decimal>, <time>, or <date>, and one of these elements *must* be specified within 
+	 the <variable>.
+	 
+	 The label and abstract is displayed by the widget in the Workflows task.
+	 An information icon is displayed with the widget. If the icon is clicked, 
+	 the description is displayed.
+	 
+	 The category is used to group related variables. All variables belonging to a 
+	 category are displayed together on a single wizard panel, and the next button 
+	 is used to iterate through the pages for each category.  The <category> element 
+	 is required, but if you do not specify an actual value, the element defaults to
+	 "General."  Thus, you can specify the element simply as "<category/>" to take
+	 this default.
+	 
+	 The following examples demonstrate the various features of variable definitions. 
+	 -->
+ 
+<!-- Here is a boolean variable. It has a value of "true" or "false". 
+	 It is the only variable to use the scope= attribute with a value of 
+	 "global".  All other variables default to "instance". 
+	 -->
+<variable name="Boolean1" scope="global">
+	<label>Boolean</label>
+	<abstract>Boolean variable.</abstract>
+	<!-- Note that you can use spaces, tabs, and new lines when entering lengthy
+	     descriptions to make your XML readable according to your preference.  
+		 These breaks are ignored when the description is displayed in the Workflows task. 
+		 -->
+	<description>This sample shows a boolean variable, true or false. It is initially displayed checked or not, depending on the default value specified in the XML (in this example, true).
+	</description>
+	<category>Boolean Variable</category>
+	<!--
+		Type-dependent element follows. For a boolean, the only attribute is
+		the default value. The UI checkbox is displayed checked or not,
+		depending on what default you specify. If you do not specify a default,
+		the default is "true". 
+		-->
+	<boolean>
+		<default>true</default>
+	</boolean>
+</variable>
+ 
+<!-- Here is a basic string variable. -->
+<variable name="String1">
+	<label>Simple string</label>
+	<abstract>Basic string variable.</abstract>
+	<description>This sample shows a basic string variable.</description>
+	<category>String Variables</category>
+	<!--
+		Type-dependent element follows. Notice how simple a string can be. 
+		A simple text box is displayed, with some default width.
+	-->
+	<string/>
+</variable>
+ 
+<!-- Here is a string with a default value specified. -->
+<variable name="String2">
+	<label>String with a default</label>
+	<abstract>String with a default value.</abstract>
+	<description>This sample shows a string that is primed with the default value specified in the XML. Note that this variable is designated as required within the step. As such, the variable is displayed somewhat differently than the others.	
+	</description>
+	<category>String Variables</category>
+	<!-- The text box is primed with the default value. -->
+	<string>
+		<default>This is the default value</default>
+	</string>
+</variable>
+ 
+<!-- Here is a string with a value that must be selected from a specified set of choices. -->
+<variable name="String3">
+	<label>String with choices</label>
+	<abstract>String with a list of choices.</abstract>
+	<description>This variable value must come from a list of choices.</description>
+	<category>String Variables</category>
+	<!-- For this string, we specify valueMustBeChoice="true" (which is the default)
+	     which requires the user to select one of the preset choices.  A default
+	     choice may be specified, and is in this example.  
+		 -->
+	<string valueMustBeChoice="true">
+		<choice>SYS1.SAMPLIB</choice>
+		<choice>SYS1.LINKLIB</choice>
+		<choice>SYS1.LPALIB</choice>
+		<default>SYS1.LPALIB</default>
+	</string>
+</variable>
+ 
+<!-- Here is a string with a list of choices, as above, but here the choices are only
+	 suggestions.  This example also demonstrates that the choices are translatable.  
+	 -->  
+<variable name="String4">
+	<label>String with optional choices</label>
+	<abstract>String with a list of optional, translatable choices.</abstract>
+	<description>What is your favorite color?  Some suggestions are provided, but you are not required to select any of them.</description>
+	<category>String Variables</category>
+	<string>
+		<!-- An example of translatable choice or default values -->
+		<choice bundle="myBundle" bundleKey="S03String1Color1">red</choice>
+		<choice bundle="myBundle" bundleKey="S03String1Color2">green</choice>
+		<choice bundle="myBundle" bundleKey="S03String1Color3">yellow</choice>
+		<choice bundle="myBundle" bundleKey="S03String1Color4">blue</choice>
+		<default bundle="myBundle" bundleKey="S03String1Color2">green</default>
+	</string>
+</variable>
+ 
+<!-- Here is a string with length restrictions.  --> 
+<variable name="String5">
+	<label>String with length constraints.</label>
+	<abstract>String with a minimum and maximum length.</abstract>
+	<description>In this sample, you must enter a string of between 5 and 15 characters, inclusive.</description>
+	<category>String Variables</category>
+	<string>
+		<minLength>5</minLength>
+		<maxLength>15</maxLength>
+	</string>
+</variable>
+ 
+<!-- Here is a string with all of the following: A minimum and maximum length, a list of choices,
+	 and a default value. The default and all choices must adhere to the minimum and maximum.    -->
+<variable name="String6">
+	<label>String with choices</label>
+	<abstract>String with a list of choices, a default, and a minimum and maximum length.</abstract>
+	<description>All possible values must adhere to the minimum and maximum length.</description>
+	<category>String Variables</category>
+	<!-- The minimum and maximum are enforced on the default value and the choices when the
+	     XML is loaded into the Workflow task.
+		 -->
+	<string>
+		<minLength>8</minLength>
+		<maxLength>20</maxLength>
+		<choice>SYS1.SAMPLIB</choice>
+		<choice>SYS1.LINKLIB</choice>
+		<choice>SYS1.LPALIB</choice>
+		<default>SYS1.LPALIB</default>
+	</string>
+</variable>
+ 
+<!--	Here is a string that contains a regular expression. If you need to be even 
+        more specific about valid values, you can write your own JavaScript regular
+		expression. The regular expression must include any length constraints that  
+		you want to enforce. When providing your own regular expression, you can 
+		also specify a (translatable) error message to be displayed, instead of the 
+		default widget message as the user types in a value that violates your regexp. 
+		
+		Note that several built-in validation types are provided. These are demonstrated 
+		further below.
+		--> 
+ 
+<variable name="String7">
+	<label>String with a regular expression.</label>
+	<abstract>String constrained by a regular expression (regexp).</abstract>
+	<description>You can enter basic text here. This field accepts upper- and lowercase characters, spaces, periods, commas, exclamation points, question marks, and apostrophes, but nothing else. You can specify up to 20 characters.
+	</description>
+	<category>String Variables</category>
+	<string>
+		<regularExpression>[a-zA-Z .,!?']{1,20}</regularExpression>		
+		<errorMessage bundle="myBundle" bundleKey="S03String7ErrMsg">Invalid string</errorMessage>	
+	</string>
+</variable>
+ 
+<!-- Here is a string with all of the following: A minimum and maximum length, a list of choices, 
+     a regexp, and a default value. The default value and all choices must adhere to the minimum 
+	 and maximum, as well as to the regular expression.                                                
+	 -->
+<variable name="String8">
+	<label>String with regular expression, a default, and choices.</label>
+	<abstract>String with a list of choices, a default, and a regular expression.</abstract>
+	<description>All possible values must adhere to the regular expression, which enforces a 1-10 character alphanumeric string (no special characters).</description>
+	<category>String Variables</category>
+	<!-- The regular expression is enforced against the default value and the choices when the
+	     XML is loaded into the Workflow task. 
+		 -->
+	<string>
+		<regularExpression>[a-zA-Z0-9]{1,10}</regularExpression>
+		<choice>abc</choice>
+		<choice>DEF</choice>
+		<choice>I</choice>
+		<choice>0123456789</choice>
+		<default>ABC123def</default>
+	</string>
+</variable>
+ 
+<!-- Here is a string that specifies that a larger text box is to be displayed.  --> 
+<variable name="String9">
+	<label>Multi-line string.</label>
+	<abstract>Longer, multi-line string.</abstract>
+	<description>Here, you have space to enter more a meaningful description, up to 100 characters.</description>
+	<category>String Variables</category>
+	<string multiLine="true">
+		<regularExpression>[a-zA-Z .,!?']{1,100}</regularExpression>
+		<errorMessage>String is not valid</errorMessage>
+	</string>
+</variable>
+ 
+ 
+<!--  An example of specifying numeric variables. Here is an integer variable. -->
+<variable name="Integer1">
+	<label>Integer</label>
+	<abstract>Integer variable.</abstract>
+	<description>This is an integer variable.</description>
+	<category>Numeric Variables</category>
+	<integer/>
+</variable>
+ 
+<!-- Here is an integer with a default value specified. -->
+<variable name="Integer2">
+	<label>Integer with default</label>
+	<abstract>Integer with a default value.</abstract>
+	<description>This field is primed with the default value specified in the XML.</description>
+	<category>Numeric Variables</category>
+	<!-- The text box is primed with the default value. -->
+	<integer>
+		<default>-22</default>
+	</integer>
+</variable>
+ 
+<!--  Integers can have a minimum, maximum, and default value. -->
+<variable name="Integer3">
+	<label>Integer</label>
+	<abstract>Integer with a minimum and maximum value.</abstract>
+	<description>An integer between -50 and 50.</description>
+	<category>Numeric Variables</category>
+	<integer>
+		<minValue>-50</minValue>
+		<maxValue>50</maxValue> 
+		<default>0</default>
+	</integer>
+</variable>
+ 
+<!--  Here is a decimal number, where you specify the number of decimal places allowed. -->
+<variable name="Decimal1">
+	<label>Decimal</label>
+	<abstract>Decimal variable, with up to three decimal places.</abstract>
+	<description>Enter a decimal value with up to three decimal places. If you enter more than three, the value is considered invalid.</description>
+	<category>Numeric Variables</category>
+	<decimal decimalPlaces="3"/>
+</variable>
+ 
+<!-- Here is a decimal with a default value specified. -->
+<variable name="Decimal2">
+	<label>Decimal with default</label>
+	<abstract>Decimal with a default value.</abstract>
+	<description>This field is primed with the default value specified in the XML. The number of decimal places	defaults to one.
+	</description>
+	<category>Numeric Variables</category>
+	<!-- The default value for decimalPlaces is one. -->
+	<decimal>
+		<default>-22</default>
+	</decimal>
+</variable>
+ 
+<!--  Decimals can have a minimum, maximum, and default value. -->
+<variable name="Decimal3">
+	<label>Decimal</label>
+	<abstract>Decimal with a minimum and maximum value.</abstract>
+	<description>A number between 3.333 and 9.999.</description>
+	<category>Numeric Variables</category>
+	<decimal decimalPlaces="3">
+		<minValue>3.333</minValue>
+		<maxValue>9.999</maxValue>
+		<default>6.666</default>
+	</decimal>
+</variable>
+ 
+<!--  A basic time variable. -->
+<variable name="Time1">
+	<label>Time</label>
+	<abstract>Time variable.</abstract>
+	<description>Time in UTC format. For example "12:00:00".</description>
+	<category>Times and dates</category>
+	<time/>
+</variable>
+ 
+<!-- A time variable with a minimum, maximum, and default value.  Also demonstrated 
+     is the use of HTML in the description.  
+-->
+<variable name="Time2">
+	<label>Time with criteria</label>
+	<abstract>Time-of-day with a minimum, maximum, and default.</abstract>
+	<description>Time can have: 
+		<ul>
+			<li>A minimum value</li>
+			<li>A maximum value</li>
+			<li>A default value</li>
+		</ul>
+		<br/>
+	</description>
+	<category>Times and dates</category>
+	<time>
+		<minValue>01:00:00</minValue>
+		<maxValue>05:00:00</maxValue>
+		<default>01:00:00</default>
+	</time>
+</variable>
+ 
+<!--  A basic date variable. -->
+<variable name="Date1">
+	<label>Date</label>
+	<abstract>Date variable.</abstract>
+	<description>Date in UTC format.  For example "2013-03-12".</description>
+	<category>Times and dates</category>
+	<date/>
+</variable>
+ 
+<!-- A date variable with a minimum, maximum, and default value. -->
+<variable name="Date2">
+	<label>Date with criteria</label>
+	<abstract>Date with a minimum, maximum, and default.</abstract>
+	<description>A dates can have a minimum, maximum, and default. Notice how the widget crosses-out the dates that are out of range.
+	</description>
+	<category>Times and dates</category>
+	<date>
+		<minValue>2013-01-01</minValue>
+		<maxValue>2013-06-30</maxValue>
+		<default>2013-03-01</default>
+	</date>
+</variable>
+ 
+ 
+<!-- This group of variables demonstrates validation types -->
+ 
+<variable name="Char1">
+	<label>ALPHA</label>
+	<abstract>Alphabetic characters with special characters.</abstract>
+	<description>A validation type of ALPHA allows upper- and lowercase letters, and special characters (@, #, $).
+	</description>
+	<category>Allowable characters</category>
+	<string>
+		<validationType>ALPHA</validationType>
+	</string>
+</variable>
+ 
+<variable name="Char2">
+	<label>ALPHAB</label>
+	<abstract>Alphabetic characters only.</abstract>
+	<description>A validation type of ALPHAB allows upper- and lowercase letters.</description>
+	<category>Allowable characters</category>
+	<string>
+		<validationType>ALPHAB</validationType>
+	</string>
+</variable>
+ 
+<variable name="Char3">
+	<label>ALPHANUM</label>
+	<abstract>Alphanumeric characters.</abstract>
+	<description>A validation type of ALPHANUM allows upper- and lowercase letters, numerics, and special characters.
+	</description>
+	<category>Allowable characters</category>
+	<string>
+		<validationType>ALPHANUM</validationType>
+	</string>
+</variable>
+ 
+<variable name="Char4">
+	<label>BIT</label>
+	<abstract>Bit string.</abstract>
+	<description>A validation type of BIT allows only ones and zeros.
+	</description>
+	<category>Allowable characters</category>
+	<string>
+		<validationType>BIT</validationType>
+	</string>
+</variable>
+ 
+<variable name="Char5">
+	<label>HEX</label>
+	<abstract>Hexadecimal number.</abstract>
+	<description>A validation type of HEX allows a-f, A-F, and 0-9.
+	</description>
+	<category>Allowable characters</category>
+	<string>
+		<validationType>HEX</validationType>
+	</string>
+</variable>
+ 
+<variable name="Ds1">
+	<label>DSMEMBERNAME</label>
+	<abstract>Data set member name.</abstract>
+	<description>A validation type of DSMEMBERNAME allows for 1-8 alphanumeric (uppercase only) characters,	including special characters and "{". 
+	However, the name must start with a letter or special character.
+	</description>
+	<category>Data set related</category>
+	<string>
+		<validationType>DSMEMBERNAME</validationType>
+	</string>
+</variable>
+ 
+<variable name="Ds2">
+	<label>DSNAME</label>
+	<abstract>Data set name.</abstract>
+	<description>A validation type of DSNAME allows a maximum of 44 alphanumeric (uppercase only) characters, including the special characters, and "-". 
+		However, the name must start with a letter or special character.  
+		The name consists of 1-8 character qualifiers, separated by a period.
+	</description>
+	<category>Data set related</category>
+	<string>
+		<validationType>DSNAME</validationType>
+	</string>
+</variable>
+ 
+<variable name="Ds3">
+	<label>DSQUAL</label>
+	<abstract>Data set qualifier.</abstract>
+	<description>A validation type of DSQUAL allows for 1-8 alphanumeric (uppercase only) characters, including the special characters, and "-". 
+	However, the name must start with a letter or special character.
+	</description>
+	<category>Data set related</category>
+	<string>
+		<validationType>DSQUAL</validationType>
+	</string>
+</variable>
+ 
+<variable name="Ds4">
+	<label>VOLSER</label>
+	<abstract>Volume serial.</abstract>
+	<description>A validation type of VOLSER allows for 1-6 alphanumeric (uppercase only) characters.
+	</description>
+	<category>Data set related</category>
+	<string>
+		<validationType>VOLSER</validationType>
+	</string>
+</variable>
+ 
+<variable name="Id1">
+	<label>GROUP</label>
+	<abstract>SAF group name.</abstract>
+	<description>A validation type of GROUP allows for 1-8 alphanumeric (uppercase only) characters, including the special characters. 
+	However, the name must start with a letter or special character.
+	</description>
+	<category>Identity related</category>
+	<string>
+		<validationType>GROUP</validationType>
+	</string>
+</variable>
+ 
+<variable name="Id2">
+	<label>TSOUSERID</label>
+	<abstract>TSO/E user ID</abstract>
+	<description>A validation type of TSOUSERID is similar to USERID, except the maximum length is 7, and it cannot start with a number.
+	</description>
+	<category>Identity related</category>
+	<string>
+		<validationType>TSOUSERID</validationType>
+	</string>
+</variable>
+ 
+<!-- UNIXID is a string representation of an integer.
+	 As such, you can provide choices, as needed. -->
+<variable name="Id3">
+	<label>UNIXID</label>
+	<abstract>z/OS UNIX UID or GID</abstract>
+	<description>A validation type of UNIXID is an integer between 0 and 2147483647, inclusive.
+	</description>
+	<category>Identity related</category>
+	<string>
+		<validationType>UNIXID</validationType>
+		<choice>1000</choice>
+		<choice>2000</choice>
+		<choice>3000</choice>
+		<default>4000</default>
+	</string>
+</variable>
+ 
+<variable name="Id4">
+	<label>USERID</label>
+	<abstract>SAF user ID.</abstract>
+	<description>A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters.
+	</description>
+	<category>Identity related</category>
+	<string>
+		<validationType>USERID</validationType>
+	</string>
+</variable>
+ 
+ 
+<variable name="Net1">
+	<label>IPADDR4</label>
+	<abstract>IPV4 address.</abstract>
+	<description>A validation type of IPADDR4 allows a valid IPV4 address. See the Internet Protocol RFC for details.
+	</description>
+	<category>Network</category>
+	<string>
+		<validationType>IPADDR4</validationType>
+	</string>
+</variable>
+ 
+<variable name="Net2">
+	<label>IPADDR6</label>
+	<abstract>IPV6 address.</abstract>
+	<description>A validation type of IPADDR6 allows a valid IPV6 address. See the Internet Protocol RFC for details.
+	</description>
+	<category>Network</category>
+	<string>
+		<validationType>IPADDR6</validationType>
+	</string>
+</variable>
+ 
+<variable name="Net3">
+	<label>IPADDR</label>
+	<abstract>IP address (V4 or V6).</abstract>
+	<description>A validation type of IPADDR allows a valid IPV4 or IPV6 address. See the Internet Protocol RFC for details.  
+	</description>
+	<category>Network</category>
+	<string>
+		<validationType>IPADDR</validationType>
+	</string>
+</variable>
+ 
+<!-- 
+	 Here, we define steps which reference variables, thus causing the Workflows task
+	 to prompt the user for their values.  The purpose of these steps is to prompt
+	 for variables.  However, the steps could do other things like display instructions
+	 where variables are substituted into the text, or use a wizard to guide a user through
+	 submitting a job or script, in which variable substitution might also occur.  Those 
+	 features are demonstrated in the sample workflow in workflow_sample_wizards.xml.  
+	 
+	 The categorization of the variables in their definitions determines how they are grouped.  
+	 However, the variable reference within a step can specify some additional behaviors.	 
+	 
+	 It can specify whether the variable is required in this step. If so, the widget is 
+	 displayed more prominenntly, and the user is not allowed to finish the step without 
+	 providing a value. 
+	 
+	 In addition, the step can indicate to prompt in a read-only view if the variable 
+	 already has a value.  The value could have been entered in a previous step, or even 
+	 in a separate workflow if its scope is global.	 
+-->
+<step name="VariableTypes" >
+        <title>Demonstrate input variables of various types</title>     
+        <description>In this step, you enter a variety of variables.
+		<br/>
+		This step demonstrates the various features of variables, including: 
+        	<ul>
+        		<li>Booleans</li>
+        		<li>Strings</li>
+        		<li>Integers</li>
+        		<li>Decimals</li>
+        		<li>Times</li>
+        		<li>Dates</li>
+        	</ul>
+        	The sample workflow in workflow_sample_wizards.xml demonstrates how variables can be used to substitute values into instructions and templates. 
+        </description>
+        <variableValue name="Boolean1" scope="global"/>
+        
+        <variableValue name="String1"/>
+        <variableValue name="String2" required="true"/> <!-- Note how a required variable is presented -->
+        <variableValue name="String3"/>
+        <variableValue name="String4"/>
+        <variableValue name="String5"/>
+        <variableValue name="String6"/>
+        <variableValue name="String7"/>
+        <variableValue name="String8"/>
+        <variableValue name="String9"/>
+        
+        <variableValue name="Integer1"/>
+        <variableValue name="Integer2"/>
+        <variableValue name="Integer3"/>
+        <variableValue name="Decimal1"/>
+        <variableValue name="Decimal2"/>
+        <variableValue name="Decimal3"/>
+ 
+		<variableValue name="Time1"/>
+        <variableValue name="Time2"/>
+        <variableValue name="Date1"/>
+        <variableValue name="Date2"/>
+ 
+        <instructions>This step demonstrates how variables can be used to substitute values into instructions and templates.
+		<br/> 
+		This step includes several types of variables, including:<br/>
+        	<strong>Booleans</strong><br/>
+        	<strong>Strings</strong><br/>
+        	<strong>Integers</strong><br/>
+        	<strong>Decimals</strong><br/>
+        	<strong>Times</strong><br/>
+        	<strong>Dates</strong>
+        </instructions>
+		<weight>1</weight>
+		<skills>Operator</skills>
+</step>
+ 
+<step name="validationTypes" >
+        <title>Demonstrate the pre-defined string types</title>     
+        <description>Experiment by entering values for each of the validation types.
+        </description>
+        <variableValue name="Char1"/>
+        <variableValue name="Char2"/>
+        <variableValue name="Char3"/>
+        <variableValue name="Char4"/>
+        <variableValue name="Char5"/>
+        
+        <variableValue name="Ds1"/>
+        <variableValue name="Ds2"/>
+        <variableValue name="Ds3"/>
+        <variableValue name="Ds4"/>
+        
+        <variableValue name="Id1"/>
+        <variableValue name="Id2"/>
+        <variableValue name="Id3"/>
+        <variableValue name="Id4"/>
+        
+        <variableValue name="Net1"/>
+        <variableValue name="Net2"/>
+        <variableValue name="Net3"/>
+        
+        <instructions>This step demonstrates how a validationType attribute is used for a variable validation.
+		<br/>
+		Four categories are used in this step:<br/>
+        	<strong>Allowable characters</strong><br/>
+        	<strong>Data set related</strong><br/>
+        	<strong>Identity related</strong><br/>
+        	<strong>Network</strong>
+        </instructions>
+		<weight>1</weight>
+		<skills>Operator</skills>
+</step>
+ 
+<!-- Adding an optional step. -->
+<step name="npis" optional="true">
+        <title>Demonstrate the noPromptIfSet attribute</title>     
+        <description>Notice how a variable widget is displayed, based on whether it already has a value. If you assigned the variable a value in the first step (or if you had previously assigned it a value while performing <em>this</em> step), the variable is displayed in a read-only widget. You can override the value by clicking on the information icon.	
+        </description>
+        <!-- The following variable was also referenced in the first step.  If you performed 
+ 			 that step, and assigned a value to the String1 variable, a read-only widget is 
+			 displayed for it in this step.  
+			 -->
+        <variableValue name="String1" noPromptIfSet="true"/>
+        <instructions>This step shows how a variable is displayed, based on whether it already has a value. If you assigned it a value in the first step (or if you had previously assigned it a value while performing <em>this</em> step), the variable is displayed in a read-only widget. You can override the value by clicking on the information icon.
+        <br/><br/>
+		The sample workflow in workflow_sample_wizards.xml shows how variables can be used to substitute values into instructions and templates. 
+        </instructions>
+ 		  
+		<weight>1</weight>
+		<skills>Operator</skills>
+</step>
+ 
+</workflow>
