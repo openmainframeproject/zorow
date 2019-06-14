@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-#************************************************************************
-Copyright Contributors to the zOS-Workflow Project.
-SPDX-License-Identifier: Apache-2.0
-
-#*************************************************************************
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
 -->
 
 <workflow>
