@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
+<workflow>
+    <workflowInfo>
+        <workflowID>workflow.sample.dataset</workflowID>
+		<workflowDefaultName>Sample workflow to manipulate data sets</workflowDefaultName>
+        <workflowDescription>Sample that demonstrates working with a dataset and gether feedback for a step.</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM</vendor>
+        <Configuration>
+            <productID>ABC123</productID>
+            <productName>Product ABC</productName>
+            <productVersion>Version 1</productVersion>
+        </Configuration>
+    </workflowInfo>
+    
+	<!-- Declare a set of variables -->
+	<variable name="dataSetName">
+		<label>Data set name</label>
+		<abstract>The name of a z/OS data set that going to be used.</abstract>
+		<description>The data set (dataSetName) to be used for saving the generated JCL.</description>
+		<category/>
+		<!-- The default value is "IBMUSER.IZUDSAPI.DEMODS". --> 
+		<string>
+			<validationType>DSNAME</validationType>
+			<default>IBMUSER.IZUDSAPI.DEMODS</default>
+		</string>
+	</variable>
+	
+    <feedbackItem name="Feeling">
+        <question>What did you like about this step? (Select all that apply)</question>
+        <answers>
+            <multipleSelect hasOtherAnswer="true">
+                <label value="simple">Ease of use</label>
+                <label value="info">Instructions were helpful</label>
+                <label value="useful">Performed a useful function</label>
+                <label value="quick">Ran quickly</label>
+            </multipleSelect>
+        </answers>
+    </feedbackItem>
+    <feedbackItem name="Difficulty">
+        <question>How difficult was performing the create data set action? (Select one)</question>
+        <answers>
+            <singleSelect hasOtherAnswer="true">
+                <lable value="Easier than expected">Easier than expected</lable>
+                <lable value="More difficult than expected">More difficult than expected</lable>
+                <lable value="About what was expected">About what was expected</lable>
+            </singleSelect>
+        </answers>
+    </feedbackItem>
+    <feedbackItem name="Suggestion">
+        <question>Provide a suggestion for improving this step.</question>
+        <answers>
+            <text></text>
+        </answers>
+    </feedbackItem>
+    
+	<step name="createDS" optional="false">
+		<title>Create a data set</title>
+		<description>In this step, you define the data set name, and use the name to create a data set via the z/OS data REST interface.</description>
+		<variableValue name="dataSetName" required="true"/>
+		<feedback name="Feeling" required="true"/>
+		<feedback name="Difficulty" required="true"/>
+		<feedback name="Suggestion"/>
+		<instructions substitution="true">In this example step, you can create a data set via the z/OS data REST interface.<br/>
+		You use predefined settings as request body, if the status code of the response is <b>201</b>, it means the data set 
+		<b>${instance-dataSetName}</b> is created successfully.
+		</instructions>
+		<weight>3</weight>
+		<skills>z/OS data REST interface</skills>
+		<autoEnable>true</autoEnable>
+		<canMarkAsFailed>false</canMarkAsFailed>
+		<rest>
+			<httpMethod>POST</httpMethod>
+			<uriPath substitution="true">/zosmf/restfiles/ds/${instance-dataSetName}</uriPath>
+			<requestBody substitution="false">{
+				&quot;unit&quot;:&quot;SYSALLDA&quot;,
+				&quot;dsorg&quot;:&quot;PS&quot;,
+				&quot;alcunit&quot;:&quot;TRK&quot;,
+				&quot;primary&quot;:20,
+				&quot;secondary&quot;:10,
+				&quot;avgblk&quot;:500,
+				&quot;recfm&quot;:&quot;FB&quot;,
+				&quot;blksize&quot;:510,
+				&quot;lrecl&quot;:255
+				}
+			</requestBody>
+			<expectedStatusCode>201</expectedStatusCode>
+		</rest>
+	</step>
+	<step name="saveDSContent" optional="false">
+		<title>Submit a JCL job and save the content in the data set</title>
+		<description>
+		This step involves submitting a JCL job. 
+		</description>
+		<prereqStep name="createDS"/>
+		<instructions substitution="true">In this example step, you submit a JCL job.<br/>
+	You will have the option to save a copy of the JCL in the data set <b>${instance-dataSetName}</b> <em>after</em> 
+	you have reviewed it for your approval.</instructions>
+		<weight>3</weight>
+		<skills>Basic JCL</skills>
+		<autoEnable>true</autoEnable>
+		<canMarkAsFailed>false</canMarkAsFailed>
+		<template> 
+			<inlineTemplate substitution="false">//IZUWFJOB JOB
+/*  rexx  */
+<![CDATA[ 
+TM = TIME('S')
+I = TM
+DO WHILE I < (TM + 5)
+I = TIME('S')
+END 
+SAY 'Welcome to z/OSMF Workflows.'
+]]>
+			</inlineTemplate>
+		<submitAs>TSO-REXX-JCL</submitAs>
+		<saveAsDataset substitution="true">${instance-dataSetName}</saveAsDataset>
+		</template>
+	</step>
+	<step name="getDSContent" optional="false">
+		<title>Retrieve the contents of the z/OS data set</title>
+		<description>
+		In this step, you retrieve the contents of a data set via the z/OS data REST interface.
+		</description>
+		<prereqStep name="saveDSContent"/>
+		<instructions substitution="true">In this example step, you can retrieve the contents of the data set <b>${instance-dataSetName}</b> via the z/OS data REST interface.<br/>
+		If the status code of the response is <b>200</b>, it means you get the contents of the data set <b>${instance-dataSetName}</b> successfully.
+		</instructions>
+		<weight>2</weight>
+		<skills>z/OS data REST interface</skills>
+		<autoEnable>true</autoEnable>
+		<canMarkAsFailed>false</canMarkAsFailed>
+		<rest>
+			<httpMethod>GET</httpMethod>
+			<uriPath substitution="true">/zosmf/restfiles/ds/${instance-dataSetName}</uriPath>
+			<expectedStatusCode>200</expectedStatusCode>
+		</rest>
+	</step>
+	<step name="deleteDS" optional="false">
+		<title>Delete the data set</title>
+		<description>
+		In this step, you delete the data set via the z/OS data REST interface.
+		</description>
+		<prereqStep name="getDSContent"/>
+		<instructions substitution="true">In this example step, you can delete the data set <b>${instance-dataSetName}</b> via the z/OS data REST interface.<br/>
+		If the status code of the response is <b>204</b>, it means you delete the data set <b>${instance-dataSetName}</b> successfully.
+		</instructions>
+		<weight>1</weight>
+		<skills>z/OS data REST interface</skills>
+		<autoEnable>true</autoEnable>
+		<canMarkAsFailed>false</canMarkAsFailed>
+		<rest>
+			<httpMethod>DELETE</httpMethod>
+			<uriPath substitution="true">/zosmf/restfiles/ds/${instance-dataSetName}</uriPath>
+			<expectedStatusCode>204</expectedStatusCode>
+		</rest>
+	</step>
+</workflow>
