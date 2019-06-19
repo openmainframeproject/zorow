@@ -317,7 +317,7 @@ id $instance-st_user
 		-->
 		<!--
 			In the workflowNotes section, if the defaultChecked is true, the UI will display the 
-			workflow notes check box which checked status.
+			workflow notes check box checked.
 		 -->
 		<workflowNotes defaultChecked = "true"/>		
 		<upgradeNotes>Upgrade from version 2.0 to 2.0, cancel the version 2.0</upgradeNotes>
