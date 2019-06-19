@@ -86,7 +86,7 @@
 		As the element calledWorkflowDefinitionFile is NOT specified in this step, user has to input their own valid definition file path when prompt for user to create the called workflow instance.
 		The element calledWorkflowID is specified to indicate that the called workflow instance should has the same workflowID in its definition file.
 		Here the called workflow will be workflow_sample_calledwfBasic.xml.
-		If a instance with the specified calledWorkflowID already exist, workflow will directly open this instance when user start perform it, if the instance does not exist or multiple instances
+		If a instance with the specified calledWorkflowID already exists, workflow will directly open this instance when user start perform it, if the instance does not exist or multiple instances
 		with the calledWorkflowID exist, a dialog will pop up for user to create a new called workflow instance.
 	 -->
 <step name="simpleWf2wf">
