@@ -181,7 +181,7 @@
 	<title>Check Variable from Called Workflow</title>
 	<description>This is a simple step to display the value of variable st_user in the current calling workflow.</description>
 	<variableValue name="st_user"/>
-	<instructions>In this step, user can check if the value of variable st_user is successfully transferred from the called workflow in previous step.</instructions>
+	<instructions>In this step, the user can check if the value of variable st_user has been successfully transferred from the called workflow in previous step.</instructions>
 	<weight>1</weight>
 	<skills>System Programmer</skills>
 </step>
