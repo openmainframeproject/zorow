@@ -21,7 +21,7 @@
                           xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd"> 
                           
 <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
-	 This is a sample called workflow that will be referred in workflow_sample_wf2wf.xml to demonstrate variable mapping
+	 This is a sample called workflow that will be referred in workflow_sample_wf2wf.xml to demonstrate the variable mapping
 	 feature from calling workflow to called workflow.
 	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
 -->                             
