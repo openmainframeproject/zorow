@@ -32,7 +32,7 @@
          In a parallel-steps workflow, the failure of an automated step does 
          not stop automation processing for the other automated steps. 
          Processing continues until all of the automated steps are completed 
-         or failed, or the user stops automation processing by using the 
+        or failed. The user can also stop automation processing by using the 
          Stop Automation action on the Workflows page.
  
          In the Workflows task, the user starts a parallel-steps workflow 
