@@ -220,7 +220,9 @@ echo st_user USER001 >> $_output
 echo date 2018-02-05 >> $_output
 		</inlineTemplate>
 		<submitAs maxRc="0">shell-JCL</submitAs>
-		<!-- needResolveConflicts=false indicates how potential variable conflicts will be resolved: The workflow will use the variables from the output file. -->
+ <!-- needResolveConflicts indicates how potential variable conflicts will be resolved:
+When equal to false, The workflow will use the variables from the output file without asking the user for input.
+-->
 		<output substitution="true" needResolveConflicts="false">/tmp/${instance-outputFileNameVariable1}</output>
 	</template>
 </step>
