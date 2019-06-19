@@ -108,7 +108,7 @@
 	<variableValue name="String1"/>
 	<variableValue name="String2"/>
 	<variableValue name="sampleString"/>
-	<instructions>User can input some values for the variables in this step, those values can be transfered to the called workflow if they satisfy the mapping rules that user specified in the following step.</instructions>
+	<instructions>The user can input some values for the variables in this step, those values can be transferred to the called workflow if they satisfy the mapping rules that user specified in the following step.</instructions>
 	<weight>1</weight>
 	<skills>System Programmer</skills>
 </step>
