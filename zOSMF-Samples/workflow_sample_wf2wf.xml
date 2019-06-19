@@ -176,7 +176,7 @@
 	<calledWorkflowID>workflow.sample.calledwfVarMapping2</calledWorkflowID>
 	<calledWorkflowVersion>1.0</calledWorkflowVersion>
 </step>
-<!-- User can check if the value of variable st_user is already transferred from the called workflow in the above step varMappingFromCalled2Calling -->
+<!-- User can check if the value of variable st_user has already been transferred from the called workflow in the above step varMappingFromCalled2Calling -->
 <step name="checkVarFromCalled">
 	<title>Check Variable from Called Workflow</title>
 	<description>This is a simple step to display the value of variable st_user in the current calling workflow.</description>
