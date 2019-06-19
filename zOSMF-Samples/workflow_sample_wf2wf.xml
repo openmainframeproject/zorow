@@ -91,7 +91,7 @@
 	 -->
 <step name="simpleWf2wf">
 	<title>A very simple sample of workflow to workflow execution.</title>
-	<description>This is a very simple demo of using workflow to worfklow execution in which only the one mondatory element named calledWorkflowID is specified.</description>
+	<description>This is a very simple demo of using workflow to workflow execution in which only the one mandatory element named calledWorkflowID is specified.</description>
 	<callingStepWeight>2</callingStepWeight>
 	<calledWorkflowDescription>The workflow definition file more likely locates under directory: /usr/lpp/zosmf/samples.</calledWorkflowDescription>
 	<calledWorkflowID>workflow.sample.calledwfBasic</calledWorkflowID>
