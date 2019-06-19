@@ -152,7 +152,7 @@
 </step>
  
 <!-- This step demonstrates the use of variableMapping element for user to transfer variable values from called workflow to calling workflow.
-		The element <variableName> under the element <fromCalledToCalling indicates that when the called workflow become Complete status, 
+		The element <variableName> under the element <fromCalledToCalling> indicates that when the called workflow changes to the "Complete" state, 
 		the variable "userID" in the called workflow will be mapped to the variable "st_user" in the calling workflow, additionally, the variable
 		value will also be set to st_user in the calling workflow when the called workflow become to Complete status.
 		
