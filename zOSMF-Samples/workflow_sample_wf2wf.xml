@@ -97,7 +97,7 @@
 	<calledWorkflowID>workflow.sample.calledwfBasic</calledWorkflowID>
 </step>
  
-<!-- This step is used for user to input below variable values some of which will be used to transfer to the following called workflow:
+<!-- This step is used for the user to input the following variable values. Some of which will transfered to called workflow:
 		String1
 		String2
 		sampleString
