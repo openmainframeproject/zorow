@@ -158,7 +158,7 @@
 id $instance-st_user
 			</inlineTemplate>
        		<submitAs>shell-JCL</submitAs>
-       		<!-- When user save unix file more than once, the previous file will be overridden by default during automation. -->
+       		<!-- When a user saves a Unix file more than once, the previous file will be overridden by default during automation. -->
        		<saveAsUnixFile substitution="true">/u/${instance-st_user}/myScript.sh</saveAsUnixFile>
        	</template>
 </step>
