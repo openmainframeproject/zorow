@@ -62,7 +62,7 @@
 	<skills>System Programmer</skills>
 </step>
  
-<!-- This step contains only instructions for user to know what should do in this step. -->
+<!-- This step only contains an instructions element to inform a user what should be done for this step. -->
 <step name="installProductA" >
         <title>Install Product A</title>
         <description>This step tells user some instructions about installing product A.</description>
