@@ -124,7 +124,7 @@
 		
 		Note: When a user specifies the XML definition and creates the called workflow successfully, the variables that meet the mapping rules will be transferred
 		from the calling workflow to the called workflow only once, that means, no matter how many times the user perform the calling step in future, those 
-		variable values will not be transferred any more. But if user decide to change the existing called workflow, this will be treated as creating a new called
+		variable values will not be updated. But if user decide to change the existing called workflow, this will be treated as creating a new called
 		workflow, so the mapped variables will be transferred again in this case.
  -->
 <step name="varMappingFromCalling2Called">
