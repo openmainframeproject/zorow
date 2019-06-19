@@ -27,10 +27,10 @@
  
 <!--
 	The following section contains the workflow meta-data. It is a general
-	type workflow. The description is used as the basis for a default
-	workflow name when the file is imported into the workflow application.
-	The workflow name can be modified by the user during the import operation.
--->	 
+	type workflow. The description is used as the basic for a default
+	workflow name when create a workflow instance with this file.
+	The workflow name can be modified by the user during creating a workflow instance.
+--> 
 <workflowInfo>
 	<workflowID>simpleSample</workflowID>
 	<workflowDefaultName>Default Workflow Name</workflowDefaultName>
