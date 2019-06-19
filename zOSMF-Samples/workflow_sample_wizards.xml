@@ -146,7 +146,7 @@
         <variableValue name="hlq"/>
 		<instructions substitution="false">In this example step, you enter a RACF command through a JCL job.
 		<br/>
-		You will have the option to save a copy of the JCL <em>after</em> you have reviewed it for your approval.</instructions>
+		You will have the option to save a copy of the JCL <em>after</em> you have reviewed it.</instructions>
         <weight>10</weight>
         <skills>System Programmer</skills>
         <template> 
