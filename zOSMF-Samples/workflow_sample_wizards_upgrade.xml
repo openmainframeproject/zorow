@@ -296,7 +296,7 @@ id $instance-st_user
 		   In the workflowNotes section, nothing is provided, so not checked it
 		-->
 		
-		<upgradeNotes>Upgrade from version 1.0 to 2.0 and not cancel version 1.0</upgradeNotes>
+		<upgradeNotes>Upgrade from version 1.0 to 2.0 and do not cancel version 1.0</upgradeNotes>
 	</version>
 	<!-- The type is set to "replace" in this version section to indicate  cancelling the old version 2.0 instance after upgrade successfully. -->
 	<version value="2.0" type="replace">
