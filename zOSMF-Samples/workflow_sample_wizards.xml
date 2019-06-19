@@ -111,7 +111,7 @@
 	<abstract>High-level qualifier.</abstract>
 	<description>The data set high-level qualifier (HLQ) to be used for saving the generated JCL.</description>
 	<category/>
-	<!-- The default value is "General". --> 
+	<!-- The default value for the category element is "General". --> 
 	<string>
 		<validationType>DSQUAL</validationType>
 		<default>SYS1</default>
