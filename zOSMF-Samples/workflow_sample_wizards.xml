@@ -119,7 +119,7 @@
 </variable>
  
 <!-- This is a manual step that demonstrates the use of variable substitution within the 
-     manual instructions. 
+     instructions. 
 	 -->
 <step name="define_user">
         <title>Define the started task user ID using a command</title>
