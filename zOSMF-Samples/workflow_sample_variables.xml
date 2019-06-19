@@ -131,7 +131,7 @@
 	<description>This sample shows a string that is primed with the default value specified in the XML. Note that this variable is designated as required within the step. As such, the variable is displayed somewhat differently than the others.	
 	</description>
 	<category>String Variables</category>
-	<!-- The text box is primed with the default value. -->
+	<!-- The text box in the Workflows task primed with the default value if no other value is provided. -->
 	<string>
 		<default>This is the default value</default>
 	</string>
