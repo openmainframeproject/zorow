@@ -192,7 +192,7 @@
 -->
 <step name="demoMD5">
 	<title>Demo of Using MD5.</title>
-	<description>In this step, a MD5 code is used to indicate the appropriate called workflow.</description>
+	<description>In this step, a MD5 hash is used to indicate the appropriate called workflow.</description>
 	<callingStepWeight>2</callingStepWeight>
 	<callingStepSkills>System Programmer</callingStepSkills>
 	<calledWorkflowDefinitionFile>/usr/lpp/zosmf/samples/workflow_sample_calledwfMD5.xml</calledWorkflowDefinitionFile>
