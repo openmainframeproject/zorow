@@ -54,7 +54,7 @@
 -->
 <step name="inputVariable">
       <title>Input Variable Step</title>
-      <description>User can input variable values in this step to transfer it to calling workflow, or get variable value from the calling workflow.</description>
+      <description>The user can input variable values in this step to transfer it to calling workflow, or get variable value from the calling workflow.</description>
       <variableValue name="userID"/>
       <instructions>This step demonstrates how variables are transferred between calling workflow and called workflow.</instructions>
 	<weight>1</weight>
