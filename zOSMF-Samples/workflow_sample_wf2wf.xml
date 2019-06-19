@@ -104,7 +104,7 @@
  -->
 <step name="prepareVariables" >
 	<title>Prepare Variable Step</title>
-	<description>In this step, you enter some variable values to see if they can be transferred to the called workflow in the following step.</description>
+	<description>In this step, you enter variable values, some of which will be transferred to the called workflow in the following step.</description>
 	<variableValue name="String1"/>
 	<variableValue name="String2"/>
 	<variableValue name="sampleString"/>
