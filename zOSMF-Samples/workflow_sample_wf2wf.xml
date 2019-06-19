@@ -157,7 +157,7 @@
 		value will also be set to st_user in the calling workflow when the called workflow changes to the "Complete" state. 
 		
 		Note: When the called workflow is performed and become Complete status, the variables that meet the mapping rules will be transferred
-		from the called workflow to the calling workflow, this will also happen only once no matter how the status of the called workflow change
+		from the called workflow to the calling workflow, this will also happen only once - even if the state of the called workflow changes later on.
 		later.
 -->
 <step name="varMappingFromCalled2Calling">
