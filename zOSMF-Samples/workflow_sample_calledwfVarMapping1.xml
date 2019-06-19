@@ -77,7 +77,7 @@
 </variable>
  
 <!-- A step for user to input variables and tranfer its value between calling workflow and called workflow.
-		If the variable has already been set a value in the calling workflow, the value will be displayed in this step.
+		If the variable value has already been set in the calling workflow, the value will be displayed in this step.
 -->
 <step name="inputVariable">
       <title>Input Variable Step</title>
