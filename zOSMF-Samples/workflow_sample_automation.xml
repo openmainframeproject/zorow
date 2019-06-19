@@ -105,7 +105,7 @@
 	<step name="subStep2">
 		<title>Second-level step 2</title>
 		<description>This is a second-level step 2.</description>
-		<!-- This step take subStep1_1 as its prerequisite step. -->
+		<!-- This prereqStep element enforces that subStep1_1 must be completed before this step can be run. -->
 		<prereqStep name="subStep1_1"/>
 		<instructions>This step depends on the previous Third-level step.</instructions>
 		<weight>1</weight>
