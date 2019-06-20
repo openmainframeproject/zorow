@@ -58,14 +58,14 @@
 <variable name="demoString">
 	<label>Variable demoString</label>
 	<abstract>Simple variable named demoString.</abstract>
-	<description>This is a simple string variable named demoString whose length exceeds 10 characters.</description>
+	<description>This is a simple string variable named demoString, the variable named "sampleString" which is defined in workflow_sample_wf2wf.xml will pass the value to this variable.</description>
 	<category>Started</category>
 	<string>
 		<default>StringABC</default>
 	</string>
 </variable>
  
-<!-- A step for user to input variables and tranfer its value between calling workflow and called workflow.
+<!-- A step for a user to input variables and tranfer its value between calling workflow and called workflow.
 		If the variable value has already been set in the calling workflow, the value will be displayed in this step.
 -->
 <step name="inputVariable">
