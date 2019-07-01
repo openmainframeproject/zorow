@@ -239,7 +239,7 @@ echo st_user USER002 >> $_output
 echo setting0 global001 >> $_output
 		</inlineTemplate>
 		<submitAs maxRc="0">shell-JCL</submitAs>
-		<!-- needResolveConflicts default is true. The "Input Variables" tab will be enabled for the user to resolve variable conflicts. -->
+		<!-- needResolveConflicts default is true. The automation will stop and the "Input Variables" tab will be enabled for the user to resolve variable conflicts. -->
 		<output substitution="true">/tmp/${instance-outputFileNameVariable2}</output>
 	</template>
 </step>
