@@ -62,15 +62,15 @@
 	<title>Submit empty JCL</title>
 	<description>Submit an empy JCL job using IEFBR14.</description>
 	<variableValue name="st_user"/>
-	<instructions>This is a very simple JCL job submittion test setting1:${global-setting1} using IEFBR14 and nothing will be done here.</instructions>
+	<instructions substitution="true">This is a very simple JCL job submittion test setting1: ${global-setting0} using IEFBR14 and nothing will be done here.</instructions>
 	<weight>1</weight>
 	<skills>System Programmer</skills>
 	<template> 
        		<inlineTemplate substitution="true">/* rexx */
 address "TSO"
-"oget 'WORKFLOW.SAMPLE.OUTPUT(MEMBER)' '$_output'"</inlineTemplate>
+"oget '/usr/lpp/zosmf/samples/workflow_sample_automation_property.txt' '$_output'"</inlineTemplate>
        		<submitAs>TSO-REXX-JCL</submitAs>
-		<output substitution="true" needResolveConflicts="true">/u/lucy/${instance-st_user}</output>
+		<output substitution="true" needResolveConflicts="true">ZOSMF.OUTPUT</output>
        	</template>
 </step>
  
