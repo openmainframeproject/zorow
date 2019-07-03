@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0                                          #
 ################################################################################
 ##
+## This file is refrenced as fileTemplate by workflow_sample_wizards.xml.
+##
 ## This is a velocity comment.  It will not appear in the created file.
 ## In this sample, Settings 1 and 2 are required, and are therefore replaced
 ## here unconditionally.  Setting 3 is optional, and the XML element is 
