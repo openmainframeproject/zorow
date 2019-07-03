@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0                                          #
 ################################################################################
 #
+# This file is refrenced as fileTemplate by workflow_sample_wizards.xml.
+#
 /*  rexx  */
 address "TSO"
 "CONNECT $instance-st_user GROUP($instance-st_group)"
