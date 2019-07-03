@@ -107,8 +107,7 @@
 	</string>
 </variable>
  
-<!-- This is a manual step that demonstrates the use of variable substitution within the 
-     instructions. 
+<!-- This is a manual step that demonstrates the use of variable substitution within the instructions. 
 	 -->
 <step name="define_user">
         <title>Define the started task user ID using a command</title>

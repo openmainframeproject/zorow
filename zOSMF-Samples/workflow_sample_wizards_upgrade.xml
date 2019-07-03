@@ -107,15 +107,14 @@
 	<abstract>High-level qualifier.</abstract>
 	<description>The data set high-level qualifier (HLQ) to be used for saving the generated JCL.</description>
 	<category/>
-	<!-- The default value is "General". --> 
+	<!-- The default value for the category element is "General". --> 
 	<string>
 		<validationType>DSQUAL</validationType>
 		<default>SYS1</default>
 	</string>
 </variable>
  
-<!-- This is a manual step that demonstrates the use of variable substitution within the 
-     manual instructions. 
+<!-- This is a manual step that demonstrates the use of variable substitution within the instructions. 
 	 -->
 <step name="define_user">
         <title>Define the started task user ID using a command</title>
@@ -142,7 +141,7 @@
         <variableValue name="hlq"/>
 		<instructions substitution="false">In this example step, you enter a RACF command through a JCL job.
 		<br/>
-		You will have the option to save a copy of the JCL <em>after</em> you have reviewed it for your approval.</instructions>
+		You will have the option to save a copy of the JCL <em>after</em> you have reviewed it.</instructions>
         <weight>10</weight>
         <skills>System Programmer</skills>
         <template> 
@@ -281,13 +280,10 @@ id $instance-st_user
 			workflow history check box which checked status.
 		 -->	
 		<workflowHistory defaultChecked = "true"/>
-		<!--  
-		   In the workflowNotes section, nothing is provided, so not checked it
-		-->
 		
 		<upgradeNotes>Upgrade from version 1.0 to 2.0 and do not cancel version 1.0</upgradeNotes>
 	</version>
-	<!-- The type is set to "replace" in this version section to indicate  cancelling the old version 2.0 instance after upgrade successfully. -->
+	<!-- The type is set to "replace" in this version section to indicate cancelling the old version 2.0 instance after upgrade successfully. -->
 	<version value="2.0" type="replace">
 		<variableSet defaultChecked="true">
 			<include regExp="\w*"/>			
