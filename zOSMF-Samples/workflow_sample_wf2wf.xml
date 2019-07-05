@@ -186,7 +186,7 @@
 	<callingStepSkills>System Programmer</callingStepSkills>
 	<calledWorkflowDefinitionFile>/usr/lpp/zosmf/samples/workflow_sample_calledwfMD5.xml</calledWorkflowDefinitionFile>
 	<calledWorkflowDescription>The workflow definition file more likely locates under directory: /usr/lpp/zosmf/samples.</calledWorkflowDescription>
-	<calledWorkflowMD5>eac6c7a7223e6ff081ff67925bb1dc66</calledWorkflowMD5>
+	<calledWorkflowMD5>0c098000c494ce55e46c65dc00a3c959</calledWorkflowMD5>
 </step>
  
 </workflow>
