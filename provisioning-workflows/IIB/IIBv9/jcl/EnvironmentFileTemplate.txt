@@ -1,0 +1,224 @@
+# *****************************************************************
+#               IBM Integration Bus                               *
+#                                                                 *
+#  Profile for an integration node.                               *
+#                                                                 *
+# *****************************************************************
+# *****************************************************************
+# 1. Component Settings
+# *****************************************************************
+#
+# 1.1 MQSI_REGISTRY references the component path. Also needed by
+#     commands.
+#     e.g. MQSI_REGISTRY=/mqsi/nodes/MQ01BRK
+#
+# 1.2 MQSI_COMPONENT_NAME is set to the integration node name.
+#     e.g. MQSI_COMPONENT_NAME=MQ01BRK
+#
+# 1.3 MQSI_FILEPATH needed by commands to reference the component
+#     version install path.
+#     e.g. MQSI_FILEPATH=usr/lpp/mqsi/V7R0M0
+#
+# 1.4 MQSI_LILPATH needed by components to find LILs
+#     e.g. MQSI_LILPATH=usr/lpp/mqsi/V7R0M0/lil
+#
+# 1.5 MQSI_SECURITY_PROVIDER_PATH needed by components to find LSLs
+#     e.g. MQSI_SECURITY_PROVIDER_PATH=usr/lpp/mqsi/V7R0M0/SecurityProviders
+#
+# it should be frozen or V9R0M0
+export VBRKR=V9R0M0
+# it should be frzn or v300
+export VFT=v300
+export MQSI_REGISTRY=${instance-IIB_WORK_DIR}
+export MQSI_COMPONENT_NAME=${instance-IIB_BROKER_NAME}
+export MQSI_FILEPATH=/usr/lpp/mqsi/$VBRKR
+export MQSI_LILPATH=$MQSI_FILEPATH/lil
+export MQSI_SECURITY_PROVIDER_PATH=$MQSI_FILEPATH/SecurityProviders
+# *****************************************************************
+# 2. NLS Settings
+# *****************************************************************
+#
+# 2.1 LANG and LC_ALL determine in which locale the component
+#     will run.
+#     e.g. LANG=Ja_JP.IBM-939 and LC_ALL=Ja_JP.IBM-939 for
+#          japanese locale.
+#          LANG=C, LC_ALL=C for US English locale.
+#
+# 2.2 TZ has the timezone setting in which you are located.
+#     e.g. TZ=EST5EDT,M3.2.0/2,M11.1.0/2   for USA Eastern Standard Time
+#          TZ=CET-1CEST,M3.5.0/2,M10.5.0/3 for Central Europe
+#          TZ=GMT0BST,M3.5.0/1,M10.5.0/2   for the UK
+#          Please refer to the IBM Manual
+#          "Unix System Services Command Reference SC28-1892.
+#
+# 2.3 NLSPATH contains the location of the message catalog(s).
+#     (NO NEED TO CHANGE FROM DEFAULT!)
+#
+# 2.4 MQSI_CONSOLE_NLSPATH is used to locate the messages for
+#     the console.
+#     For Japanese or S-Chinese messages, change En_US to
+#     Ja_JP or Zh_CN below. For English messages these can be
+#     displayed in mixed or upper case only. (see MC_MESSAGES)
+#     Note that MQSI_CONSOLE_NLSPATH does not use %L or %N
+#
+export LANG=C
+export LC_ALL=C
+export TZ='CET-01CEST-02,M3.5.0,M10.5.0'
+NLSPATH=$MQSI_FILEPATH/messages/%L/%N
+export NLSPATH=$NLSPATH:/u/${instance-IIB_TIV_USER_LC}/kqi/messages/Langcode
+M_C_N_O=/u/${instance-IIB_TIV_USER_LC}/kqi/messages/Langcode
+MQSI_CONSOLE_NLSPATH=$MQSI_FILEPATH/messages/En_US
+export MQSI_CONSOLE_NLSPATH=$MQSI_CONSOLE_NLSPATH:$M_C_N_O
+# *****************************************************************
+# 3. Automatic Restart Management (ARM) Settings
+# *****************************************************************
+#
+# 3.1 MQSI_USE_ARM specifies whether to use ARM.
+#     e.g. MQSI_USE_ARM=YES for ARM enabled.
+#          MQSI_USE_ARM=NO  for ARM not enabled.
+#
+# 3.2 MQSI_ARM_ELEMENTNAME required if ARM enabled.
+#
+# 3.3 MQSI_ARM_ELEMENTTYPE required if ARM enabled.
+#
+export MQSI_USE_ARM=NO
+export MQSI_ARM_ELEMENTNAME=${instance-IIB_BROKER_NAME}
+export MQSI_ARM_ELEMENTTYPE=
+# *****************************************************************
+# 4. DB2 Settings
+# *****************************************************************
+#
+# 4.1 MQSI_DB2_ALWAYS_PREPARE
+#     (NO NEED TO CHANGE FROM DEFAULT!)
+#
+# 4.2 MQSI_DB2_CONVERSION specifies the DB2 Converter.
+#     (ONLY REQUIRED FOR USER DATABASES)
+#     e.g. MQSI_DB2_CONVERSION=SINGLE
+#                     WBIMB uses a SQL_EBCDIC_SCCSID to determine
+#                     the DB2 converter.
+#                     Note that this setting reflects the current
+#                     WBIMB behavior.
+#          MQSI_DB2_CONVERSION=MIXED
+#                     WBIMB uses SQL_EBCDIC_MCCSID to determine
+#                     the DB2 converter.
+#                     Note that this setting requires that DB2 is
+#                     configured to accept mixed byte data. This
+#                     setting should be used when the customer
+#                     wants data to be stored in the configured
+#                     DB2 EBCDIC mixed byte code page.
+#          MQSI_DB2_CONVERSION=LOCAL
+#                     WBIMB uses localConverter identified by
+#                     LC_ALL/LANG settings. This complies to what
+#                     is done on distributed. This setting
+#                     requires that WBIMB and DB2 are using the same
+#                     codepage, otherwise only WBIMB can read DB2
+#                     data correctly, it gets unreadable for other
+#                     ( non-WBIMB ) applications that want to read
+#                     the data.
+#
+# 4.3 DSNAOINI references the component dsnaoini file.
+#     (NO NEED TO CHANGE FROM DEFAULT!)
+#
+export MQSI_DB2_ALWAYS_PREPARE=NO
+export MQSI_DB2_CONVERSION=UNICODE 
+export DSNAOINI=//\'${instance-ZOSMF_PARMLIB}\(${instance-IIB_DSNAOINI}\)\'
+# *****************************************************************
+# 5. Java Settings
+# *****************************************************************
+#
+# 5.1 JAVAHOME contains the root directory of the JAVA install.
+#     e.g. JAVAHOME=/usr/lpp/java/IBM/J1.7
+#  ${instance-IIB_JAVAHOME}
+export JAVAHOME=${instance-IIB_JAVAHOME} 
+# *****************************************************************
+# 6. IBM Integration Bus Settings
+# *****************************************************************
+#
+# 6.1 _BPX_BATCH_SPAWN
+#     (MUST NOT CHANGE FROM DEFAULT!)
+#
+# 6.2 MQSI_MC_MESSAGES determines if messages should appear in
+#     mixed case or upper case.
+#     e.g. MQSI_MC_MESSAGES=YES for mixed case
+#          MQSI_MC_MESSAGES=NO for upper case
+#
+# 6.3 MQSI_COMMAND_DATABASE_ECHO if defined, mqsi commands
+#     display information when creating DB2 tables/indexes.
+#
+# 6.4 MQSI_COMMAND_ZOS_MQ_ECHO if defined, mqsi commands display
+#     information returned from the MQ command server when
+#     creating/deleting queues.
+#
+# 6.5 MQSI_COMMAND_ZOS_MQ_ECHO_RC if defined, mqsi commands display
+#     reason and return codes from the MQ command server when
+#     creating/deleting queues.
+#
+# 6.6 MQSI_DEPLOY_PROGRESS if defined, shows deployment progress
+#     by the integration server.
+#
+# 6.7 STEPLIB
+#     (MUST NOT CHANGE FROM DEFAULT!)
+#
+# 6.8 MQSI_COMMAND_ZOS_ERROR_RC if defined, mqsi commands return
+#     this value as the return code if an error occurs.
+#
+# 6.9 MQSI_FAD current FAD level.
+#
+export _BPX_BATCH_SPAWN=NO
+export MQSI_MC_MESSAGES=NO
+export MQSI_COMMAND_DATABASE_ECHO=1
+export MQSI_COMMAND_ZOS_MQ_ECHO=1
+export MQSI_COMMAND_ZOS_MQ_ECHO_RC=1
+export MQSI_DEPLOY_PROGRESS=1
+export STEPLIB=SYS3.${instance-IIB_DBSRV_NAME}.SDSNEXIT:SYS3.${instance-IIB_DBSRV_NAME}.SDSNLOAD:SYS3.${instance-IIB_DBSRV_NAME}.SDSNLOD2   
+export MQSI_COMMAND_ZOS_ERROR_RC=16
+export MQSI_FAD=7
+# *****************************************************************
+# 7. Other Settings
+# *****************************************************************
+#
+# NO NEED TO CHANGE FROM DEFAULT!
+# path to MQ: ${instance-IIB_MQ_PATH} 
+CP=${instance-IIB_MQ_PATH}/java/lib/com.ibm.mq.jar
+CP=$CP:${instance-IIB_MQ_PATH}/java/lib/connector.jar
+CP=$CP:${instance-IIB_MQ_PATH}/java/lib/com.ibm.mq.commonservices.jar
+CP=$CP:${instance-IIB_MQ_PATH}/java/lib/com.ibm.mq.headers.jar
+CP=$CP:${instance-IIB_MQ_PATH}/java/lib/com.ibm.mq.jmqi.jar
+CP=$CP:${instance-IIB_MQ_PATH}/java/lib/com.ibm.mq.pcf.jar
+CP=$CP:${instance-IIB_MQ_PATH}/java/lib/com.ibm.mqjms.jar
+CP=$CP:$MQSI_FILEPATH/classes
+CP=$CP:$MQSI_FILEPATH/classes/deploymgr.jar
+CP=$CP:$MQSI_FILEPATH/classes/ConfigManagerProxy.jar
+CP=$CP:$MQSI_FILEPATH/sample/ConfigManagerProxy/ConfigManagerProxySamples.jar
+CP=$CP:$MQSI_FILEPATH/classes/brokerutil.jar
+CP=$CP:$JAVAHOME/lib
+CP=$CP:/usr/lpp/IBM/ftm/$VFT/run/classes
+CP=$CP:/usr/lpp/IBM/ftm/$VFT/run/classes/*
+CP=$CP:$MQSI_FILEPATH/messages
+export CLASSPATH=$CP
+export ICU_DATA=$MQSI_FILEPATH/icudata
+export ICU_PLUGINS=$MQSI_FILEPATH/icudata
+LP=${instance-IIB_MQ_PATH}/java/lib
+LP=$LP:$MQSI_FILEPATH/lib/wbimb
+LP=$LP:$MQSI_FILEPATH/lib
+LP=$LP:$JAVAHOME/lib/s390x
+LP=$LP:$JAVAHOME/lib/s390x/classic
+export LIBPATH=$LP
+MQSI_LILPATH=$MQSI_LILPATH:/usr/lpp/IBM/ftm/$VFT/run/jplugin
+export MQSI_LILPATH=$MQSI_LILPATH:/u/${instance-IIB_TIV_USER_LC}/kqi/lil64
+MIBDIRS=$MQSI_FILEPATH/snmp-mib
+export MIBDIRS
+export PATH=$MQSI_FILEPATH/bin
+export PATH=$PATH:/bin
+export PATH=$PATH:$JAVAHOME/bin
+export KQI_CONFIG_FILE_PATH=/u/${instance-IIB_TIV_USER_LC}/kqi/lil64
+export JAVA_HOME=${instance-IIB_JAVAHOME} 
+export TMPDIR=${instance-IIB_WORK_DIR}/tmp
+export HOME=${instance-IIB_HOME_DIR}
+export MQSI_SMF_NDNM=-1 
+export MQSI_SMF_FLNM=-1 
+RUNOPTS='XPLINK(ON),'                                                               
+RUNOPTS=$RUNOPTS'RPTOPTS(ON),'                                                           
+RUNOPTS=$RUNOPTS'STORAGE(NONE,NONE,NONE,0)'                               
+export _CEE_RUNOPTS=$RUNOPTS       
+export MQSI_FILENODES_MAXIMUM_RECORD_LENGTH=268435456      

@@ -1,0 +1,17 @@
+#the mount, will fail if already mounted, or if mount point does not exist
+#TODO: how to handle mount errors and percolate with /etc/rc?
+#TODO: how to check if already mounted?
+
+    if mount -t ZFS -f SYSTEM.HFS.PLEX.VAR.MQSI.${instance-IIB_BROKER_NAME}
+            /plex/var/mqsi/brokers/${instance-IIB_BROKER_NAME_LC}
+    then # success
+         echo "successfully mounted SYSTEM.HFS.PLEX.VAR.MQSI.${instance-IIB_BROKER_NAME}
+           /plex/var/mqsi/brokers/${instance-IIB_BROKER_NAME_LC}"
+         retval="true"
+    else # failed ? kan ok zijn als ie al gemount is
+         echo "mount failed from /etc/rc !  SYSTEM.HFS.PLEX.VAR.MQSI.${instance-IIB_BROKER_NAME} 
+                   /plex/var/mqsi/brokers/${instance-IIB_BROKER_NAME_LC}"
+         retval="false"
+    fi
+    
+echo $retval
