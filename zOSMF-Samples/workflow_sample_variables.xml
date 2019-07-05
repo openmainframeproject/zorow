@@ -672,7 +672,27 @@
 		<weight>1</weight>
 		<skills>Operator</skills>
 </step>
- 
+
+<!-- This step demonstrates the use of variables without reference with element <variableValue>.
+	When customer only wants to do substitution with variables and do not need to view or edit 
+	them, there is no need to add <variableValue> element for each variable reference.
+ -->
+<step name="varToSubOnly">
+	<title>Demostrate variable substitution only</title>
+	<description>In this step, the variable place-holder will be substituted with the variable value even though no variable reference is provided. 
+		The variable substitution will work properly, the only difference is that user will not be able to view or edit the variable in the step wizard.</description>
+	<prereqStep name="VariableTypes"/>
+	<instructions substitution="true">In this example step, the simple string variable place holder will be substituted by its real time value: ${instance-String2}.</instructions>
+	<weight>1</weight>
+	<skills>Operator</skills>
+	<template>
+       	<inlineTemplate substitution="true"># 'echo' command to display string variable value
+echo Place holder is substituted with ${instance-String2}.
+       	</inlineTemplate>
+		<submitAs>shell-JCL</submitAs>
+	</template>
+</step>
+
 <!-- Adding an optional step. -->
 <step name="npis" optional="true">
         <title>Demonstrate the noPromptIfSet attribute</title>     
