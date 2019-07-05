@@ -57,12 +57,14 @@
 		<default>setting0</default>
 	</string>
 </variable>
- 
+
+<!-- This step is a demo to copy a z/OS UNIX file into an MVS data set. 
+In this sample, dataset "ZOSMF.OUTPUT" is used, the user should create this dataset first or use an existing one.-->  
 <step name="submitEmptyJCL">
 	<title>Submit empty JCL</title>
 	<description>Submit an empy JCL job using IEFBR14.</description>
 	<variableValue name="st_user"/>
-	<instructions substitution="true">This is a very simple JCL job submittion test setting1: ${global-setting0} using IEFBR14 and nothing will be done here.</instructions>
+	<instructions substitution="true">This is a very simple JCL job submittion test setting0: ${global-setting0} using IEFBR14 and nothing will be done here.</instructions>
 	<weight>1</weight>
 	<skills>System Programmer</skills>
 	<template> 
