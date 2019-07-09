@@ -674,7 +674,7 @@
 </step>
 
 <!-- This step demonstrates the use of variables without reference with element <variableValue>.
-	When customer only wants to do substitution with variables and do not need to view or edit 
+	When user only wants to do substitution with variables and do not need to view or edit 
 	them, there is no need to add <variableValue> element for each variable reference.
  -->
 <step name="varToSubOnly">
