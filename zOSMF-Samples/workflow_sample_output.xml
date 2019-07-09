@@ -59,7 +59,7 @@
 </variable>
 
 <!-- This step is a demo to copy a z/OS UNIX file into an MVS data set. 
-In this sample, dataset "ZOSMF.OUTPUT" is used, the user should create this dataset first or use an existing one.-->  
+In this sample, dataset "ZOSMF.OUTPUT" is used in the output element. The user should create this dataset first or change the value of the output element to an existing data set.-->  
 <step name="submitEmptyJCL">
 	<title>Submit empty JCL</title>
 	<description>Submit an empy JCL job using IEFBR14.</description>
