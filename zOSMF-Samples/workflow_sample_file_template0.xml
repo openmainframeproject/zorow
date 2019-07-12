@@ -1,0 +1,18 @@
+################################################################################
+# Copyright Contributors to the zOS-Workflow Project.                          #
+# SPDX-License-Identifier: Apache-2.0                                          #
+################################################################################
+##
+## This file is refrenced as fileTemplate by workflow_sample_wizards.xml.
+##
+## This is a velocity comment.  It will not appear in the created file.
+## In this sample, Settings 1 and 2 are required, and are therefore replaced
+## here unconditionally.  Setting 3 is optional, and the XML element is 
+## created for it only if a value is specified by the user.
+<configFile>
+    <setting1>$instance-setting1</setting1>
+    <setting2>$instance-setting2</setting2>
+#if($instance-setting3)
+    <setting3>$instance-setting3</setting3>
+#end
+</configFile>
