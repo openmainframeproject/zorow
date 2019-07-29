@@ -170,7 +170,7 @@ export MQSI_COMMAND_DATABASE_ECHO=1
 export MQSI_COMMAND_ZOS_MQ_ECHO=1
 export MQSI_COMMAND_ZOS_MQ_ECHO_RC=1
 export MQSI_DEPLOY_PROGRESS=1
-export STEPLIB=SYS3.${instance-IIB_DBSRV_NAME}.SDSNEXIT:SYS3.${instance-IIB_DBSRV_NAME}.SDSNLOAD:SYS3.${instance-IIB_DBSRV_NAME}.SDSNLOD2   
+export STEPLIB=${instance-IIB_DB2_DS_PREFIX}.${instance-IIB_DBSRV_NAME}.SDSNEXIT:${instance-IIB_DB2_DS_PREFIX}.${instance-IIB_DBSRV_NAME}.SDSNLOAD:${instance-IIB_DB2_DS_PREFIX}.${instance-IIB_DBSRV_NAME}.SDSNLOD2   
 export MQSI_COMMAND_ZOS_ERROR_RC=16
 export MQSI_FAD=7
 # *****************************************************************
