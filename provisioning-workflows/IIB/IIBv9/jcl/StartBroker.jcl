@@ -1,24 +1,10 @@
-//GENER   EXEC PGM=IEBGENER
-//SYSPRINT DD SYSOUT=*
-//SYSIN DD *
- GENERATE
- LABELS DATA=ALL
-/*
-//SYSUT1  DD *
- /* REXX */
- RC=ISFCALLS('ON')
- ADDRESS SDSF "ISFEXEC '/S ${instance-IIB_BROKER_NAME}'"
- ISFDELAY="10"
- /* REPLY IS IN STEM ISFULOG. */
-/*
-//SYSUT2  DD  DSNAME=&&DS1(CMD),DISP=(NEW,PASS),
-//       UNIT=SYSDA,SPACE=(TRK,(5,,2))
-//*
-//RDWRJ    EXEC PGM=IKJEFT01
-//SYSPRINT DD SYSOUT=*
-//SYSPROC  DD DISP=SHR,DSN=&&DS1
-//SYSTSPRT DD SYSOUT=*
-//SYSTSIN DD *
- CMD
-/*
-//
+//******************************************************************
+//*                                                                *
+//* Start the IIB Broker                                           *
+//*                                                                *
+//* Must be run on a jobclass with the COMMAND=EXECUTE attribute.  *
+//*                                                                *
+//******************************************************************
+//STARTIIB EXEC PGM=IEFBR14
+//SYSPRINT DD SYSOUT=*    
+//   COMMAND 'S ${instance-IIB-BROKER-NAME}'  
