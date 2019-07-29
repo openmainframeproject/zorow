@@ -1,28 +1,10 @@
-//GENER   EXEC PGM=IEBGENER
-//SYSPRINT DD SYSOUT=*
-//SYSIN DD *,BLKSIZE=800,LRECL=80
- GENERATE
- LABELS DATA=ALL
-/*
-//SYSUT1  DD *
- /* REXX */
- RC=ISFCALLS('ON')
- ADDRESS SDSF "ISFEXEC '/P ${instance-IIB_BROKER_NAME}'"
- ISFDELAY="5"
- /* REPLY IS IN STEM ISFULOG. */
- CALL SYSCALLS('ON')   
- ADDRESS SYSCALL      
- "SLEEP" 20           
- CALL SYSCALLS 'OFF'  
-/*
-//SYSUT2  DD  DSNAME=&&DS1(CMD),DISP=(NEW,PASS),
-//       UNIT=SYSDA,SPACE=(TRK,(5,,2))
-//*
-//RDWRJ    EXEC PGM=IKJEFT01
-//SYSPRINT DD SYSOUT=*
-//SYSPROC  DD DISP=SHR,DSN=&&DS1
-//SYSTSPRT DD SYSOUT=*
-//SYSTSIN DD *
- CMD
-/*
-//
+//******************************************************************
+//*                                                                *
+//* Stop the IIB Broker                                            *
+//*                                                                *
+//* Must be run on a jobclass with the COMMAND=EXECUTE attribute.  *
+//*                                                                *
+//******************************************************************
+//STOPIIB EXEC PGM=IEFBR14
+//SYSPRINT DD SYSOUT=*    
+//   COMMAND 'P ${instance-IIB-BROKER-NAME}' 
