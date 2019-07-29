@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+ 
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This sample demonstrates the use of workflow upgrade feature to workflow customers, 
+	 as workflow author, they can decide multiple upgrade sections at the end of the XML 
+	 definition, choose whether cancel the old workflow or not after the upgrade complete
+	 by specifying the attribute "type" in their "version" element.
+	 
+	 Note, this sample of upgrade workflow is supposed to upgrade the workflow that created
+	 from workflow_sample_wizards.xml, so almost all steps and variables are the same with
+	 the previous sample wizard workflow.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+ 
+<workflowInfo>
+	<workflowID>wizardSample</workflowID>
+	<workflowDescription>Sample demonstrating the use of upgrade workflow.</workflowDescription>
+	<workflowVersion>2.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1.0</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- Declare a set of variables for use below -->
+<variable name="setting1">
+	<label>First configuration setting</label>
+	<abstract>Enter a value.</abstract>
+	<description>This value is required. It is included in the generated configuration file.</description>
+	<category>Config settings</category>
+	<string/>
+</variable>
+ 
+<variable name="setting2">
+	<label>Second configuration setting</label>
+	<abstract>Enter a value.</abstract>
+	<description>This value is required. It is included in the generated configuration file.</description>
+	<category>Config settings</category>
+	<string/>
+</variable>
+ 
+<variable name="setting3">
+	<label>Third configuration setting</label>
+	<abstract>Enter a value.</abstract>
+	<description>This value is optional. If specified, this setting is created in the output file, and its value is included in the generated configuration file. If this value is omitted, the configuration setting is not created.</description>
+	<category>Config Settings</category>
+	<string/>
+</variable>
+ 
+<variable name="st_user">
+	<label>User ID</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.</description>
+	<category>Started</category>
+	<string>
+		<validationType>USERID</validationType>
+		<default>MYSTUSER</default>
+	</string>
+</variable>
+ 
+<variable name="st_uid">
+	<label>UID</label>
+	<abstract>z/OS UNIX System Services UID.</abstract>
+	<description>The UID to be associated with the started task user ID.</description>
+	<category>Started</category>
+	<string>
+		<validationType>UNIXID</validationType>
+		<default>5000</default>
+	</string>
+</variable>
+ 
+<variable name="st_group">
+	<label>group</label>
+	<abstract>Group name for the started task.</abstract>
+	<description>The group name under whose authority the started task will run.</description>
+	<category>Started</category>
+	<string>
+		<validationType>GROUP</validationType>
+		<default>SYS1</default>
+	</string>
+</variable>
+ 
+<variable name="st_gid">
+	<label>GID</label>
+	<abstract>z/OS UNIX System Services GID.</abstract>
+	<description>The UNIX group ID (GID) to be associated with the started task group.</description>
+	<category>Started</category>
+	<string>
+		<validationType>UNIXID</validationType>
+		<default>500</default>
+	</string>
+</variable>
+ 
+<variable name="hlq">
+	<label>Dataset HLQ</label>
+	<abstract>High-level qualifier.</abstract>
+	<description>The data set high-level qualifier (HLQ) to be used for saving the generated JCL.</description>
+	<category/>
+	<!-- The default value for the category element is "General". --> 
+	<string>
+		<validationType>DSQUAL</validationType>
+		<default>SYS1</default>
+	</string>
+</variable>
+ 
+<!-- This is a manual step that demonstrates the use of variable substitution within the instructions. 
+	 -->
+<step name="define_user">
+        <title>Define the started task user ID using a command</title>
+        <description>In this step, you define the started task user ID. This step involves entering a RACF command.</description>
+        <variableValue name="st_user" required="true"/> 
+        <variableValue name="st_uid" required="true"/>
+        <instructions substitution="true">To define the started task user ID, enter the following command on the TSO/E command line:
+		<br/>
+		<code>ADDUSER $instance-st_user NOPASSWORD OMVS(UID($instance-st_uid))</code>
+		<br/><br/>If the command completes successfully, press <strong>Finish</strong> to have the step marked complete.</instructions>
+        <weight>5</weight>
+        <skills>System Programmer</skills>
+</step>
+ 
+<!-- This step uses a file wizard to submit JCL.  The in-line JCL contains variable references.  Also
+	 demonstrated is the ability to save the generated job (file) with a default data set name that
+	 contains a variable substitution.
+	 -->
+<step name="define_group">
+        <title>Define the RACF group using a JCL job</title>
+        <description>In this step, you define the RACF group. This step involves submitting a JCL job.</description>
+        <variableValue name="st_group" required="true"/>
+        <variableValue name="st_gid" required="true"/>
+        <variableValue name="hlq"/>
+		<instructions substitution="false">In this example step, you enter a RACF command through a JCL job.
+		<br/>
+		You will have the option to save a copy of the JCL <em>after</em> you have reviewed it.</instructions>
+        <weight>10</weight>
+        <skills>System Programmer</skills>
+        <template> 
+       		<inlineTemplate substitution="true">//STEP1       EXEC  PGM=IKJEFT01,DYNAMNBR=20 
+//SYSTSPRT    DD    SYSOUT=A
+//SYSTSIN     DD    *
+ADDGROUP     $instance-st_group OMVS(GID($instance-st_gid))
+/*
+       		</inlineTemplate>
+       		<submitAs>JCL</submitAs>
+       		<!-- Specifying <saveAsDataset> with a value primes the save-as prompt with the value 
+       		 	 specified here.  The value contains a variable reference.  The user can save 
+       		 	 to a UNIX file if desired, but the widget is not primed with a value.
+				 -->
+       		<saveAsDataset substitution="true">${instance-hlq}.PRODUCTX.JOBS(MYJOB)</saveAsDataset>
+       	</template>
+</step>
+ 
+<!-- This step uses a wizard to submit a TSO REXX exec with variable 
+	 substitution in both the instructions and in a file-based template. 
+	 -->
+<step name="connect">
+        <title>Verify that the user and group are created using a REXX exec</title>
+        <description>In this step, you verify that the user and group have been created. This step involves running a REXX exec program.</description>
+        <prereqStep name="define_user"/>
+        <prereqStep name="define_group"/>
+        <variableValue name="st_group" required="true" noPromptIfSet="true"/>
+        <variableValue name="st_user" required="true" noPromptIfSet="true"/>
+		<instructions substitution="true">
+		In this example step, you enter a RACF command through a REXX exec.
+		<!-- Here, you should describe any specific values that the user needs to specify, 
+		based on your requirements for the work to be completed. In a RACF installation, 
+		for example, you might use this	area to explain how to use RACF commands to	
+		connect the started task user ID to the	started task group. --> 
+		<br/><br/>
+		After the wizard runs, you can verify that the user ID is connected to group $instance-st_group. Enter a command such as the following: 
+		<br/>
+		<em>LISTUSER $instance-st_user</em>
+		<br/><br/>
+        	
+       	</instructions>
+        <weight>10</weight>
+        <skills>System Programmer</skills>
+        <template> 
+       		<!-- For fileTemplate, "substitution=" applies to the file contents, not the file name itself. -->
+       		<fileTemplate substitution="true">
+       			workflow_sample_rexx_template0.txt
+       		</fileTemplate>
+       		<!-- The maximum acceptable return code is 0, which is also the default value.  
+       			 When the job return code is less than or equal to maxRc, the step is marked complete 
+       			 when the user closes the job status panel.  Otherwise, the step moves to the "Failed"
+       			 state.                                                                             -->
+       		<submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+       		<!-- This example specifies neither <saveAsDataset> nor <saveAsUnixFile>.  This simply means 
+			     that no default location is suggested. The user can, however, choose to save this file  
+       		     to a location by supplying an installation-specific value.                     			     -->
+       	</template>
+</step>
+ 
+<!-- This step uses a file wizard to submit an in-line shell script with variable substitution.  Also
+	 demonstrated is the ability to save the generated script with a default UNIX path name that
+	 contains a variable substitution.  Note that a REXX exec coded to use shell commands (that is, it
+	 specifies, or defaults to using "address SH"), should be submitted the same way as a shell script. -->
+<step name="verify_UNIX">
+        <title>Verify the UID of the user using a shell script</title>
+        <description>In this step, you verify the UID of the user. This step involves running an in-line shell script.</description>
+        <prereqStep name="define_user"/>
+        <variableValue name="st_user" required="true" noPromptIfSet="true"/>
+        <instructions> <!--  substitution="false" is the default -->In this example step, you enter a RACF command through an in-line shell script to verify the UNIX definitions. The output is written to the STDOUT DD of the submitted job.</instructions> 	
+        <weight>10</weight>
+        <skills>System Programmer</skills>
+        <template>      		
+       		<inlineTemplate substitution="true"># shell script to issue 'id' command against defined user 
+id $instance-st_user
+       		</inlineTemplate>
+       		<submitAs>shell-JCL</submitAs>
+       		<!-- Specifying <saveAsUnixFile> with a value primes the file-save prompt with the value 
+       			 specified here.  The value contains a variable reference.  The user can still save to a 
+       			 data set if desired, but the widget is not be primed with the value. 
+				 -->
+       		<saveAsUnixFile substitution="true">/u/${instance-st_user}/savedStuff/myScript.sh</saveAsUnixFile>
+       	</template>
+</step>
+ 
+<!-- This step uses a file wizard to create a file (for example, a configuration file), with
+	 variable substitution.                                                             -->
+<step name="create_config">
+        <title>Create a configuration file using a file wizard</title>
+        <description>In this step, you create a configuration file. This step involves using a file wizard.</description>
+        <variableValue name="setting1" required="true"/>
+        <variableValue name="setting2" required="true"/>
+        <variableValue name="setting3" required="false"/>
+		<instructions substitution="false">In this example step, you create an XML configuration file, based on the values that were entered previously.</instructions>
+        <weight>10</weight>
+        <skills>System Programmer</skills>
+        <template> 
+       		<fileTemplate substitution="true">
+       			workflow_sample_file_template0.xml
+       		</fileTemplate>
+ 
+       		<!-- This example specifies <saveAsUnixFile>, but not <saveAsDataset>, because MyProduct requires  
+       			 the configuration file to reside in the UNIX file system. The user is not given an option to 
+				 save to a data set.  This save-as behavior is specific to a file-generation wizard 
+				 (one where <submitAs> is not specified). 
+				 -->
+       		<saveAsUnixFile>/var/MyProduct/config.xml</saveAsUnixFile>
+       	</template>
+</step>
+ 
+<preserveOptions>
+	<!-- The type is set to "refresh" in this version section to indicate not cancelling version 1.0 after upgrade to 2.0 successfully. -->
+	<version value="1.0" type="refresh">
+		<!-- 
+		In the variable mapping section:
+			o - The value of variable setting1 in the calling workflow will be mapped and copied to the variable setting2 in the called workflow when the upgrade happen.
+			o - The variable of value setting2 will not be mapped and copied when the upgrade happen.
+			o - All other variable values in the calling workflow will be mapped and copied with the same name to the called workflow when the upgrade happen.
+		 -->
+		<variableSet defaultChecked="true">
+			<include regExp="\w*"/>
+			<include name="setting1" mapTo="setting2"/>
+			<exclude name ="setting2"/>
+		</variableSet>
+		<!-- 
+			In the step mapping section, all steps except "create_config" in the calling workflow 
+			will be mapped and copied to the steps which have the same name in the called workflow.
+			These data will be copied to the upgraded workflow instance, that is step owner, step 
+			state, step assignee, step notes, job info.
+		 -->
+		<stepSet defaultChecked="true">
+			<include regExp="\w*"/>
+			<exclude name ="create_config"/>
+		</stepSet>	
+		<!--
+			In the workflowHistory section, if the defaultChecked is true, the UI will display the 
+			workflow history check box which checked status.
+		 -->	
+		<workflowHistory defaultChecked = "true"/>
+		
+		<upgradeNotes>Upgrade from version 1.0 to 2.0 and do not cancel version 1.0</upgradeNotes>
+	</version>
+	<!-- The type is set to "replace" in this version section to indicate cancelling the old version 2.0 instance after upgrade successfully. -->
+	<version value="2.0" type="replace">
+		<variableSet defaultChecked="true">
+			<include regExp="\w*"/>			
+			<include name="setting1" mapTo="setting2"/>
+			<include name="setting3"/>		
+			<exclude name ="setting2"/>
+		</variableSet>
+		<stepSet defaultChecked="true">
+			<include name="connect"/>
+			<include regExp="\w*"/>		
+			<include name="verify_UNIX" mapTo="verify_UNIX"/>
+			<exclude name ="create_config"/>
+		</stepSet>
+		<!--  
+		   In the workflowHistory section, nothing is provided, so not checked it
+		-->
+		<!--
+			In the workflowNotes section, if the defaultChecked is true, the UI will display the 
+			workflow notes check box checked.
+		 -->
+		<workflowNotes defaultChecked = "true"/>		
+		<upgradeNotes>Upgrade from version 2.0 to 2.0, cancel the version 2.0</upgradeNotes>
+	</version>
+</preserveOptions>
+ 
+</workflow>

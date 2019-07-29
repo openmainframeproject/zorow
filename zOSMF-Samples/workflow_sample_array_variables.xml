@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">     
+ 
+<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This sample demonstrates the use of array variables in a workflow.
+	 
+	 When you need to map a set of multiple values, consider using an array variable.
+	 An array variable contains a list of individual values or name-value pairs.
+	 Array variables provide an alternative to defining multiple variables to 
+	 represent multiple values. 
+	 
+	 As with other types of variables, you can use variable substitution for the 
+	 values in an array variable.	 
+	   
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+ 
+<workflowInfo>
+	<workflowID>arrayVariableSample</workflowID>
+	<workflowDescription>Sample demonstrating array variable definition and usage.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- In the following example, an array variable is formatted as a JSON array (name-value pairs):
+     [{"property1":"tt1","dsName":"TEST.DSNAME.TT1"},
+      {"property1":"tt2","dsName":"TEST.DSNAME.TT2"},
+      {"property1":"tt3","dsName":"TEST.DSNAME.TT2"}] 
+ --> 
+<variable name="array1">
+	<label>JSONArray Variable</label>
+	<abstract>The variable type of JSONArray.</abstract>
+	<description>The value of the array variable is a JSON array.</description>
+	<category>Started</category>
+	<array/>
+</variable>
+ 
+<!-- In the following example, an array variable is formatted in a list of individual items:
+     ["ZOSV24T", 
+      "DB211T"]
+ --> 
+<variable name="array2">
+	<label>ArrayList Variable</label>
+	<abstract>The variable type of ArrayList.</abstract>
+	<description>The value of the array variable is a list array.</description>
+	<category>Started</category>
+	<array/>
+</variable>
+ 
+<!-- In the following example, an array variable is defined for a hybrid format (both list and JSON array):
+     ["ZOSV24T", 
+      "DB211T", 
+     {"property1":"tt1","dsName":"TEST.DSNAME.TT1"}]
+ --> 
+<variable name="array3">
+	<label>Hybrid Array Variable</label>
+	<abstract>The variable type of a hybrid array.</abstract>
+	<description>The value of array variable is a hybrid array.</description>
+	<category>Started</category>
+	<array/>
+</variable>
+ 
+<!-- A string type variable -->
+<variable name="st_user">
+	<label>User ID2</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.</description>
+	<category>Started</category>
+	<string>
+		<validationType>USERID</validationType>
+		<default>MYSTUSER</default>
+	</string>
+</variable>
+ 
+<!-- A string type variable -->
+<variable name="st_group">
+	<label>group</label>
+	<abstract>Group name for the started task.</abstract>
+	<description>The group name under whose authority the started task will run.</description>
+	<category>Started</category>
+	<string>
+		<validationType>GROUP</validationType>
+		<default>SYS1</default>
+	</string>
+</variable>
+ 
+<variable name="outputFileNameVariable1">
+	<label>File name for output file 1</label>
+	<abstract>Enter a name for output properties file.</abstract>
+	<description>This value is required. It is included in the JCL for the output file path.</description>
+	<category>Output File</category>
+	<string>
+		<default>testOutput1</default>
+	</string>
+</variable>
+ 
+<variable name="outputFileNameVariable2">
+	<label>File name for output file 2</label>
+	<abstract>Enter a name for output properties file.</abstract>
+	<description>This value is required. It is included in the JCL for the output file path.</description>
+	<category>Output File</category>
+	<string>
+		<default>testOutput2</default>
+	</string>
+</variable>
+ 
+<variable name="procNameVariable">
+	<label>Procedure name for the TSO/E address space</label>
+	<abstract>Enter a procedure name for running the program.</abstract>
+	<description>This value is used to specify a procedure name (proc name) for the TSO/E address space 
+	that is used to run the program.
+	</description>
+	<category>TSO procName</category>
+	<string/>
+</variable>
+ 
+<!-- This is a sample step to demonstrate how to use array variables to do substitution for template.
+     Array variable substitution is supported for templates only. --> 
+     
+<step name="arrayVariableSubstitution">
+        <title>Array variable substitution step</title>
+        <description>This step demonstrates how to use array variables to do substitution for template.</description>
+        <variableValue name="st_group" required="true"/>
+        <variableValue name="st_user" required="true"/>
+        <variableValue name="array1" required="true" />
+        <variableValue name="array2" required="true" /> 
+        <variableValue name="array3" required="true" /> 
+		<instructions substitution="true">In this example step, the array variables "array1", "array2" and "array3"
+		are substituted in the inline template.</instructions>
+        <weight>3</weight>
+        <skills>System Programmer</skills>
+        <template> 
+       		<inlineTemplate substitution="true">//IZUWF01 JOB
+//STEP1       EXEC  PGM=IEFBR14
+//SYSEXEC    DD    DUMMY
+//* PRINT DD SYSOUT=A
+//* print the array variables
+----------------------------------------------------
+The array variable "array1" is : $instance-array1
+The array variable "array2" is : $instance-array2
+The array variable "array3" is : $instance-array3
+----------------------------------------------------
+if(!$instance-array1.isEmpty()){
+   The array size of array1 is $instance-array1.size();
+}
+-----------------------------------------------------
+//*Get a value of the specified property in array variable
+------------------------------------------------------------
+The first dsName in array1 is : $instance-array1.get(0).dsName
+The first value in array2 is  : $instance-array2.get(0)
+-------------------------------------------------------------
+//*Set value for array variable
+-------------------------------------------------------------
+#foreach($test in $instance-array1)
+#set($test.dsName = $test.dsName + 666)
+$test.dsName
+#end
+ 
+#foreach($zone in $instance-array2)
+$zone
+#end
+--------------------------------------------------------------
+$instance-array2.add("NEWVAL")
+The new array2 is : $instance-array2
+$instance-array3.add($instance-array1)
+The new array3 is : $instance-array3
+--------------------------------------------------------------
+       		</inlineTemplate>
+       		<submitAs>JCL</submitAs>
+       	</template>
+</step>
+ 
+ 
+<!-- This is a sample conditional step to demonstrate the usage of array variables. 
+     In this example, the string "This variable is an array of size $arraySize" is used 
+	 to set the value for the array variable in the step "Dependencies" tab.
+     Note that the array variable is supported only as a whole value, such as:
+	 ${instance_array2} == "["ZOSV24T", "DB211T"]". 
+	 In contrast, the following specification is not supported: 
+     $instance_array2[0] == "ZOSV24T".   
+ -->
+<step name="arrayVariableConditionStep">
+	<title>Array variable conditional step</title>
+	<description>This step demonstrates how to use array variables in a conditional step.</description>
+	<condition>
+		<expression><![CDATA[ ${instance_st_user} == "USERA" || ${instance_array2} == '["ZOSV24T", "DB211T"]' ]]></expression>
+		<description>The state of this step will become "Ready" when:<br/>
+		- Value of the instance variable "user ID" equals "USERA", or<br/>
+		- Value of the instance variable "ArrayList Variable" equals '["ZOSV24T", "DB211T"]'<br/>
+		</description>
+	</condition>
+	<variableValue name="st_user"/>
+	<variableValue name="array2"/>
+	<instructions>Here is a simple empty JCL job submission that uses program IEFBR14.</instructions>
+	<weight>3</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template> 
+       	<inlineTemplate>//IZUWF02 JOB
+//STEP1       EXEC  PGM=IEFBR14
+//SYSEXEC    DD    DUMMY
+//* PRINT DD SYSOUT=A
+/*
+		</inlineTemplate>
+       	<submitAs>JCL</submitAs>
+       </template>
+</step>
+ 
+<!-- This step demonstrates how to handle an array variable when there is a new value 
+     from a JCL, REXX, or shell script execution. -->
+<step name="arrayVariableOutputStep1">
+	<title>Array variable output step 1</title>
+	<description>In this step, you run a JCL job to generate an output properties file.</description>
+	<variableValue name="st_user" required="true"/>
+	<variableValue name="array2" required="true"/>
+	<variableValue name="outputFileNameVariable1" required="true"/>
+	<instructions>Use this job to create some variable values in a pre-specified output file. 
+                      The variables are loaded into the Workflows task.</instructions>
+	<weight>3</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template>
+		<inlineTemplate substitution="true">//IZUWF03 JOB
+# shell script to generate some variables from the Workflows task to the output properties file.
+echo st_user USER001 >> $_output
+echo array2  '["TEST00", "TEST01"]' >> $_output
+		</inlineTemplate>
+		<submitAs maxRc="0">shell-JCL</submitAs>
+		<!-- If loadOutputFileArrayValue is false, the array variable will keep the existing value -->
+		<output substitution="true" loadOutputFileArrayValue="false">/tmp/${instance-outputFileNameVariable1}</output>
+	</template>
+</step>
+ 
+<!-- This step demonstrates how to handle an array variable when there is a new value 
+     from a JCL, REXX, or shell script execution. -->
+<step name="arrayVariableOutputStep2">
+	<title>Array variable output step 2</title>
+	<description>In this step, you run a JCL job to generate an output properties file.</description>
+	<variableValue name="st_user" required="true"/>
+	<variableValue name="array2" required="true"/>
+	<variableValue name="outputFileNameVariable2" required="true"/>
+	<instructions>Use this job to create some variable values in a pre-specified output file. 
+                      The variables are loaded into the Workflows task.</instructions>
+	<weight>3</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template>
+		<inlineTemplate substitution="true">//IZUWF04 JOB
+# shell script to generate some variables from the Workflows task to the output properties file.
+echo st_user USER002 >> $_output
+echo array2  '["TEST02", "TEST03"]' >> $_output
+		</inlineTemplate>
+		<submitAs maxRc="0">shell-JCL</submitAs>
+		<!-- If loadOutputFileArrayValue is true, which is the default, load the 
+					value of array variables from output file -->
+		<output substitution="true">/tmp/${instance-outputFileNameVariable2}</output>
+	</template>
+</step>
+ 
+<!-- This step demonstrates how to handle an array variable when there is a new value 
+     from a TSO-UNIX-shell, TSO-UNIX-REXX, or TSO-REXX script execution. -->
+<step name="arrayVariableOutputStep3">
+        <title>Array variable output step 3.</title>
+        <description>In this step, you run a TSO UNIX shell to output some variables.</description>
+        <variableValue name="st_group" required="true"/>
+        <variableValue name="st_user" required="true"/>
+		<variableValue name="procNameVariable" required="true"/>
+		<variableValue name="array2" required="true"/>
+		<instructions substitution="false">This step outputs some variables and prints a few words.
+        </instructions>
+        <weight>1</weight>
+        <skills>System Programmer</skills>
+        <autoEnable>true</autoEnable>
+        <template> 
+       		<inlineTemplate substitution="true">
+#!/bin/sh
+echo "This is a sample to submit shell script to run immediately."
+echo ${instance-st_user}
+echo prefix:st_group = SYS123
+echo prefix:st_user = USERS
+echo prefix:array2 = '["TEST04", "TEST05"]'
+echo "This symbol is used to indicate success."	
+echo "The program ran successfully !!"		
+            </inlineTemplate>
+       		<submitAs>TSO-UNIX-shell</submitAs>
+			<successPattern>success.*</successPattern>
+			<failedPattern>failed.*</failedPattern>  
+			<outputVariablesPrefix needResolveConflicts="true" loadOutputFileArrayValue="true">prefix:</outputVariablesPrefix>
+			<scriptParameters>
+				<description>A simple parameter.</description>
+				<value>para1</value>
+			</scriptParameters>
+			<procName substitution="true">${instance-procNameVariable}</procName>
+			<regionSize>50000</regionSize>
+			<timeout>60</timeout>
+       	</template>
+</step>	 
+ 
+</workflow>

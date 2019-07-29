@@ -1,0 +1,8 @@
+################################################################################
+# Copyright Contributors to the zOS-Workflow Project.                          #
+# SPDX-License-Identifier: Apache-2.0                                          #
+################################################################################
+#
+st_user = IBMUSER
+st_group = SYS2
+st_gid = 502

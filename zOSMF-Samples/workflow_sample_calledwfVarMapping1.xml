@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd"> 
+                          
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This is a sample called workflow that will be referred in workflow_sample_wf2wf.xml to demonstrate the variable mapping
+	 feature from calling workflow to called workflow.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->                             
+ 
+<workflowInfo>
+	<workflowID isCallable="sysplex">workflow.sample.calledwfVarMapping1</workflowID>
+	<workflowDescription>Demo of variable mapping between calling workflow and called workflow.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1.0</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- Define variables -->
+<variable name="userID">
+	<label>User ID</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.</description>
+	<category>Started</category>
+	<string>
+		<default>USERAAA</default>
+	</string>
+</variable>
+<variable name="String1">
+	<label>Simple String1</label>
+	<abstract>Basic simple variable String1.</abstract>
+	<description>This sample shows a simple basic variable String1.</description>
+	<category>String Variables</category>
+	<string>
+		<default>String01</default>
+	</string>
+</variable>
+<variable name="String2">
+	<label>Simple String2</label>
+	<abstract>Basic simple variable String2.</abstract>
+	<description>This sample shows a simple basic variable String2.</description>
+	<category>String Variables</category>
+	<string>
+		<default>String02</default>
+	</string>
+</variable>
+<variable name="demoString">
+	<label>Variable demoString</label>
+	<abstract>Simple variable named demoString.</abstract>
+	<description>This is a simple string variable named demoString, the variable named "sampleString" which is defined in workflow_sample_wf2wf.xml will pass the value to this variable.</description>
+	<category>Started</category>
+	<string>
+		<default>StringABC</default>
+	</string>
+</variable>
+ 
+<!-- A step for a user to input variables and tranfer its value between calling workflow and called workflow.
+		If the variable value has already been set in the calling workflow, the value will be displayed in this step.
+-->
+<step name="inputVariable">
+      <title>Input Variable Step</title>
+      <description>The user can input variable values in this step to transfer it to calling workflow, or get variable value from the calling workflow.</description>
+      <variableValue name="userID"/>
+	  <variableValue name="String1"/>
+	<variableValue name="String2"/>
+	<variableValue name="demoString"/>
+      <instructions>This step demonstrates how variables are transferred between calling workflow and called workflow.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+</step>
+ 
+</workflow>

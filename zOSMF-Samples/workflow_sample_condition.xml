@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+ 
+<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 This sample demonstrates the use of conditional steps in workflow.
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+ 
+<workflowInfo>
+	<workflowID>conditionSample</workflowID>
+	<workflowDefaultName>Conditional Step Workflow</workflowDefaultName>
+	<workflowDescription>Sample workflow to demonstrate the use of conditional step.</workflowDescription>
+	<workflowVersion>1.1</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1.1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- ================= variable definitions ================= -->
+<variable name="st_user">
+	<label>user ID</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.</description>
+	<category>String Variables</category>
+	<string>
+		<validationType>USERID</validationType>
+		<default>MYSTUSER</default>
+	</string>
+</variable>
+<variable name="settingGlobal" scope="global">
+	<label>Global String Variable</label>
+	<abstract>A global scope string variable.</abstract>
+	<description>This is a global scope string variable for condition test.</description>
+	<category>Global Variables</category>
+	<string>
+		<default>settingGlobal</default>
+	</string>
+</variable>
+<variable name="settingInstance">
+	<label>Instance String Variable</label>
+	<abstract>An instance scope string variable.</abstract>
+	<description>This is a instance scope string variable for condition test.</description>
+	<category>String Variables</category>
+	<string/>
+</variable>
+<variable name="String1">
+	<label>String with regular expression, a default, and choices.</label>
+	<abstract>String with a list of choices, a default, and a regular expression.</abstract>
+	<description>All possible values must adhere to the regular expression, which enforces a 1-10 character alphanumeric string (no special characters).</description>
+	<category>String Variables</category>
+	<!-- The regular expression is enforced against the default value and the choices when the XML is loaded into the Workflow task. -->
+	<string>
+		<regularExpression>[a-zA-Z0-9]{1,10}</regularExpression>
+		<choice>str001</choice>
+		<choice>STRINGA</choice>
+		<choice>1234567890</choice>
+		<default>ABC123def</default>
+	</string>
+</variable>
+<variable name="installABC">
+	<label>Install ABC</label>
+	<abstract>Boolean var.</abstract>
+	<description>This var determine whether to install RMF or not.</description>
+	<category>Boolean Variables</category>
+	<boolean>
+		<default>true</default>
+	</boolean>
+</variable>
+<variable name="number1">
+	<label>An Integer Number, number1</label>
+	<abstract>This is a integer number.</abstract>
+	<description>This is a simple integer number used for following conditional step.</description>
+	<category>Numeric Variables</category>
+	<integer>
+		<minValue>1</minValue>
+		<maxValue>100</maxValue>
+		<default>8</default>
+	</integer>
+</variable>
+<variable name="date1">
+	<label>Date with criteria</label>
+	<abstract>Date with a minimum, maximum, and default.</abstract>
+	<description>A dates can have a minimum, maximum, and default. Notice how the widget crosses-out the dates that are out of range.
+	</description>
+	<category>Times and Dates</category>
+	<date>
+		<minValue>2014-01-01</minValue>
+		<maxValue>2014-06-30</maxValue>
+		<default>2014-02-26</default>
+	</date>
+</variable>
+<variable name="time1">
+	<label>Time with criteria</label>
+	<abstract>Time-of-day with a minimum, maximum, and default.</abstract>
+	<description>Time can have: 
+		<ul>
+			<li>A minimum value</li>
+			<li>A maximum value</li>
+			<li>A default value</li>
+		</ul>
+		<br/>
+	</description>
+	<category>Times and Dates</category>
+	<time>
+		<minValue>01:00:00</minValue>
+		<maxValue>05:00:00</maxValue>
+		<default>01:00:00</default>
+	</time>
+</variable>
+<!-- ================= conditional step definitions ================= -->
+<step name="variableInputStep">
+	<title>Variable Input Step</title>
+	<description>This is a simple variable input step in which some variable values can be provided by user.</description>
+	<variableValue name="st_user"/>
+	<variableValue name="settingInstance"/>
+	<variableValue name="settingGlobal" scope="global"/>
+	<instructions>This is a very simple workflow step to provide some variable values for following conditional steps to use.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+</step> 
+ 
+ 
+<!-- This is a sample conditional step to demostrate the usage of variables and logical or relationship in condition expression of a conditional step. -->
+<step name="variableConditionStep">
+	<title>Variable Condition Step</title>
+	<description>This step demonstrates the usage of variables in a conditional step.</description>
+	<condition>
+		<expression><![CDATA[ ${instance_st_user} == "USERA"  ||  ${global_settingGlobal} == "global01"  ||  ${instance_settingInstance, variableInputStep} == "test01"]]></expression>
+		<description>The state of this step will become "Ready" state when:<br/>
+		- The value of the instance variable "user ID" equals to "USERA"<br/>
+		- OR the value of the global variable "Global String Variable" equals to "global01"<br/>
+		- OR the value of variable "Instance String Variable" is set to "test01" in step "Variable Input Step".<br/>
+		Note: The third condition expression can be satisfied only when the variable "Instance String Variable" is set to "test01" in step "Variable Input Step".
+		</description>
+	</condition>
+	<variableValue name="st_user"/>
+	<variableValue name="settingInstance"/>
+	<variableValue name="settingGlobal" scope="global"/>
+	<instructions>This is a very simple empty JCL job submittion using program IEFBR14.</instructions>
+	<weight>3</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template> 
+       	<inlineTemplate>//STEP1       EXEC  PGM=IEFBR14
+//SYSEXEC    DD    DUMMY
+//* PRINT DD SYSOUT=A
+/*
+		</inlineTemplate>
+       	<submitAs>JCL</submitAs>
+       </template>
+</step>
+ 
+<!-- This step is a demo of using step attributes("returnCode" or "stepState") in the condition expression of a workflow conditional step. -->
+<step name="attrConditionStep">
+	<title>Step Attribute Conditional Step</title>
+	<description>In this step, step attributes are used in the condition expression.</description>
+	<condition>
+		<expression><![CDATA[ ${variableConditionStep.returnCode} == "0000" || ${variableInputStep.stepState} == "Skipped" ]]></expression>
+		<description>This step state will change to "Skipped" state when:<br/>
+			- The return code of step "Variable Condition Sample" equals to "0000"<br/>
+			- OR the step state of step "Variable Input Step" equals to "Skipped".
+		</description>
+		<!-- Target step state(Skipped) is specified in this conditional step -->
+		<targetState>Skipped</targetState>
+	</condition>
+	<instructions>To make this step become Skipped state, user can perform the step "Variable Condition Sample" and get return code "0000" OR mark the state of step "Variable Input Step" to "Skipped" state.</instructions>
+	<weight>3</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template> 
+       	<inlineTemplate>//STEP1       EXEC  PGM=IEFBR14
+//SYSEXEC    DD    DUMMY
+//* PRINT DD SYSOUT=A
+/*
+       	</inlineTemplate>
+       	<submitAs>JCL</submitAs> 
+       </template>
+</step>
+ 
+<!-- From basicStep2 to complicatedCondition, it is to demonstrate complicated conditional step in which the prerequisite is 
+    configured like a "if...else..." logic by using expression and targetState. Those steps like basicStep1, basicStep2 and 
+	emptyJCL are steps that prepared for following complicated condition step named complicatedCondition.
+	In step complicatedCondition, prerequisites will be checked first, if it is satisfied and the target step state is set to Skipped|Complete (Override), 
+	the current step will be changed to Skipped|Complete (Override) and workflow will not continue to check step condition any more
+	because the step already reach a final state. If none of the prerequisite expression is satisfied, the current step state will remain unchanged
+	except all step prerequisites become complete and the step is about to change from Not Ready to Ready state. 
+-->
+<step name="basicStep1">
+	<title>Basic Step1</title>
+	<description>This is a basic step1.</description>
+	<variableValue name="st_user"/>
+	<variableValue name="String1"/>
+	<variableValue name="installABC"/>
+	<instructions>Examine this sample and input variable values.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+</step>
+<step name="basicStep2">
+	<title>Basic Step2</title>
+	<description>This is a basic step2.</description>
+	<variableValue name="number1"/>
+	<variableValue name="date1"/>
+	<variableValue name="time1"/>
+	<instructions>Examine this sample and input variable values.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+</step>
+<step name="emptyJCL">
+    <title>Submit an empty JCL job</title>
+    <description>Submit an empy JCL job to z/OS system using IEFBR14.</description>
+    <instructions>This is a very simple empty JCL job submit using IEFBR14 and nothing will be done here.</instructions>
+    <weight>1</weight>
+    <skills>Basic JCL</skills>
+    <autoEnable>true</autoEnable>
+    <template> 
+        <inlineTemplate>//STEP1       EXEC  PGM=IEFBR14
+//SYSEXEC    DD    DUMMY
+//* PRINT DD SYSOUT=A
+/*
+       	</inlineTemplate>
+       	<submitAs>JCL</submitAs>
+    </template>
+</step>
+ 
+<!-- This is the complicated condition step whose condition expression bases on both variable values that provided in previous step and the states of previous steps. -->
+<step name="complicatedCondition">
+	<title>Install RMF</title>
+	<description>In this step, both prereqTargetStateSet and normal targetStateSet are used together. </description>
+	<prereqStep name="basicStep1"/>
+	<prereqStep name="basicStep2"/>
+	<prereqDescription>If the Basic Step1 and Basic Step2 are in final state, this step will become ready for user to perform.</prereqDescription>
+	<prereqTargetStateSet>
+		<description>The state of this step will become skipped/Complete(Override) when the prerequisite steps' states are changed to skipped/Complete(Override).</description>
+		<extendStateExpression>
+			<description>If one of the prerequisite step was skipped, set this step to skipped too.</description>
+			<expression><![CDATA[${basicStep1.stepState}=="Skipped" || ${basicStep2.stepState}=="Skipped"]]></expression>
+			<targetState>Skipped</targetState>
+		</extendStateExpression>
+		<extendStateExpression>
+			<description>If one of the prerequisite step was Complete(Override), set this step to Complete(Override) too.</description>
+			<expression><![CDATA[${basicStep1.stepState}=="Complete (Override)" || ${basicStep2.stepState}=="Complete (Override)"]]></expression>
+			<targetState>Complete (Override)</targetState>
+		</extendStateExpression>
+		<extendStateExpression>
+			<description>If one of the prerequisite step was Complete, set this step to Ready.</description>
+			<expression><![CDATA[${basicStep1.stepState}=="Complete" || ${basicStep2.stepState}=="Complete"]]></expression>
+			<targetState>Ready</targetState>
+		</extendStateExpression>
+	</prereqTargetStateSet>
+	<condition>
+		<expression><![CDATA[${emptyJCL.returnCode}=="0000"]]></expression>
+		<description>The condition can be satisfied when emptyJCL's return code is "0000".</description>
+		<targetStateSet>
+			<description>The condition is determined by user's configuration on RMF</description>
+			<extendStateExpression>
+				<description>If user choose not to install RMF,set this step to skipped.</description>
+				<expression><![CDATA[${instance_installABC} == false ]]></expression>
+				<targetState>Skipped</targetState>
+			</extendStateExpression>
+		</targetStateSet>
+	</condition>
+	<instructions>This is a very simple conditional step, it's condition expression depends on the latest value of installABC.<br/>When basic step1 or basic step2 is Skipped/Complete (Override), this step is Skipped/Complete (Override). Otherwise it is Ready.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template>
+       		<inlineTemplate substitution="true">//STEP1       EXEC  PGM=IEFBR14
+//SYSEXEC    DD    DUMMY
+//* PRINT DD SYSOUT=A
+/*
+       		</inlineTemplate>
+       		<submitAs>JCL</submitAs>
+       	</template>
+</step>
+ 
+</workflow>

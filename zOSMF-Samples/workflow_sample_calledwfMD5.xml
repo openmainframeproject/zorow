@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd"> 
+                          
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This is a very simple workflow for demonstrating the use of MD5 for workflow to workflow execution feature, only two
+	 simple steps included in this workflow.
+	 The MD5 code of this file will never change unless its content is changed. Only when the MD5 code equals to the value
+	 that is specified in workflow_sample_wf2wf.xml, this workflow can be used as a called workflow.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->                             
+ 
+<workflowInfo>
+	<!-- The attribute isCallable is set to sysplex, this means this workflow can be called by any other systems that within the same sysplex. -->
+	<workflowID isCallable="sysplex">workflow.sample.calledwfMD5</workflowID>
+	<workflowDescription>Demo of MD5 for specifying a called workflow.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1.0</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- Define only one simple variable for test. -->
+<variable name="userID">
+	<label>User ID</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.</description>
+	<category>Started</category>
+	<string>
+		<default>USERAAA</default>
+	</string>
+</variable>
+ 
+<!-- In this step, user can input a string value for the only one variabble userID. -->
+<step name="inputVariable">
+      <title>Input userID</title>
+      <description>User can input a string value for the variable userID in this step.</description>
+      <variableValue name="userID"/>
+      <instructions>This is a simple step which only has one variable.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+</step>
+ 
+<!-- This step only contains an instructions element to inform a user what should be done for this step. -->
+<step name="installProductA" >
+        <title>Install Product A</title>
+        <description>This step tells user some instructions about installing product A.</description>
+        <instructions>Before install product A, you should first check if the CIM is already installed correctly.</instructions>
+        <weight>1</weight>
+</step>
+ 
+</workflow>
