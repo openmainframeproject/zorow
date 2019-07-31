@@ -1,0 +1,10 @@
+################################################################################
+# Copyright Contributors to the zOS-Workflow Project.                          #
+# SPDX-License-Identifier: Apache-2.0                                          #
+################################################################################
+#
+st_user = USERB
+st_group = SYS2
+array1 : [{\"property2\":\"tt3\",\"property1\":\"tt2\",\"dsName\":\"tt1\"},{\"property2\":\"tt33\",\"property1\":\"tt22\",\"dsName\":\"tt11\"},{\"property2\":\"tt333\",\"property1\":\"tt222\",\"dsName\":\"tt111\"}]
+array2 : [\"ZOSV24T\", \"DB211T\"]
+array3 : [\"ZOSV24T\", \"DB211T\", {\"property1\":\"tt1\",\"dsName\":\"TEST.DSNAME.TT1\"}] 

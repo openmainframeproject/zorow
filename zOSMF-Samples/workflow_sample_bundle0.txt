@@ -1,0 +1,24 @@
+################################################################################
+# Copyright Contributors to the zOS-Workflow Project.                          #
+# SPDX-License-Identifier: Apache-2.0                                          #
+################################################################################
+#
+# This file contains a number of keys and their values for translated text.
+ 
+S01Desc=Sample workflow with "translated" text (for use with a translated language)
+                                                      
+S01TSTitle=Translated step title text
+ 
+S01TSDesc=Translated step description text
+ 
+S01TSInstr=Translated step instructions text    
+ 
+S03String1Color1=Translated text for red
+ 
+S03String1Color2=Translated text for green
+ 
+S03String1Color3=Translated text for yellow
+ 
+S03String1Color4=Translated text for blue
+ 
+S03String7ErrMsg=(Translated) The input contains incorrect characters. Enter valid characters.
