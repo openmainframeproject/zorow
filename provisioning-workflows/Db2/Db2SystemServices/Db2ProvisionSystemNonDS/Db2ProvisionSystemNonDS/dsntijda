@@ -1,0 +1,74 @@
+//*********************************************************************
+//* JOB NAME = DSNTIJDA
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    LICENSED MATERIALS - PROPERTY OF IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2018 IBM CORP.  ALL RIGHTS RESERVED.
+//*
+//*    STATUS = VERSION 12
+//*
+//* FUNCTION = DEFINE ICF ALIAS FOR DB2 LIB DATA SETS
+//*
+//* NOTES =
+//*   1. THIS JOB IS USED ONLY WHEN PROVISIONING A DB2 SYSTEM
+//*      THRU Z/OSMF CLOUD PROVISIONING SERVICES. ITS OBJECTIVE
+//*      IS TO FOLLOW BEST PRACTICES IN HAVING ALIASES DEFINED
+//*      FOR THE DB2 SMP/E TARGET LIBRARIES DATA SETS
+//*      FOR EASE LATER MAINTENANCE OF DB2 CODE LEVEL
+//*
+//* CHANGE ACTIVITY =
+//*   11/14/2018 INTRODUCTION                                   E75766
+//*********************************************************************
+//DEFALIAS  EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN DD *
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNC.H                                   )  -
+    REL(${DSNCHDRS}))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNCLST                                  )  -
+    REL(${DSNCLIST}))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNDBRM                                  )  -
+    REL(${DSNDBRM} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNEXIT                                  )  -
+    REL(${DSNEXIT} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNIVPD                                  )  -
+    REL(${DSNIVPD} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNLINK                                  )  -
+    REL(${DSNLINK} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNLOAD                                  )  -
+    REL(${DSNLOAD} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNLOD2                                  )  -
+    REL(${DSNLOD2} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNMACS                                  )  -
+    REL(${DSNMACS} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNPFPE                                  )  -
+    REL(${DSNPFPE} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNSAMP                                  )  -
+    REL(${DSNSAMP} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNSPFM                                  )  -
+    REL(${DSNSPFM} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNSPFP                                  )  -
+    REL(${DSNSPFP} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNSPFS                                  )  -
+    REL(${DSNSPFS} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDSNSPFT                                  )  -
+    REL(${DSNSPFT} ))
+  DEFINE ALIAS(NAME(   -
+  ${INSDSPRE}.SDXRRESL                                  )  -
+    REL(${DSNIRLM} ))

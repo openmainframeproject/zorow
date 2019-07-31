@@ -1,0 +1,271 @@
+## --------------------------------------------------------------------
+## Parameters for DB2 Administration Tool for z/OS workflow that
+## extracts the DDL schema from the source system.
+## Refer to APAR PI67731 for the description of the properties.
+## --------------------------------------------------------------------
+steplib   = <admin_tool_steplib_in_multiple_lines>
+## sample:
+## steplib   = \
+## //STEPLIB  DD DISP=SHR,DSN=SYSADM.QAFIXES.ISPLLIB \n\
+## //         DD DISP=SHR,DSN=DMTOOL.ADBB2PTF.SADBLLIB \n\
+## //         DD DISP=SHR,DSN=DMTOOL.GOCB2PTF.SGOCLLIB \n\
+## //         DD DISP=SHR,DSN=DB2A.SDSNLOAD
+
+## Leave the parameter as blank, as the value is to be generated dynamically
+sqldd     =
+## sample:
+## sqldd     = \
+## //SQL      DD DISP=OLD, \n\
+## //            DSN=OMVSADM.SRC.DDL
+
+tgtdsn    = <admintool_source_env_dsn_name>
+genplan   = <admintool_plan_name>
+db2aloc   = <admintool_db2_location>
+db2sys    = <admintool_db2_ssid>
+db2serv   = <admintool_db2_server_location_name>
+db2auth   = <admintool_db2_auth_id>
+db2rel    = <admintool_db2_release>
+
+## Leave the parameter as blank to extract all objects of GMDB, as the value is to be generated dynamically;
+## or provide the list of DB and TS to extract certain objects in GMDB, the list shall be a complete list of tables defined in referential integrity constraints.
+objnames  =
+## sample:
+## objnames  = \
+##   DB='DBOC40S1', \n\
+##   TS='';
+
+## If DBNAME or SCHEMANAME is left blank, a name will be generated dynamically
+## based on the instance name
+DBNAME     =
+SCHEMANAME =
+
+## GMDB is the name of golden master and source database to be provisioned from
+## GMSCHEMA is the schema name of the data objects in golden master database
+GMDB      = <database_name_on_source_environment>
+GMSCHEMA  = <schema_name_on_source_environment>
+
+## newdb and newsch will be generated dynamically based on the instance name.
+newdb     =
+newsch    =
+
+## DDLPDS is the partitioned dataset to hold the member(s) for the extracted DDLs
+## and the member name will be generated from the instance name
+DDLPDS    = <pds_to_hold_members_for_extracted_ddl>
+
+## CTLOGPDS is the partitioned dataset to hold CloningTool logapplydd member
+CTLOGPDS  = <pds_to_hold_cloningtool_logapplydd_member>
+
+## CTSYNCPDS is the partitioned dataset to hold CloningTool syncdb member
+CTSYNCPDS = <pds_to_hold_cloningtool_syncdb_member>
+
+## Parameters for DB2 Administration Tool for z/OS ADBTEP2 workflow to run
+## extracted DDLs. Refer to the readme file for more parameters.
+steplibdd = <admintool_adbtep2_steplib>
+## sample:
+## steplibdd = \
+## //STEPLIB  DD DISP=SHR,DSN=USER.TESTLIB \n\
+## //         DD DISP=SHR,DSN=DB2A.SDSNLOAD \n\
+## //         DD DISP=SHR,DSN=USER.TESTLIB
+
+sysexecdd = <admintool_adbtep2_sysexec>
+## sample:
+## sysexecdd = \
+## //SYSEXEC  DD DISP=SHR,DSN=SYSADM.QAFIXES.EXEC \n\
+## //         DD DISP=SHR,DSN=DMTOOL.ADBB2PTF.SADBEXEC \n\
+## //         DD DISP=SHR,DSN=DMTOOL.GOCB2PTF.SGOCEXEC
+
+msglibdd  = <admintool_adbtep2_msglib>
+## sample:
+## msglibdd = \
+## //MSGLIB   DD DISP=SHR,DSN=SYSADM.QAFIXES.ISPLMIB \n\
+## //         DD DISP=SHR,DSN=DMTOOL.ADBB2PTF.SADBMLIB \n\
+## //         DD DISP=SHR,DSN=DMTOOL.GOCB2PTF.SGOCMLIB
+
+adbalibdd = <admintool_adbtep2_adbalib>
+## sample:
+## adbalibdd = \
+## //ADBALIB  DD DISP=SHR,DSN=USER.TESTLIB
+
+db2rlibdd = <admintool_adbtep2_db2rlib>
+## sample:
+## db2rlibdd = \
+## //DB2RLIB  DD DISP=SHR,DSN=USER.TESTLIB \n\
+## //         DD DISP=SHR,DSN=DB2A.SDSNLOAD \n\
+## //         DD DISP=SHR,DSN=USER.TESTLIB
+
+adbdiagdd = <admintool_adbtep2_adbdiag>
+## sample:
+## adbdiagdd = \
+## //ADBDIAG  DD SYSOUT=*
+
+system    = <admintool_adbtep2_dsn_name>
+tepplan   = <admintool_adbtep2_plan_name>
+lib       = <admintool_adbtep2_lib_name>
+ssid      = <admintool_adbtep2_db2_ssid>
+
+## Leave the parameter as blank, as the value is to be generated dynamically
+ddlin     =
+
+## --------------------------------------------------------------------
+## Parameters for the called workflows provision, deprovision,
+## provisionSecurity and deprovisionSecurity.
+## If USERNAME is left blank, then the step to grant and revoke DB2
+## internal privileges will be skipped.
+## --------------------------------------------------------------------
+DSNLOAD  = <db2_load_library>
+DSNEXIT  = <db2_exit_library>
+DSNZPARM = <db2_zparm>
+MVSSNAME = <db2_subsystem_id>
+PROGNAME = DSNTEP2
+PLANNAME = <dsntep2_plan_name>
+RUNLIB   = <dsntep2_load_library>
+SQLID    = <id_to_execute_sql_script>
+USERNAME = <dbadm_grantee_on_dbname>
+
+## --------------------------------------------------------------------
+## Parameters for the steps of deprovision.
+## --------------------------------------------------------------------
+## Full path name of deprovision shell script
+deprovisionShell = <full_path_name_of_deprovision_shell>
+## RACF ApplID used to generate RACF passticket to execute deprovision stored procedure
+racfappid        = <racf_applid>
+## Hostname of the target Db2 subsystem
+hostname         = <hostname_of_target_db2_subsystem>
+## Port number of the target Db2 subsystem
+db2port          = <port_of_target_db2_subsystem>
+## Location of the target Db2 subsystem
+db2location      = <location_of_target_db2_subsystem>
+## Userid to connect to the target Db2 subsystem with RACF passticket
+conn_userid      = <db2_connection_userid>
+## Schema name of stored procedure DEPROVISION_SCHEMA, DEVSERVICE by default
+deproSPSchema    = <schema_name_of_deprovision_stored_procedure>
+
+## --------------------------------------------------------------------
+## Parameters for CREATE and DROP trusted context.
+## If ROLENAME is left bank, then the step to create and delete a
+## trusted context will be skipped.
+## --------------------------------------------------------------------
+CONTEXTNAME       = <db2_trusted_context_name>
+REMOTECONTEXTNAME = <db2_remote_trusted_context_name>
+CLIENTIPADDRESS   = <client_ip_address>
+ROLENAME          = <db2_role_name>
+LTCUSERNAME       = <db2_local_trusted_context_username>
+RMTUSERNAME       = <db2_remote_trusted_context_username>
+RMTUSER           = <user_of_remote_trusted_context>
+
+## --------------------------------------------------------------------
+## Parameters for CREATE/DELETE RACF distributed map.
+## If RMTDISTID is left blank, then the step to create and delete a
+## RACF distributed map will be skipped.
+## --------------------------------------------------------------------
+RMTDISTID  = <distributed_identity_user_name>
+RMTDISTREG = <distributed_identity_registry_name>
+
+## --------------------------------------------------------------------
+## Parameters for CREATE and DELETE RACF group and user.
+## If RACFGROUP is left blank, then the step to create and delete a
+## RACF group and user will be skipped.
+## --------------------------------------------------------------------
+RACFOWNER    = <racf_owner_name>
+RACFSUPERGRP = <racf_super_group_name>
+RACFGROUP    = <racf_group_name>
+RACFUSER     = <racf_user_id>
+
+## Cloning Tool SCKZLOAD library
+srcSCKZLOAD = <cloningtool_sckzload_source_db2_subsystem>
+tgtSCKZLOAD = <cloningtool_sckzload_target_db2_subsystem>
+
+## The library and member name for the Cloning Tool Initialization Parameters
+srcCKZINI   = <cloningtool_ckzini_source_db2_subsystem>
+tgtCKZINI   = <cloningtool_ckzini_target_db2_subsystem>
+
+##
+srcTCPIPport = 5099
+tgtTCPIPport = 5099
+
+## The LISTDEF control records to chose source objects.
+## Leave the parameter as blank to clone all tablespaces from GMDB, as the value is to be generated dynamically
+## or provide a list of same tablespaces in GMDB as those in objnames property, the list shall be a complete list of tables defined in referential integrity constraints.
+listdef  =
+## sample:
+## INCLUDE TABLESPACES TABLESPACE DBOC40S1.TSTB01
+## INCLUDE TABLESPACES TABLESPACE DBOC40S1.TSTB02
+
+## How to handle DDL processing when cloning data
+ddlproc = Y
+
+## The records drive the DDL-ATTRIBUTE-CHANGE for Cloning Tool in multiple lines
+ddlattr = <cloningtool_ddlattr>
+## sample:
+## ddlattr  = \
+## STOGROUP,*,DS01STG,,, - \n\
+
+## These records drive the OBJECT-TRANSLATE for Cloning Tool
+## Leave the parameter as blank, as the value is to be generated dynamically
+objxlat  =
+
+## For the REMOTE-CONNECT-TYPE. Default to bo?=Cbo?=.
+remoteConnType = C
+
+## Cloning Tool Fuzzy Copy Option
+fuzzycopy      = N
+
+## Cloning Tool Log Apply Enable Option
+LAenable       = N
+
+## Cloning Tool Log Apply Log Point
+LAlogpoint     = TO_CURRENT
+
+## Cloning Tool Source Db2 Data Sharing Info
+intLAdatasharing  = -
+LAdatasharing     =
+## sample:
+## LAdatasharing = \
+## 1,DS01,DS01ZPRM,      - \\n\\
+## 2,DS02,DS02ZPRM,      - \\n\\
+## 3,DS03,DS03ZPRM       - \\n\\
+
+## Clonging Tool mini Logs HLQ for Log Apply processing
+minilogHLQ   = <cloningtool_minilog>
+
+## Variable for RTS-COPY-ENABLE. Default to Y.
+rtsEnable    = Y
+
+## Variable for RTSFILE-DATA-SET-HLQ. Must be specified if rtsEnable=Y.
+rtsHLQ       = ZCLOUD3.CKZ.RTS
+
+## The full HFS path and file name for the Variable Customization step to write new instance
+## variables for the following steps to use.
+propertyFile = /etc/zosmf/aoc/factory/db2/pssv2new/SchemaProvisioningService/cloudckz.prop
+
+
+## Plan name of Cloning Tool
+CKZPlan   = <cloningtool_ckzplan>
+
+## The Source LPAR associated with the Source Db2
+srcLPAR   = <cloningtool_srclpar>
+
+## The SSID for the Source Db2
+srcdb2    = <cloningtool_srcdb2>
+
+## The BSDS01 dataset for the Source Db2
+srcBSDS1  = <cloningtool_srcbsds1>
+
+## The BSDS02 dataset for the Source Db2
+srcBSDS2  = <cloningtool_srcbsds2>
+
+## The VCAT HLQ for the Source Db2
+srcVCAT   = <cloningtool_srcvcat>
+
+## The Target LPAR associated with the Target Db2
+tgtLPAR   = <cloningtool_tgtlpar>
+
+## The VCAT HLQ for the Target Db2
+tgtVCAT   = <cloningtool_tgtvcat>
+
+## Whether to start Target Db2 Objects after cloning the data
+tgtStart  = Y
+
+## The member name to be used with CKZ installation data sets (DDLOUT, LOGAPCTL, SYNCDB2)
+## The value will be generated dynamically based on instance name, leave the value as blank
+dsn_Member =

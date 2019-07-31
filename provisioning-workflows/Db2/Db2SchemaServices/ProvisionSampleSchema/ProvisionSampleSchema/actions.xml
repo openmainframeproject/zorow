@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<actionList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./actions_v1.xsd">
+  <action name="deprovision">
+    <workflow>
+      <wfDefFile>./deprovision.xml</wfDefFile>
+      <wfVarInFile>./clouddb2.input</wfVarInFile>
+      <wfVar name="deprovisionCMD" updateRegistry="true">$!{deprovisionCMD}</wfVar>
+    </workflow>
+  </action>
+</actionList>
