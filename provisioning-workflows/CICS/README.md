@@ -1,2 +1,2 @@
 # CICS
-Place Holder
+Place Holder to describe various CICS provisioning templates
