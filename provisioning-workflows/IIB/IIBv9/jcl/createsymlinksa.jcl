@@ -1,1 +1,12 @@
-aaБЯ@@@@@еГец@ДББбаЦцхkБД~ХaaБЦджДЦ@@дд@БХБжДЦ~\aaБЦдеыы@@дд@БХБжДЦ~\aa\@┐≥┘│ё┘@└┴≥┘┐ё√≥┴┘╒@┴├@ё┬┘╗@└√@∙√ё@╗┘ё@┘╖┴╒ёaa\@ё┬┘∙@┐≥┘│ё┘@╒╗■┌√⌠┴┐@⌠┴∙▓aaБХБиу@@@дд@\╓■│╒▓@ПРР■▓└┴≥@`≈@a[ю┴∙╒ё│∙┐┘`аддиЦижуасmтетбеыпa╔│≥a■≤╒┴a┌≥√▓┘≥╒@⌠╒@`│⌠ф@a[ю┴∙╒ё│∙┐┘`аддиЦижуасmтетбеып[ю┴∙╒ё│∙┐┘`иибmФжырmдиыmБХтсиурп@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@⌠∙@`╒@a≈⌠┘╖[ю┴∙╒ё│∙┐┘`иибmФжырmдиып@a[ю┴∙╒ё│∙┐┘`аддиЦижуасmтетбеып[ю┴∙╒ё│∙┐┘`иибmФжырmдиыmБХтсиурп@@@⌠╒@`│⌠ф@a[ю┴∙╒ё│∙┐┘`аддиЦижуасmтетбеып[ю┴∙╒ё│∙┐┘`иибmФжырmдиыmБХтсиурп@@a\
+//S1     EXEC USSBATCH,SU=Y                                                                       
+//STDOUT  DD SYSOUT=*                                                                             
+//STDERR  DD SYSOUT=*                                                                             
+//* create directories if they do not yet exist                                                   
+//* then create symbolic link                                                                     
+//SYSIN   DD *                                                                                    
+umask 022                                                                                         
+mkdir -p /${instance-ADDITIONAL_MEMBER}/var/mqsi/brokers                                          
+ls -alF /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}                            
+ln -s /plex${instance-IIB_WORK_DIR} /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}
+ls -alF /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}                            
+/*                                                                                                
