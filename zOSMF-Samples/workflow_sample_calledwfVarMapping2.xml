@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd"> 
+                          
+<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This is a sample called workflow that will be referred in workflow_sample_wf2wf.xml to demonstrate variable mapping
+	 feature from called workflow to calling workflow.
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->                             
+ 
+<workflowInfo>
+	<workflowID isCallable="sysplex">workflow.sample.calledwfVarMapping2</workflowID>
+	<workflowDescription>Demo of variable mapping between calling workflow and called workflow.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1.0</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- Define variables -->
+<variable name="userID">
+	<label>User ID</label>
+	<abstract>User ID for the started task.</abstract>
+	<description>The user ID under whose authority the new started task will run.</description>
+	<category>Started</category>
+	<string>
+		<default>USERAAA</default>
+	</string>
+</variable>
+ 
+<!-- In this step, the value of variable demoString is mapped to the variable st_user in the calling workflow which is created from
+		workflow_sample_wf2wf.xml and its value will also be transferred to st_user after the called workflow become Complete status.
+-->
+<step name="inputVariable">
+      <title>Input Variable Step</title>
+      <description>The user can input variable values in this step to transfer it to calling workflow, or get variable value from the calling workflow.</description>
+      <variableValue name="userID"/>
+      <instructions>This step demonstrates how variables are transferred between calling workflow and called workflow.</instructions>
+	<weight>1</weight>
+	<skills>System Programmer</skills>
+</step>
+ 
+</workflow>

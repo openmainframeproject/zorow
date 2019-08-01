@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+ 
+<!-- This is an XML fragment.  As such, it will not validate against the schema by itself. 
+	 You might use a fragment like this for a step that is to be shared by a set of related workflows.    -->
+<step name="AT-TLS">
+	<title>Create an AT-TLS policy for Function X</title>
+	<description>Create and install an AT-TLS policy for Function X in z/OS Communications Server.</description>
+	<instructions>Use the Instructions area to describe in detail what the user needs to do to complete the step. In this sample step, you might provide instructions for using the Policy Agent and the Configuration Assistant task. Or, you might use this area to explain how to enable Application Transparent - Transport	Layer Security (AT-TLS) in the TCP/IP stack if it is not already active.</instructions>
+ 
+	<!-- The weight is a subjective value that you, as the workflow author, assign to indicate the difficulty 
+	     of the step relative to the other steps in the workflow. The scale and the value are at your discretion, 
+		 and cannot be changed by the user.  The Workflows task uses the weight to determine the percentage complete 
+		 of the workflow, and displays this value to the user. 
+		-->
+	<weight>30</weight>
+ 
+	<!-- The skills element is a free-form field through which you (the workflow author) can suggest a skill or 
+	     role for performing the step, such as "network administration," "digital certificate deployment," and so on. 
+		 This information can help guide the workflow owner in determining whom to assign the step.  
+		 -->
+	<skills>Security Administrator</skills>
+</step>

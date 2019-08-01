@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="./workflow_v1.xsd">
+ 
+<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This sample demonstrates the use of parallel steps in a workflow.
+ 
+         When a parallel-steps workflow is started, the Workflows task locates 
+         the auto-enabled steps with one of the following statuses: 
+         ready, in-progress, or failed. These steps are considered to be 
+         automation ready. The Workflows task will attempt to run these 
+         steps in parallel (concurrently) on z/OS.
+ 
+         In a parallel-steps workflow, the failure of an automated step does 
+         not stop automation processing for the other automated steps. 
+         Processing continues until all of the automated steps are completed 
+        or failed. The user can also stop automation processing by using the 
+         Stop Automation action on the Workflows page.
+ 
+         In the Workflows task, the user starts a parallel-steps workflow 
+         by using the Start Parallel Automation action on the Workflow Steps page. 
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+ 
+<workflowInfo>
+    <!-- You can enable parallel processing for the automated steps in your workflow.
+         To do so, include the parallelSteps tag in your workflow definition file 
+         and set the tag to true.  -->
+ 
+	<parallelSteps>true</parallelSteps>
+	<workflowID>parallelStepsSample</workflowID>
+	<workflowDescription>Sample that demonstrates the use of parallel steps in a workflow.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- Declare a set of variables -->
+<variable name="st_user">
+	<label>user ID</label>
+	<abstract>User ID for a started task.</abstract>
+	<description>The user ID under which the started task will run.</description>
+	<category>Started</category>
+	<string>
+		<validationType>USERID</validationType>
+		<default>MYSTUSER</default>
+	</string>
+</variable>
+ 
+<variable name="date">
+	<label>Date</label>
+	<abstract>Current Date variable.</abstract>
+	<description>Date in the UTC format. For example "2018-01-01".<br/>
+	A date can have a minimum, maximum, and default value. 
+        Notice how the widget crosses out the dates that are out of range.
+	</description>
+	<category>Times and dates</category>
+	<date>
+		<minValue>2018-01-01</minValue>
+		<maxValue>2046-01-01</maxValue>
+		<default>2018-02-03</default>
+	</date>
+</variable>
+ 
+<variable name="setting0" scope="global">
+	<label>Global string variable</label>
+	<abstract>A global scope string variable.</abstract>
+	<description>This is a global scope string variable for output.</description>
+	<category>Global Variable</category>
+	<string>
+		<default>setting0</default>
+	</string>
+</variable>
+ 
+<variable name="outputFileNameVariable1">
+	<label>File name for output file 1</label>
+	<abstract>Enter a name for Output Properties File 1</abstract>
+	<description>This value is required. It is included in the JCL for the output file path.</description>
+	<category>Output File</category>
+	<string>
+		<default>testOutput1</default>
+	</string>
+</variable>
+ 
+<variable name="outputFileNameVariable2">
+	<label>File name for output file 2</label>
+	<abstract>Enter a name for Output Properties File 2</abstract>
+	<description>This value is required. It is included in the JCL for the output file path.</description>
+	<category>Output File</category>
+	<string>
+		<default>testOutput2</default>
+	</string>
+</variable>
+ 
+<!-- This step contains substeps. The substeps will be performed in parallel during automation.  -->
+<step name="rootStep">
+	<title>Root Step</title>
+	<description>This is a top-level step.</description>
+	<step name="subStep1">
+		<title>Second-level step 1</title>
+		<description>This is a second-level step 1.</description>
+		<instructions>This is a simple JCL job that submits empty JCL.</instructions>
+		<weight>2</weight>
+		<skills>Basic JCL</skills>
+		<autoEnable>true</autoEnable>
+		<template> 
+			<inlineTemplate substitution="false">//IZUWFJO1 JOB
+//STEP1       EXEC  PGM=IEFBR14
+//SYSEXEC    DD    DUMMY
+//* PRINT DD SYSOUT=A
+/*
+			</inlineTemplate>
+			<submitAs>JCL</submitAs>
+		</template>
+	</step>
+	<step name="subStep2">
+		<title>Second-level step 2</title>
+		<description>This is a second-level step 2.</description>
+		<instructions>This is a simple JCL job that submits empty JCL.</instructions>
+		<weight>2</weight>
+		<skills>Basic JCL</skills>
+		<autoEnable>true</autoEnable>
+		<template> 
+			<inlineTemplate substitution="false">//IZUWFJO2 JOB
+//STEP1       EXEC  PGM=IEFBR14
+//SYSEXEC    DD    DUMMY
+//* PRINT DD SYSOUT=A
+/*
+			</inlineTemplate>
+			<submitAs>JCL</submitAs>
+		</template>
+	</step>
+	<step name="subStep3">
+		<title>Second-level step 3</title>
+		<description>This is a second-level step 3.</description>
+		<instructions>This is a basic automated step.</instructions>
+		<weight>1</weight>
+		<autoEnable>true</autoEnable>
+	</step>
+</step>
+ 
+<!-- This step demonstrates the use of a step attribute ("stepState") in the conditional expression of a conditional step. -->
+ 
+<step name="attrConditionStep">
+	<title>Step Attribute Conditional Step</title>
+	<description>In this conditional step, the step state is used as the condition.</description>
+	<condition>
+		<expression><![CDATA[ ${subStep3.stepState} == "Complete" ]]></expression>
+		<description>This step state will change to "skipped" state when:<br/>
+			- The step state of step "subStep3" equals "Complete".
+		</description>
+		<!-- Target step state(skipped) is specified in this conditional step -->
+		<targetState>Skipped</targetState>
+	</condition>
+	<instructions>When you complete step "subStep3", the step will be marked as skipped.</instructions>
+	<weight>2</weight>
+	<skills>Basic JCL</skills>
+	<autoEnable>true</autoEnable>
+	<template> 
+			<inlineTemplate substitution="false">//IZUWFJO3 JOB
+//STEP1       EXEC  PGM=IEFBR14
+//SYSEXEC    DD    DUMMY
+//* PRINT DD SYSOUT=A
+/*
+			</inlineTemplate>
+			<submitAs>JCL</submitAs>
+		</template>
+</step>
+ 
+<!-- This is an example of a non-automated step. Parallel automation will skip this step and perform any subsequent automation-ready steps. -->
+ 
+<step name="nonAutomatedStep">
+	<title>Non-automated Step</title>
+	<description>This is an example of a non-automated step. This step is skipped during parallel automation processing.</description>
+	<instructions>This step is not performed through parallel automation. It must be performed manually.</instructions>
+	<weight>1</weight>
+	<!-- To disable automation for this step, set the autoEnable tag to false. Or, omit the tag to use false by default. -->
+	<!-- <autoEnable>false</autoEnable> -->
+</step>
+ 
+<!-- This step demonstrates how to submit a JCL job that contains a UNIX shell script. -->
+ 
+<step name="outputStep1">
+	<title>Output Step 1</title>
+	<description>In this step, you run a JCL job to generate an output properties file.</description>
+	<variableValue name="st_user" required="true"/>
+	<variableValue name="date" required="true"/>
+	<variableValue name="outputFileNameVariable1" required="true"/>
+	<instructions>Use this job to create some variable values in a pre-specified output file. 
+                      The variables are loaded into the Workflows task.</instructions>
+	<weight>3</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template>
+		<inlineTemplate substitution="true">//IZUWF04 JOB
+# shell script to generate some variables from the Workflows task to the output properties file
+echo st_user USER001 >> $_output
+echo date 2018-02-05 >> $_output
+		</inlineTemplate>
+		<submitAs maxRc="0">shell-JCL</submitAs>
+ <!-- needResolveConflicts indicates how potential variable conflicts will be resolved:
+When equal to false, The workflow will use the variables from the output file without asking the user for input.
+-->
+		<output substitution="true" needResolveConflicts="false">/tmp/${instance-outputFileNameVariable1}</output>
+	</template>
+</step>
+ 
+<!-- This step demonstrates how to submit a JCL job that contains a UNIX shell script. -->
+ 
+<step name="outputStep2">
+	<title>Output Step 2</title>
+	<description>In this step, you run a JCL job to create an output properties file. This step has a prerequisite step "outputStep1"</description>
+	<!-- This step has a prerequisite step called outputStep1. -->
+	<prereqStep name="outputStep1"/>
+	<variableValue name="st_user" required="true"/>
+	<variableValue name="setting0" required="true" scope="global"/>
+	<variableValue name="outputFileNameVariable2" required="true"/>
+	<instructions>Use this job to create some variable values in a pre-specified output properties file. 
+                      The variables are loaded into the Workflows task after user resolves variable conflicts, if any.
+	</instructions>
+	<weight>4</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template>
+		<inlineTemplate substitution="true">//IZUWF05 JOB
+# shell script to generate some variables from the Workflows task to the output properties file
+echo st_user USER002 >> $_output
+echo setting0 global001 >> $_output
+		</inlineTemplate>
+		<submitAs maxRc="0">shell-JCL</submitAs>
+		<!-- needResolveConflicts default is true. The automation will stop and the "Input Variables" tab will be enabled for the user to resolve variable conflicts. -->
+		<output substitution="true">/tmp/${instance-outputFileNameVariable2}</output>
+	</template>
+</step>
+ 
+</workflow>

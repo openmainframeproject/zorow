@@ -1,0 +1,10 @@
+################################################################################
+# Copyright Contributors to the zOS-Workflow Project.                          #
+# SPDX-License-Identifier: Apache-2.0                                          #
+################################################################################
+//*
+//STEP1       EXEC  PGM=IKJEFT01,DYNAMNBR=20 
+//SYSTSPRT    DD    SYSOUT=A
+//SYSTSIN     DD    *
+ADDGROUP     ${st_group} OMVS(GID(${st_gid}))
+/*

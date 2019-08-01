@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+ 
+<!-- Change the schema path name below to refer to your local copy if you want to use
+	 an XML-aware editor for writing workflows. Note that this location is ignored 
+	 when a workflow is imported into the Workflows task.  Also note that the Workflows 
+	 task performs additional validation that the schema itself does not perform.
+	 -->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+                          
+<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	 This sample shows a basic one-step workflow that references a language bundle file.
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+ 
+<!-- The following section contains the workflow meta-data. Because this is a "Configuration" type
+	 workflow, it contains additional information about the software product. 
+	 Note that the description is translatable, and contains a reference to the bundle
+	 defined below.  The description, translated or not, is used as the basis for
+	 a default workflow name when the file is imported into the Workflows task.
+	 The user can optionally modified the workflow name during the import operation.
+	 -->
+<workflowInfo>
+	<workflowID>bundleSample</workflowID>
+	<workflowDescription bundle="myBundle" bundleKey="S01Desc">Sample workflow with translatable text</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+ 
+<!-- The following section contains the manifest of bundle files. It can contain several
+	 bundles, but this sample contains only one.  Each bundle can contain several files, but this only
+	 contains one for Japanese.  The browser language is used to look up the correct translation
+	 file.  If one does not exist for that language, the default text coded within the XML is
+	 displayed.	 To see this in action, change your browser language preference to any version 
+	 of Japanese (ja) and load this workflow.  The "translated" text will indicate that it is 
+	 translated, though it will not actually be Japanese in this example. 
+	 -->  
+<translatedTextFiles>
+	<bundle name="myBundle">
+		<!-- The path name can be expressed as absolute, or as relative to the location
+		     of this XML file, as it is here.
+			 -->
+		<language name="ja" path="workflow_sample_bundle0.txt"/>
+	</bundle>
+</translatedTextFiles>
+ 
+<!-- A workflow typically contains a series of steps. This sample workflow, however, contains only 
+     one step, with only the required elements specified. The title and description are translatable, 
+	 and they contain a reference to the bundle file defined above.  Any element defined in the schema 
+	 as type nlsString, nlsRichString, or nlsRichVelocityString can be translated.
+	 -->
+<step name="Translated-Step" >
+	<!-- The optional bundle and bundleKey attributes are specified for an element to indicate 
+	     that the Workflows task is to check for translated text in the user's browser language.
+		 -->	
+	<title bundle="myBundle" bundleKey="S01TSTitle">Perform a step</title>
+       
+    <description bundle="myBundle" bundleKey="S01TSDesc">This sample shows a manual step.</description>
+    
+    <instructions bundle="myBundle" bundleKey="S01TSInstr">Use the Instructions area to describe in detail what the user needs to do to complete the step.</instructions>
+       
+	<weight>1</weight>
+</step>
+ 
+</workflow>
