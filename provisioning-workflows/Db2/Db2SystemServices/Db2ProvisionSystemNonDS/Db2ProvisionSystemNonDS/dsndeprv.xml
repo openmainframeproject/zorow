@@ -1,0 +1,696 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID>DB2 Deprovision a Standalone System</workflowID>
+        <workflowDescription>Normal Deprovision of Standalone Db2 System</workflowDescription>
+        <workflowVersion>1.0_S75760</workflowVersion>   
+        <vendor>IBM</vendor>
+        <Provisioning>
+            <productID>5740XYR00</productID>
+            <productName>Db2 for z/OS</productName>
+            <productVersion>C10</productVersion>
+            <softwareType>DB2zSys</softwareType>
+        </Provisioning>
+    </workflowInfo>
+    <variable name="AGEXECID" scope="instance">
+        <label>AGEXECID</label>
+        <abstract>PROVISION EXEC ID</abstract>
+        <description>The user ID that executes the provisioning workflow.</description>
+        <category>DB2 Provisioning</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="AGICHLQ" scope="instance" visibility="private">
+        <label>AGICHLQ</label>
+        <abstract>PROVISION IMAGE COPY HLQ</abstract>
+        <description>The HLQ for image copy data sets during provisioning.</description>                                                            
+        <category>DB2 Provisioning</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="CONSNAME" scope="instance">
+        <label>CONSNAME</label>
+        <abstract>CONSOLE NAME</abstract>
+        <description>
+The CONSNAME variable specifies the name of a z/OS operator's console which is used to START/STOP DB2 SYSTEMs.
+</description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="DB2BASE" scope="instance">
+        <label>DB2BASE</label>
+        <abstract>DB2 BASE JAVA DIR</abstract>
+        <description>
+The DB2 BASE JAVA DIR field specifies the absolute path of the highest-level directory in the set of HFS/zFS directories that contain the DB2 for z/OS-supplied Java classes, native methods (DLLs), and samples. This directory and its subdirectories are typically managed by SMP/E. It is referenced by the DB2_BASE variable in the file specified in the JAVA ENV VAR FILE field.  Within the directory specified here, the subdirectories classes (contains the DB2 base-supplied jar files), lib (contains the DB2 base-supplied DLLs), and samples (contains the DB2 base-supplied sample objects) are used for Db2 configuration.
+        </description>
+        <category>JAVA</category>
+        <string>
+            <maxLength>47</maxLength>
+        </string>
+    </variable>
+    <variable name="DBRMLIB" scope="instance">
+        <label>DBRMLIB</label>
+        <abstract>APPLICATION DBRM</abstract>
+        <description>
+  The DBRMLIB variable specifies the name of the library that is to be used for DB2 sample application DBRMs.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="DSNEXIT" scope="instance">
+        <label>DSNEXIT</label>
+        <abstract>EXIT LIBRARY</abstract>
+        <description>
+The value of the EXIT LIBRARY field specifies the name of the library where your DSNZPxxx module, application defaults load
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="DSNLOAD" scope="instance">
+        <label>DSNLOAD</label>
+        <abstract>LOAD LIBRARY</abstract>
+        <description>
+The DSNLOAD variable specifies the name of the main APF-authorized DB2 load module library.
+</description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="DSNZPARM" scope="instance">
+        <label>DSNZPARM</label>
+        <abstract>Db2 System PARAMETER MODULE</abstract>
+        <description>
+  The DSNZPARM variable specifies the member name of the load module that is to be used for DB2 subsystem parameters.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="INSICPRE" scope="instance">
+        <label>INSICPRE</label>
+        <abstract>INSTALL IC PREFIX</abstract>
+        <description>
+The INSTALL IC PREFIX field specifies the prefix for image copy data sets that are created by DB2 installation and IVP jobs.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="INSDSPRE" scope="instance">
+        <label>INSDSPRE</label>
+        <abstract>INSTALL DS PREFIX</abstract>
+        <description>
+  The INSDSPRE variable specifies the prefix for most data sets that are created by most DB2 installation and IVP jobs.     This field does not apply to data sets that are created by job DSNTIJIN.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="IRLMPROC" scope="instance">
+        <label>IRLMPROC</label>
+        <abstract>PROC NAME</abstract>
+        <description>The IRLMPROC variable specifies the name of the IRLM procedure that z/OS is to invoke to STOP the DB2 system.</description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="JAVAENV" scope="instance">
+        <label>
+JAVAENV
+</label>
+        <abstract>
+JAVA ENV DATA SET
+</abstract>
+        <description>
+The JAVA ENV DATA SET field specifies the name of the environment (JAVAENV) data set for the DB2-supplied Java WLM Java Environment, DSNWLM_JAVA. This data set is created by job DSNTIJMJ and must not already exist. It is allocated by the JAVAENV DD of DSNWLMJ, the address space startup procedure for DSNWLM_JAVA. DSNWLMJ is created by job DSNTIJMW. It contains the _CEE_ENVFILE environment variable which provides the name and location of the Java environment variable file to be used when the DSNWLM_JAVA environment is started.
+</description>
+        <category>
+JAVA
+</category>
+        <string>
+            <maxLength>44</maxLength>
+        </string>
+    </variable>
+    <variable name="JAVAENVV" scope="instance">
+        <label>
+JAVAENVV
+</label>
+        <abstract>
+JAVA ENV VAR FILE
+</abstract>
+        <description>
+The JAVA ENV VAR FILE field specifies the absolute path and name of the HFS/zFS environment variable file for the DB2-supplied Java WLM environment, DSNWLM_JAVA.  This file is created when you run installation job DSNTIJMJ and must not already exist.  It is referenced in the _CEE_ENVFILE environment variable of the JAVAENV data set specified in the JAVA ENV DATA SET field.
+</description>
+        <category>
+JAVA
+</category>
+        <string>
+            <maxLength>47</maxLength>
+        </string>
+    </variable>
+    <variable name="JVMPROPS" scope="instance">
+        <label>
+JVMPROPS
+</label>
+        <abstract>
+JVM PROPERTIES FILE
+</abstract>
+        <description>
+The JVM PROPERTIES FILE field specifies absolute path and name of the HFS/zFS Java Virtual Machine (JVM) startup options file used by the DB2-supplied Java WLM environment, DSNWLM_JAVA. This file is created when you run installation job DSNTIJMJ and must not already exist. It is referenced by the JVMPROPS variable in the file specified in the JAVA ENV VAR FILE field.
+</description>
+        <category>
+JAVA
+</category>
+        <string>
+            <maxLength>47</maxLength>
+        </string>
+    </variable>
+    <variable name="MVSSNAME" scope="instance">
+        <label>MVSSNAME</label>
+        <abstract>SUBSYSTEM NAME</abstract>
+        <description>
+  The SUBSYSTEM NAME field specifies the z/OS subsystem name for DB2.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="MVSSPREF" scope="instance">
+        <label>MVSSPREF</label>
+        <abstract>COMMAND PREFIX</abstract>
+        <description>
+  The COMMAND PREFIX variable specifies the DB2 subsystem command prefix. <br/>
+  When the prefix appears at the beginning of a command that is entered at a z/OS operator's console,  <br/>
+  z/OS passes the command to DB2 for processing. <br/>
+  The command prefix is used in the DB2 entry of member IEFSSNxx of SYS1.PARMLIB.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="OUTCL" scope="instance">
+        <label>OUTCL</label>
+        <abstract>CLIST LIBRARY</abstract>
+        <description>
+  The CLIST LIBRARY field identifies the name of the data set into which job DSNTIJVC is to load all CLISTs.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="RUNLIB" scope="instance">
+        <label>RUNLIB</label>
+        <abstract>APPLICATION LOAD</abstract>
+        <description>
+  The RUNLIB variable specifies the name of the DB2 sample application load module library.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="SRCLIB" scope="instance">
+        <label>SRCLIB</label>
+        <abstract>DECLARATION LIBRARY</abstract>
+        <description>
+  The SRCLIB variable specifies the name of the DB2 declaration library that is to be used for <br/>
+  sample application include files.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="VBSDSLOG" scope="instance">
+        <label>VBSDSLOG</label>
+        <abstract>ICF CATALOG ALIAS FOR BSDS AND ACTIVE LOG DATA SETS</abstract>
+        <description>
+  The VBSDSLOG variable specifies the high-level qualifier for the BSDS and ACTIVE LOG data sets to be used by DB2.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="VCATALOG" scope="instance">
+        <label>VCATALOG</label>
+        <abstract>ICF CATALOG ALIAS FOR Db2 catalog and directory VSAM data sets</abstract>
+        <description>
+  The VCATALOG variable specifies the high-level qualifier for DB2 catalog and directory VSAM data sets.
+  </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="AGTCPPID" scope="instance" visibility="private">
+        <label>TCPIP PORT ID</label>
+        <abstract>TCPIP PORT ID</abstract>
+        <description>TCPIP PORT ID when running in provisioning mode</description>
+        <category>DB2</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <variable name="AGRESPID" scope="instance" visibility="private">
+        <label>TCPIP PORT ID</label>
+        <abstract>TCPIP PORT ID</abstract>
+        <description>TCPIP PORT ID when running in provisioning mode</description>
+        <category>DB2</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </string>
+    </variable>
+    <variable name="IRLMSSID" scope="instance">
+        <label>IRLMSSID</label>
+        <abstract>IRLM subsytem ID</abstract>
+        <description>IRLM subsytem ID</description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="PPROCLIB" scope="instance">
+        <label>PPROCLIB</label>
+        <abstract>PRIVATE SYSTEM PROCEDURES</abstract>
+        <description>    
+The PRIVATE SYSTEM PROCEDURES field specifies the data set name of the PROVISIONED Db2 system program preparation and utilities invocation JCL procedured.
+</description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="PROCLIB" scope="instance">
+        <label>PROCLIB</label>
+        <abstract>SYSTEM PROCEDURES</abstract>
+        <description>
+The value of the SYSTEM PROCEDURES field specifies the data set name of the system procedures library that is to be used by
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENV" scope="instance">
+        <label>WLMENV</label>
+        <abstract>WLM ENVIRONMENT</abstract>
+        <description>
+The WLMENV subsystem parameter specifies the name of the default WLM_ENVIRONMENT that is to be used for a user-defined function or stored procedure. This environment is used when a value is not specified for the WLM_ENVIRONMENT option on the CREATE FUNCTI
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENV1" scope="instance">
+        <label>WLMENV1</label>
+        <abstract>FOR SERIALIZED ROUTINES</abstract>
+        <description>
+The value of the FOR SERIALIZED ROUTINES field identifies the WLM environment that is to be used for DB2-supplied routines that need to run serially. A routine that must run serially cannot share a task control block with another routine.
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENVC" scope="instance">
+        <label>WLMENVC</label>
+        <abstract>FOR THE DB2 CICS ROUTINE</abstract>
+        <description>
+The value of the FOR THE DB2 CICS ROUTINE field identifies the WLM environment that is to be used for the DB2 CICS transaction processor routine SYSPROC.DSNACICS.
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENVD" scope="instance">
+        <label>WLMENVD</label>
+        <abstract>FOR UNIFIED DEBUGGER ROUTINES</abstract>
+        <description>
+The FOR UNIFIED DEBUGGER ROUTINES field identifies the WLM environment that is to be used for DB2-supplied routines that are for the unified debugger tool.
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENVG" scope="instance">
+        <label>WLMENVG</label>
+        <abstract>FOR MOST DB2 ROUTINES</abstract>
+        <description>
+The value of the FOR MOST DB2 ROUTINES field identifies the WLM environment that is to be used for running most DB2-supplied routines.
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENVJ" scope="instance">
+        <label>WLMENVJ</label>
+        <abstract>FOR MOST DB2 JAVA ROUTINES</abstract>
+        <description>
+The value of the FOR MOST DB2 JAVA ROUTINES field identifies the WLM environment that is to be used for running most DB2-supplied Java routines.
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENVM" scope="instance">
+        <label>WLMENVM</label>
+        <abstract>FOR DB2 MQSERIES ROUTINES</abstract>
+        <description>
+The value of the FOR DB2 MQSERIES ROUTINES field specifies the name of the WLM environment that is to be used for DB2 MQSeries functions.
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENVP" scope="instance">
+        <label>WLMENVP</label>
+        <abstract>FOR ROUTINES IDENTIFIED TO PROGRAM CONTROL</abstract>
+        <description>
+The FOR ROUTINES IDENTIFIED TO PROGRAM CONTROL field identifies the WLM environment that is to be used for running DB2-supplied routines that require program control. These routines can be registered to RACF or an equivalent product.
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENVR" scope="instance">
+        <label>WLMENVR</label>
+        <abstract>FOR DB2 REXX ROUTINES</abstract>
+        <description>
+The value of the FOR DB2 REXX ROUTINES field identifies the name of the WLM environment that is to be used for DB2-supplied REXX routines.
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENVU" scope="instance">
+        <label>WLMENVU</label>
+        <abstract>FOR DB2 UTILITIES ROUTINES</abstract>
+        <description>
+The value of the FOR DB2 UTILITIES ROUTINES field identifies the name of the WLM environment that is to be used for running the DB2-supplied routines for utilities. This WLM environment should be used only by the SYSPROC.DSNUTILS and SYSPROC.DSNUTILU stor
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENVW" scope="instance">
+        <label>WLMENVW</label>
+        <abstract>FOR DB2 WEB SERVICES ROUTINES</abstract>
+        <description>
+The value of the FOR DB2 WEB SERVICES ROUTINES field identifies the WLM environment that is to be used for DB2 web services functions.
+        </description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="WLMENVX" scope="instance">
+        <label>WLMENVX</label>
+        <abstract>FOR DB2 XML PROCESSING ROUTINES</abstract>
+        <description>
+The value of the FOR DB2 XML PROCESSING ROUTINES field identifies the WLM environment that is to be used for running most DB2-supplied XML processing routines. This applies to the XSR_ADDSCHEMADOC, XSR_REGISTER, and XSR_REMOVE routines.
+</description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <variable name="PROTADMN" scope="instance">
+        <label>PROTADMN</label>
+        <abstract>SYSTEM ADMIN 1</abstract>
+        <description>
+The SYSADM subsystem parameter specifies the first of two authorization IDs that are to have installation SYSADM authority.
+</description>
+        <category>DB2</category>
+        <string>
+            <maxLength>40</maxLength>
+        </string>
+    </variable>
+    <step name="stepJSO" optional="false">
+        <title>STOP Db2 system (DSNTIJSO)</title>
+        <description>Job DSNTIJSO issue a normal stop for the Db2 system.</description>
+        <runAsUser substitution="true">${PROTADMN}</runAsUser>
+        <variableValue name="CONSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="DSNLOAD" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="DSNZPARM" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="IRLMPROC" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="MVSSPREF" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="PROTADMN" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions>Certify that Db2 system can be stopped.</instructions>
+        <weight>1</weight>
+        <skills>Database Administrator</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="true" substitution="true">dsntijso</fileTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="stepDP1" optional="false">
+        <title>RELEASE_Db2_TCPPORT (stepDP1)</title>
+        <description>This step releases the DRDA client and REST service PORTs when running in provisioning mode</description>
+        <prereqStep name="stepJSO"/>
+        <runAsUser substitution="true">${AGEXECID}</runAsUser>
+        <instructions substitution="false">Certify that the port can be released.</instructions>
+        <weight>1</weight>
+        <skills>Db2 and Network Administrators</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <rest>
+            <httpMethod>POST</httpMethod>
+            <uriPath substitution="false">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+            <requestBody substitution="true">{
+ "template-uuid" : "${_workflow-templateID}",
+  "template-name" : "${_workflow-templateName}",
+  "tenant-id" : "${_workflow-tenantID}",
+  "network-parms" :
+  {
+   "port-id" : "${AGTCPPID}"
+  }
+} </requestBody>
+            <expectedStatusCode>204</expectedStatusCode>
+        </rest>
+    </step>
+    <step name="stepDP2" optional="false">
+        <title>RELEASE_Db2_RESYNC_PORT (stepDP2)</title>
+        <description>This step release the TCPIP PORT used for two-phase commit resynchronization when running in provisioning mode </description>
+        <prereqStep name="stepDP1"/>
+        <runAsUser substitution="true">${AGEXECID}</runAsUser>
+        <instructions substitution="false">Certify that the port can be released.</instructions>
+        <weight>1</weight>
+        <skills>Db2 and Network Administrators</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <rest>
+            <httpMethod>POST</httpMethod>
+            <uriPath substitution="false">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+            <requestBody substitution="true">{
+ "template-uuid" : "${_workflow-templateID}",
+  "template-name" : "${_workflow-templateName}",
+  "tenant-id" : "${_workflow-tenantID}",
+  "network-parms" :
+  {
+   "port-id" : "${AGRESPID}"
+  }
+} </requestBody>
+            <expectedStatusCode>204</expectedStatusCode>
+        </rest>
+    </step>
+    <step name="stepDJ1" optional="false">
+        <title>DELETE IVP and non-vsam INSTALL data sets (DSNTDJ1)</title>
+        <description>
+Job DSNTDJ1 deletes Db2 NON VSAM data sets. It performs following steps: &lt;br&gt;&lt;/br&gt;
+a) deletes non VSAM data sets created by the IVP jobs &lt;br&gt;&lt;/br&gt;
+a) deletes non VSAM data sets created by the install jobs &lt;br&gt;&lt;/br&gt;
+b) deletes the JAVAENV data set created by the install jobs.
+        </description>
+        <prereqStep name="stepDP2"/>
+        <runAsUser substitution="true">${AGEXECID}</runAsUser>
+        <variableValue name="INSDSPRE" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="INSICPRE" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="PPROCLIB" scope="instance" noPromptIfSet="true" required="false"/>
+        <instructions substitution="false">Certify that the Db2 system definition can be released.</instructions>
+        <weight>1</weight>
+        <skills>Database Administrator</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="true" substitution="true">dsntdj1</fileTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="stepDJMJ" optional="false">
+        <title>DELETE JAVAENV and the two Java environment files (DSNTDJMJ)</title>
+        <description>Job DSNTDJMJ deletes JAVAENV and the two Java environment files created by the install jobs.
+        </description>
+        <prereqStep name="stepDJ1"/>
+        <runAsUser substitution="true">${AGEXECID}</runAsUser>
+        <variableValue name="DB2BASE" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="MVSSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+        <instructions substitution="false">Certify that the Db2 system definition can be released.</instructions>
+        <weight>1</weight>
+        <skills>Database Administrator</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="true" substitution="true">dsntdjmj</fileTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="stepDJIC" optional="false">
+        <title>DELETE Db2 Image Copy data sets (DSNTDJIC)</title>
+        <description>Job DSNTDJIC deletes Db2 Image Copy data sets</description>
+        <prereqStep name="stepDJMJ"/>
+        <runAsUser substitution="true">${AGEXECID}</runAsUser>
+        <variableValue name="VBSDSLOG" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="VCATALOG" scope="instance" noPromptIfSet="true" required="false"/>
+        <instructions substitution="false">Certify that the Db2 system definition can be released.</instructions>
+        <weight>1</weight>
+        <skills>Database Administrator</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="false" substitution="true">dsntdjic</fileTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="stepDJIN" optional="false">
+        <title>DELETE Db2 catalog, directory, BSDS, Active and Archive Log data sets (DSNTDJIN)</title>
+        <description>
+        Job DSNTDJIN deletes Db2 catalog,directory,BSDS, Active and Archive Log data sets created by the install jobs
+        </description>
+        <prereqStep name="stepDJIC"/>
+        <runAsUser substitution="true">${AGEXECID}</runAsUser>
+        <variableValue name="VBSDSLOG" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="VCATALOG" scope="instance" noPromptIfSet="true" required="false"/>
+        <instructions substitution="false">Certify that the Db2 system definition can be released.</instructions>
+        <weight>1</weight>
+        <skills>Database Administrator</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="true" substitution="true">dsntdjin</fileTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="stepDJMA" optional="false">
+        <title>DELETE Db2 Start up and WLMENV PROCs (DSNTDJMA)</title>
+        <description>Job DSNTDJMA deletes Db2 Start Up and WLM Environment PROCs.</description>
+        <prereqStep name="stepDJIN"/>
+        <runAsUser substitution="true">${AGEXECID}</runAsUser>
+        <variableValue name="MVSSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="PROCLIB" scope="instance" noPromptIfSet="true" required="false"/>
+        <instructions substitution="false">Certify that the Db2 system definition can be released.</instructions>
+        <weight>1</weight>
+        <skills>Database Administrator</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="false" substitution="true">dsntdjma</fileTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="stepDJUZ" optional="false">
+        <title>DELETE ZPARM module (DSNTDJUZ)</title>
+        <description>Job DSNTDJUZ deletes Db2 ZPARM module from SDSNEXIT</description>
+        <prereqStep name="stepDJMA"/>
+        <runAsUser substitution="true">${AGEXECID}</runAsUser>
+        <variableValue name="DSNEXIT" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="DSNZPARM" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">Certify that the Db2 system definition can be released.</instructions>
+        <weight>1</weight>
+        <skills>Database Administrator</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="false" substitution="true">dsntdjuz</fileTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="stepDJRW" optional="false">
+        <title>DELETE WLM Environment created by JRW (DSNTDJRW)</title>
+        <description>Job DSNTDJRW deletes all WLM Environmt created by DSNTIJRW at provisioning time.</description>
+        <prereqStep name="stepDJUZ"/>
+        <runAsUser substitution="true">${AGEXECID}</runAsUser>
+        <variableValue name="DSNLOAD" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">Certify that the Db2 system definition can be released.</instructions>
+        <weight>1</weight>
+        <skills>Database Administrator</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="false" substitution="true">dsntdjrw</fileTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="stepDJDA" optional="false">
+        <title>DELETE aliases defined when provisioning the Db2 system (DSNTDJDA)</title>
+        <description>Job DSNTDJDA deletes aliases defined when provisioning the Db2 system.</description>
+        <prereqStep name="stepDJRW"/>
+        <runAsUser substitution="true">${AGEXECID}</runAsUser>
+        <variableValue name="INSDSPRE" scope="instance" noPromptIfSet="true" required="false"/>
+        <instructions substitution="false">Certify that the Db2 system definition can be released.</instructions>
+        <weight>1</weight>
+        <skills>Database Administrator</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="true" substitution="true">dsntdjda</fileTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="stepDJMD" optional="false">
+        <title>DELETE Db2 and IRLM subsystem definitions from zOS (DSNTDJMD)</title>
+        <description>Job DSNTDJMD deletes Db2 and IRLM subsystem definitions from zOS</description>
+        <prereqStep name="stepDJDA"/>
+        <runAsUser substitution="true">${PROTADMN}</runAsUser>
+        <variableValue name="INSDSPRE" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="PROTADMN" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">Certify that the Db2 system definition can be released.</instructions>
+        <weight>1</weight>
+        <skills>Database Administrator</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="false" substitution="true">dsntdjmd</fileTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+</workflow>

@@ -1,0 +1,42 @@
+//*********************************************************************
+//* JOB NAME = DSNTIJSA
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2016 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//* FUNCTION = START DB2
+//*
+//* PSEUDOCODE =
+//*   DSNTMVSB  STEP  DB2 management
+//*
+//* NOTES = Start DB2
+//*
+//* Change activity =
+//*   01/30/2016 z/OSMF workflow artifacts generation           s15572
+//*
+//JOBLIB   DD  DSN=${DSNLOAD},DISP=SHR
+//DSNTMVSB EXEC PGM=DSNTMVSB,COND=(4,LT)
+//SYSPRINT DD  SYSOUT=*,DCB=(RECFM=FB,LRECL=133)
+//CMDOUT   DD  SYSOUT=*
+//CMDOPT   DD  *
+***********************************************************************
+** START DB2
+***********************************************************************
+*
+    TYPE<DB2>
+    COMMAND_PREFIX<${MVSSPREF}>
+    COMMAND<START>
+    PARAMETERS<PARM(${DSNZPARM}) ACCESS(*)>
+    SUBPARAMETERS<CONSNAME=${CONSNAME}>
+    WAIT_TIMEOUT<100>
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

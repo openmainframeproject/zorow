@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<actionList>
+    <action name="start" deprovision="false">
+        <workflow cleanAfterComplete="inherit">
+            <wfDefFile>./dsnstart.xml</wfDefFile>
+            <wfVarInFile>./dsntivin</wfVarInFile>
+            <wfVar name="AGEXECID" updateRegistry="false" substitution="false">$!{AGEXECID}</wfVar>
+            <wfVar name="CONSNAME" updateRegistry="false" substitution="false">$!{CONSNAME}</wfVar>
+            <wfVar name="DSNLOAD" updateRegistry="false" substitution="false">$!{DSNLOAD}</wfVar>
+            <wfVar name="DSNZPARM" updateRegistry="false" substitution="false">$!{DSNZPARM}</wfVar>
+            <wfVar name="IRLMSSID" updateRegistry="false" substitution="false">$!{IRLMSSID}</wfVar>
+            <wfVar name="MVSSNAME" updateRegistry="false" substitution="false">$!{MVSSNAME}</wfVar>
+            <wfVar name="MVSSPREF" updateRegistry="false" substitution="false">$!{MVSSPREF}</wfVar>
+            <wfVar name="PROTADMN" updateRegistry="false" substitution="false">$!{PROTADMN}</wfVar>
+            <wfVar name="ZARTPATH" updateRegistry="false" substitution="false">$!{ZARTPATH}</wfVar>
+        </workflow>
+    </action>
+    <action name="stop" deprovision="false">
+        <workflow cleanAfterComplete="inherit">
+            <wfDefFile>./dsnstop.xml</wfDefFile>
+            <wfVarInFile>./dsntivin</wfVarInFile>
+            <wfVar name="AGEXECID" updateRegistry="false" substitution="false">$!{AGEXECID}</wfVar>
+            <wfVar name="CONSNAME" updateRegistry="false" substitution="false">$!{CONSNAME}</wfVar>
+            <wfVar name="MVSSPREF" updateRegistry="false" substitution="false">$!{MVSSPREF}</wfVar>
+            <wfVar name="DSNLOAD" updateRegistry="false" substitution="false">$!{DSNLOAD}</wfVar>
+            <wfVar name="DSNZPARM" updateRegistry="false" substitution="false">$!{DSNZPARM}</wfVar>
+            <wfVar name="ZARTPATH" updateRegistry="false" substitution="false">$!{ZARTPATH}</wfVar>
+            <wfVar name="IRLMPROC" updateRegistry="false" substitution="false">$!{IRLMPROC}</wfVar>
+            <wfVar name="PROTADMN" updateRegistry="false" substitution="false">$!{PROTADMN}</wfVar>
+        </workflow>
+    </action>
+    <action name="deprovision" deprovision="true">
+        <workflow cleanAfterComplete="inherit">
+            <wfDefFile>./dsndeprv.xml</wfDefFile>
+            <wfVarInFile>./dsntivin</wfVarInFile>
+            <wfVar name="AGEXECID" updateRegistry="false" substitution="false">$!{AGEXECID}</wfVar>
+            <wfVar name="AGICHLQ" updateRegistry="false" substitution="false">$!{AGICHLQ}</wfVar>
+            <wfVar name="AGINSDSP" updateRegistry="false" substitution="false">$!{AGINSDSP}</wfVar>
+            <wfVar name="AGRESPID" updateRegistry="false" substitution="false">$!{AGRESPID}</wfVar>
+            <wfVar name="AGTCPPID" updateRegistry="false" substitution="false">$!{AGTCPPID}</wfVar>
+            <wfVar name="CONSNAME" updateRegistry="false" substitution="false">$!{CONSNAME}</wfVar>
+            <wfVar name="DB2BASE" updateRegistry="false" substitution="false">$!{DB2BASE}</wfVar>
+            <wfVar name="DBRMLIB" updateRegistry="false" substitution="false">$!{DBRMLIB}</wfVar>
+            <wfVar name="DSNEXIT" updateRegistry="false" substitution="false">$!{DSNEXIT}</wfVar>
+            <wfVar name="DSNLOAD" updateRegistry="false" substitution="false">$!{DSNLOAD}</wfVar>
+            <wfVar name="DSNZPARM" updateRegistry="false" substitution="false">$!{DSNZPARM}</wfVar>
+            <wfVar name="INSDSPRE" updateRegistry="false" substitution="false">$!{INSDSPRE}</wfVar>
+            <wfVar name="INSICPRE" updateRegistry="false" substitution="false">$!{INSICPRE}</wfVar>
+            <wfVar name="IRLMPROC" updateRegistry="false" substitution="false">$!{IRLMPROC}</wfVar>
+            <wfVar name="IRLMSSID" updateRegistry="false" substitution="false">$!{IRLMSSID}</wfVar>
+            <wfVar name="JAVAENV" updateRegistry="false" substitution="false">$!{JAVAENV}</wfVar>
+            <wfVar name="JAVAENVV" updateRegistry="false" substitution="false">$!{JAVAENVV}</wfVar>
+            <wfVar name="JVMPROPS" updateRegistry="false" substitution="false">$!{JVMPROPS}</wfVar>
+            <wfVar name="MVSSNAME" updateRegistry="false" substitution="false">$!{MVSSNAME}</wfVar>
+            <wfVar name="MVSSPREF" updateRegistry="false" substitution="false">$!{MVSSPREF}</wfVar>
+            <wfVar name="OUTCL" updateRegistry="false" substitution="false">$!{OUTCL}</wfVar>
+            <wfVar name="PPROCLIB" updateRegistry="false" substitution="false">$!{PPROCLIB}</wfVar>
+            <wfVar name="PROCLIB" updateRegistry="false" substitution="false">$!{PROCLIB}</wfVar>
+            <wfVar name="RUNLIB" updateRegistry="false" substitution="false">$!{RUNLIB}</wfVar>
+            <wfVar name="SRCLIB" updateRegistry="false" substitution="false">$!{SRCLIB}</wfVar>
+            <wfVar name="VBSDSLOG" updateRegistry="false" substitution="false">$!{VBSDSLOG}</wfVar>
+            <wfVar name="VCATALOG" updateRegistry="false" substitution="false">$!{VCATALOG}</wfVar>
+            <wfVar name="WLMENV" updateRegistry="false" substitution="false">$!{WLMENV}</wfVar>
+            <wfVar name="WLMENV1" updateRegistry="false" substitution="false">$!{WLMENV1}</wfVar>
+            <wfVar name="WLMENVC" updateRegistry="false" substitution="false">$!{WLMENVC}</wfVar>
+            <wfVar name="WLMENVD" updateRegistry="false" substitution="false">$!{WLMENVD}</wfVar>
+            <wfVar name="WLMENVG" updateRegistry="false" substitution="false">$!{WLMENVG}</wfVar>
+            <wfVar name="WLMENVJ" updateRegistry="false" substitution="false">$!{WLMENVJ}</wfVar>
+            <wfVar name="WLMENVM" updateRegistry="false" substitution="false">$!{WLMENVM}</wfVar>
+            <wfVar name="WLMENVP" updateRegistry="false" substitution="false">$!{WLMENVP}</wfVar>
+            <wfVar name="WLMENVR" updateRegistry="false" substitution="false">$!{WLMENVR}</wfVar>
+            <wfVar name="WLMENVU" updateRegistry="false" substitution="false">$!{WLMENVU}</wfVar>
+            <wfVar name="WLMENVW" updateRegistry="false" substitution="false">$!{WLMENVW}</wfVar>
+            <wfVar name="WLMENVX" updateRegistry="false" substitution="false">$!{WLMENVX}</wfVar>
+            <wfVar name="PROTADMN" updateRegistry="false" substitution="false">$!{PROTADMN}</wfVar>
+        </workflow>
+    </action>
+    <action name="display_DDF" deprovision="false">
+        <workflow cleanAfterComplete="inherit">
+            <wfDefFile>./dsndddf.xml</wfDefFile>
+            <wfVarInFile>./dsntivin</wfVarInFile>
+            <wfVar name="AGEXECID" updateRegistry="false" substitution="false">$!{AGEXECID}</wfVar>
+            <wfVar name="DSNLOAD" updateRegistry="false" substitution="false">$!{DSNLOAD}</wfVar>
+            <wfVar name="MVSSNAME" updateRegistry="false" substitution="false">$!{MVSSNAME}</wfVar>
+        </workflow>
+    </action>
+    <action name="Enable_Optional_Features" deprovision="false">
+        <workflow cleanAfterComplete="inherit">
+            <wfDefFile>./dsnoptft.xml</wfDefFile>
+            <wfVarInFile>./dsntivin</wfVarInFile>
+            <wfVar name="AGEXECID" updateRegistry="false" substitution="false">$!{AGEXECID}</wfVar>
+            <wfVar name="CCOMP" updateRegistry="false">$!{CCOMP}</wfVar>
+            <wfVar name="CPPAUTCL" updateRegistry="false">$!{CPPAUTCL}</wfVar>
+            <wfVar name="DSNDBRM" updateRegistry="false">$!{DSNDBRM}</wfVar>
+            <wfVar name="DSNEXIT" updateRegistry="false">$!{DSNEXIT}</wfVar>
+            <wfVar name="DSNLOAD" updateRegistry="false">$!{DSNLOAD}</wfVar>
+            <wfVar name="DSNMACS" updateRegistry="false">$!{DSNMACS}</wfVar>
+            <wfVar name="DSNSAMP" updateRegistry="false">$!{DSNSAMP}</wfVar>
+            <wfVar name="ENAJDBC" updateRegistry="true">$!{ENAJDBC}</wfVar>
+            <wfVar name="ENAODBC" updateRegistry="true">$!{ENAODBC}</wfVar>
+            <wfVar name="ENAREST" updateRegistry="true">$!{ENAREST}</wfVar>
+            <wfVar name="LELKED" updateRegistry="false">$!{LELKED}</wfVar>
+            <wfVar name="LEPLMSGL" updateRegistry="false">$!{LEPLMSGL}</wfVar>
+            <wfVar name="LERUN" updateRegistry="false">$!{LERUN}</wfVar>
+            <wfVar name="MVSSNAME" updateRegistry="false">$!{MVSSNAME}</wfVar>
+            <wfVar name="PPROCLIB" updateRegistry="false">$!{PPROCLIB}</wfVar>
+            <wfVar name="PROTADMN" updateRegistry="false">$!{PROTADMN}</wfVar>
+            <wfVar name="RUNLIB" updateRegistry="false">$!{RUNLIB}</wfVar>
+            <wfVar name="INSGRLST" updateRegistry="false">$!{INSGRLST}</wfVar>
+            <wfVar name="DDLOC" updateRegistry="false">$!{DDLOC}</wfVar>
+            <wfVar name="JAVAHOME" updateRegistry="false">$!{JAVAHOME}</wfVar>
+            <wfVar name="APCO" updateRegistry="false">$!{APCO}</wfVar>
+            <wfVar name="JCCSID" updateRegistry="false">$!{JCCSID}</wfVar>
+            <wfVar name="DB2BASE" updateRegistry="false">$!{DB2BASE}</wfVar>
+            <wfVar name="DSNLOD2" updateRegistry="false">$!{DSNLOD2}</wfVar>
+            <wfVar name="CLASPATH" updateRegistry="false">$!{CLASPATH}</wfVar>
+            <wfVar name="IPNAME" updateRegistry="false">$!{IPNAME}</wfVar>
+            <wfVar name="TCPPORT" updateRegistry="false">$!{TCPPORT}</wfVar>
+            <wfVar name="JCCHOME" updateRegistry="false">$!{JCCHOME}</wfVar>
+        </workflow>
+    </action>
+</actionList>

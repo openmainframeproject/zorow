@@ -1,0 +1,51 @@
+//*********************************************************************
+//* JOB NAME = DSNTDJMJ
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    LICENSED MATERIALS - PROPERTY OF IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2018 IBM CORP.  ALL RIGHTS RESERVED.
+//*
+//*    STATUS = VERSION 12
+//*
+//* FUNCTION = THIS JOB IS EXECUTED DURING DEPROVISION ACTION AND
+//*            PERFORMS THE FOLLOWING:
+//*
+//* PSEUDOCODE:
+//* -----------
+//*   STEP DJAVAENV: DELETE JAVAENV DATA SET
+//*                  THAT WAS DEFINED AT PROVISIONING TIME.
+//*
+//*   STEP DJAVAEFL: DELETE JAVA ENVIRONMENT FILES:
+//*                  envfile.txt AND jvmprops
+//*                  THAT WERE DEFINED AT PROVISIONING TIME
+//*                  TO BE USED BY THE DB2-SUPPLIED
+//*                  JAVA WLM ENVIRONMENT: DSNWLM_JAVA
+//*
+//* CHANGE ACTIVITY =
+//*   11/14/2018 INTRODUCTION                                   E75766
+//*********************************************************************
+//*--------------------------------------------------------------------
+//* DELETE JAVAENV data set
+//*--------------------------------------------------------------------
+//DJAVAENV EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(2,LT)
+//SYSTSPRT DD  SYSOUT=*
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSTSIN  DD *
+  DELETE '${JAVAENV}'
+//*--------------------------------------------------------------------
+//* DELETE JAVA ENVIRONMENT FILES
+//*--------------------------------------------------------------------
+//DJAVAEFL EXEC  PGM=IKJEFT1A,COND=(0,LT)
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD  *
+ BPXBATCH SH +
+ rm ${JAVAENVV}; +
+ rm ${JVMPROPS};
+ ## Macro to convert a string to lower cases
+ ## $str is the string to be converted
+ #macro(lc $str)
+ $str.toLowerCase()#end
+//*

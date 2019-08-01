@@ -1,0 +1,397 @@
+//*********************************************************************
+//* JOB NAME = DSNTIJMJ
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2018 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//* FUNCTION = Creates the environment files for the DB2-supplied
+//*            Java WLM environment
+//*
+//* PSEUDOCODE =
+//*   DSNTIJJ  STEP      Creates a Language Environment run-time options
+//*                      data set for ${MVSSNAME}WLMJ, the address space proc
+//*                      for the ${WLMENVJ}
+//*                      core WLM environment.
+//*   DSNTIJCV STEP      Creates the directory of the environment
+//*                      variable file which is created in job step
+//*                      DSNTIJR.
+//*   DSNTIJR  STEP      Creates an environment variable file in HFS
+//*                      for the ${WLMENVJ}
+//*                      core WLM environment.
+//*   DSNTIJCP STEP      Creates the directory of the JVM startup
+//*                      options file which is created in job step
+//*                      DSNTIJS.
+//*   DSNTIJS  STEP      Creates a JVM startup options file in HFS
+//*                      for the ${WLMENVJ}
+//*                      core WLM environment.
+//*
+//* NOTES =
+//*   Please check this job carefully to ensure that the system
+//*   library names are the correct library names for your site.
+//*
+//*   Job step DSNTIJJ creates a Language Environment run-time options
+//*   data set for stored procedures and UDFs that run in
+//*     ${WLMENVJ},
+//*   the DB2 core WLM environment for DB2 Java routines.  This data
+//*   set is allocated by the JAVAENV DD of the ${MVSSNAME}WLMJ address space
+//*   proc, which is created by installation job DSNTIJMW.
+//*
+//*   Job step DSNTIJCV executes the DB2 REXX EXEC DSNTJMJX
+//*   which can be used to create the directory of the
+//*   environment file created by job step DSNTIJR below
+//*   if it does not exist. The absolute path and name of the
+//*   environment file is passed to DSNTJMJX as a parameter.
+//*   The file name is included to validate that it does not
+//*   already exist as a directory. The directory of the
+//*   environment file, if it does not exist, or any portion
+//*   of it that does not already exist, is created in HFS/zFS.
+//*   The environment file is created within the directory
+//*   by job step DSNTIJR.
+//*
+//*   Job step DSNTIJR creates the environment variable file in HFS for
+//*     ${WLMENVJ}.
+//*   The name of this file is assigned to the _CEE_ENVFILE variable
+//*   of the Language Environment run-time options data set created
+//*   by job step DSNTIJJ.
+//*   The absolute path and name of this file is also passed as a
+//*   parameter to the DB2 REXX EXEC DSNTJMJX in job step DSNTIJCV,
+//*   where the directory of this file, if it does not exist,
+//*   is created.
+//*
+//*   Job step DSNTIJCP executes the DB2 REXX EXEC DSNTJMJX
+//*   which can be used to create the directory of the
+//*   JVM startup options file created by job step DSNTIJS below
+//*   if it does not exist. The absolute path and name of the
+//*   JVM startup options file is passed to DSNTJMJX as a parameter.
+//*   The file name is included to validate that it does not
+//*   already exist as a directory. The directory of the
+//*   JVM startup options file, if it does not exist, or any portion
+//*   of it that does not already exist, is created in HFS/zFS.
+//*   The JVM startup options file is created within the directory
+//*   by job step DSNTIJS.
+//*
+//*   Job step DSNTIJS creates the JVM startup options file in HFS for
+//*     ${WLMENVJ}.
+//*   The name of this file is assigned to the JVMPROPS variable
+//*   of the environment variable file created by job step DSNTIJR.
+//*   The absolute path and name of this file is also passed as a
+//*   parameter to the DB2 REXX EXEC DSNTJMJX in job step DSNTIJCP,
+//*   where the directory of this file, if it does not exist,
+//*   is created.
+//*
+//*   Before running this job, review the DSNTIJx job steps and
+//*   optionally update the following Java paths:
+//*      (a) _CEE_ENVFILE is the name of a HFS file that contains
+//*          settings for environment variables.
+//*            Example: /usr/lpp/db2c10/base/classes/dsnenvfile.txt
+//*          This file is created by job step DSNTIJR.
+//*          The directory of this file is created by job step
+//*          DSNTIJCV if it does not exist.
+//*      (b) DB2_BASE is the highest-level directory in the set of HFS
+//*          directories that contain DB2 for z/OS code
+//*            Example: /usr/lpp/db2c10/base
+//*      (c) JCC_HOME is the path where the JCC driver is
+//*          located.
+//*            Example: /usr/lpp/db2c10/jdbc
+//*      (d) JAVA_HOME is the path where the JDK is located.
+//*            Example: /usr/lpp/java150/J5.0
+//*      (e) JVMPROPS is the name of a HFS file that contains startup
+//*          options for the JVM
+//*            Example: /usr/lpp/java/properties/dsnjvmsp
+//*          This file is created by job step DSNTIJS.
+//*          The directory of this file is created by job step
+//*          DSNTIJCP if it does not exist.
+//*   The user ID used to run this job needs to have write permission
+//*   to the HFS directories where these files are created.
+//*   This user ID must also have an OMVS segment.
+//*
+//* CHANGE LOG:
+//*   05/07/2018 Split up DSNTIJMV                               s74993
+//*               - DSNTIJMV: Defines DB2 and IRLM to z/OS
+//*               - DSNTIJMA: Adds the DB2 and IRLM startup procs to
+//*                           the system proclib
+//*               - DSNTIJMP: Adds the DB2 language procs to the
+//*                           system proclib
+//*               - DSNTIJMW: Adds the startup procs for the DB2-
+//*                           supplied WLM environments to the system
+//*                           proclib
+//*               - DSNTIJMJ: Creates the environment files for the
+//*                           DB2-supplied Java WLM environment
+//*   08/22/2018 Provide Db2 installation panel fields for       s77909
+//*              Java-related configuration
+//*
+//*********************************************************************
+//*
+//*********************************************************************
+//* Create a Language Environment run-time options data set for
+//*   ${WLMENVJ},
+//* the WLM environment for DB2-supplied Java stored procs and UDFs.
+//*
+//* This data set is allocated by the JAVAENV DD of the ${MVSSNAME}WLMJ
+//* address space proc that is created by installation job DSNTIJMW.
+//*
+//* Review the settings below and update as appropriate for your
+//* environment:
+//* - If you modify the data set name allocated by STDOUT, you need to
+//*   make the same change to the JAVAENV DD setting in the ${MVSSNAME}WLMJ
+//*   address space proc.
+//* - The HFS file specified by the _CEE_ENVFILE parameter is created
+//*   by job step DSNTIJR below. If you change the _CEE_ENVFILE setting
+//*   here, make the same change to the parameter passed to the DB2
+//*   REXX EXEC DSNTJMJX in job step DSNTIJCV, and make the same
+//*   change to the STDOUT DD of job step DSNTIJR.
+//* Refer to the DB2 Programming for Java guide for a description of
+//* the environment variables and other options in the Language
+//* Environment run-time options data set.
+//*********************************************************************
+//DSNTIJJ EXEC PGM=BPXBATCH,COND=(4,LT)
+//STDPARM  DD  *
+sh
+v1='ENVAR("_CEE_ENVFILE=';
+#if (${JVMAMODE} != "64")
+v2='${JAVAENVV}"),';
+#else
+v2='${JAVAENVV}")';
+#end
+echo ${v1}${v2};
+#getMsgflXplink("${JVMAMODE}")
+//STDOUT   DD  DSN=${JAVAENV},
+//             DISP=(,CATLG,DELETE),
+//             UNIT=SYSDA,SPACE=(TRK,1),
+//             DCB=(RECFM=VB,LRECL=255)
+//*
+//*********************************************************************
+//* Create the directory of the environment file which is created in
+//* job step DSNTIJR below. The directory is created if it does not
+//* exist.
+//*
+//* The parameter passed to the DB2 REXX EXEC DSNTJMJX is the
+//* absolute path and name of the environment file which is created
+//* in job step DSNTIJR below.
+//*
+//* If you modify the parameter passed to the DB2 REXX EXEC DSNTJMJX,
+//* you need to make the same change to the _CEE_ENVFILE setting in the
+//* Language Environment run-time options data set created by job step
+//* DSNTIJJ, and make the same change to the STDOUT DD of job step
+//* DSNTIJR.
+//*********************************************************************
+//DSNTIJCV EXEC PGM=IKJEFT01,DYNAMNBR=20,
+//             COND=(4,LT)
+//SYSEXEC  DD  DISP=SHR,DSN=${DSNCLIST}
+//SYSTSPRT DD  SYSOUT=*
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSTSIN  DD  *
+  DSNTJMJX +
+#formatLine("${JAVAENVV}",71,0,"","+")
+//*
+//*********************************************************************
+//* Create the environment variable file in HFS for
+//*   ${WLMENVJ},
+//* the WLM environment for DB2-supplied Java stored procs and UDFs.
+//*
+//* The file allocated by STDOUT below is used by the _CEE_ENVFILE
+//* environment variable of the Language Environment run-time options
+//* data set created by job step DSNTIJJ.
+//*
+//* Review the settings below and update as appropriate for your
+//* environment.  If you modify the data set name allocated by STDOUT,
+//* you need to make the same change to the _CEE_ENVFILE setting in the
+//* Language Environment run-time options data set created by job step
+//* DSNTIJJ, and make the same change to the parameter passed to the
+//* DB2 REXX EXEC DSNTJMJX in job step DSNTIJCV.
+//* - CLASSPATH needs to specify the path for the Java class that
+//*   contains the jar file for z/OS XML System Services XML schema
+//*   registration (gxljapi.jar).
+//* - The HFS file specified by the JVMPROPS parameter is created
+//*   by job step DSNTIJS below.  If you change the JVMPROPS setting
+//*   here, make the same change to the parameter passed to the
+//*   DB2 REXX EXEC DSNTJMJX in job step DSNTIJCP, and
+//*   make the same change to the STDOUT DD of job step DSNTIJS.
+//* - LIBPATH needs to specify the path for the native library for z/OS
+//*   XML System Services (libGXLNVBAT.so).
+//* - STEPLIB needs to specify the name of the DB2 for z/OS runtime
+//*   library (SDSNLOAD)
+//*
+//* Refer to the DB2 Programming for Java guide for a description of
+//* the environment variables and other options in this file.
+//*********************************************************************
+//DSNTIJR EXEC PGM=BPXBATCH,COND=(4,LT)
+//STDPARM  DD  *
+sh
+#getClasspath("${CLASPATH}")
+echo DB2_BASE=${DB2BASE};
+echo JCC_HOME=${JCCHOME};
+echo JAVA_HOME=${JAVAHOME};
+echo JVMPROPS=${JVMPROPS};
+echo LIBPATH=${LIBPATH};
+echo STEPLIB=${DSNLOAD};
+#getDD("${JAVAENVV}")
+//             PATHOPTS=(OWRONLY,OCREAT,OEXCL),
+//             PATHMODE=(SIRWXU,SIRGRP)
+//STDERR   DD  SYSOUT=*
+//*
+//*********************************************************************
+//* Create the directory of the JVM startup options file which is
+//* created in job step DSNTIJS below. The directory is created if
+//* it does not exist.
+//*
+//* The parameter passed to the DB2 REXX EXEC DSNTJMJX is the
+//* absolute path and name of the JVM startup options file which is
+//* created in job step DSNTIJS below.
+//*
+//* If you modify the parameter passed to the DB2 REXX EXEC DSNTJMJX,
+//* you need to make the same change to the JVMPROPS setting in the
+//* Language Environment run-time options data set created by job step
+//* DSNTIJJ, and make the same change to the STDOUT DD of job step
+//* DSNTIJS.
+//*********************************************************************
+//DSNTIJCP EXEC PGM=IKJEFT01,DYNAMNBR=20,
+//             COND=(4,LT)
+//SYSEXEC  DD  DISP=SHR,DSN=${DSNCLIST}
+//SYSTSPRT DD  SYSOUT=*
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSTSIN  DD  *
+  DSNTJMJX +
+#formatLine("${JVMPROPS}",71,0,"","+")
+//*
+//*********************************************************************
+//* Create the JVM startup options file in HFS for
+//*   ${WLMENVJ},
+//* the WLM environment for DB2-supplied Java stored procs and UDFs.
+//*
+//* The name allocated by STDOUT below is used by the JVMPROPS
+//* environment variable of the Language Environment run-time options
+//* data set created by job step DSNTIJJ.
+//*
+//* Review the settings below and update as appropriate for your
+//* environment.  If you modify the data set name allocated by STDOUT,
+//* you need to make the same change to the JVMPROPS setting in the
+//* Language Environment run-time options data set created by job step
+//* DSNTIJJ, and make the same change to the parameter passed to the
+//* DB2 REXX EXEC DSNTJMJX in job step DSNTIJCP.
+//*
+//* Refer to the DB2 Programming for Java guide for a description of
+//* the environment variables and other options in this file.
+//*********************************************************************
+//DSNTIJS EXEC PGM=BPXBATCH,COND=(4,LT)
+//STDPARM  DD  *
+sh
+echo '#hh() This file contains optional JVM startup options for';
+echo '#hh()   ${WLMENVJ},';
+echo '#hh() the WLM environment for DB2-supplied Java stored procs and';
+echo '#hh() UDFs.  Lines that begin with a single "#" are commented-out';
+echo '#hh() JVM startup startup options.  To activate an option, delete';
+echo '#hh() the leading "#".';
+echo '#hh()';
+echo '#hh() Sets the initial size of middleware heap within';
+echo '#hh() the non-system heap';
+echo '-Xms256M';
+echo '#hh() Sets the maximum size of nonsystem heap';
+echo '-Xmx256M';
+#getDD("${JVMPROPS}")
+//             PATHOPTS=(OWRONLY,OCREAT,OEXCL),
+//             PATHMODE=(SIRWXU,SIRGRP)
+//STDERR   DD  SYSOUT=*
+//*
+## Macro to convert a string to lower cases
+## $str is the string to be converted
+#macro(lc $str)
+$str.toLowerCase()#end
+## Macro to generate the MSGFILE and XPLINK LE options
+## $jamode is the JVMAMODE
+#macro(getMsgflXplink $jamode)
+#if ($jamode != "64")
+echo 'MSGFILE(JSPDEBUG,,,,ENQ),';
+echo 'XPLINK(ON)';
+#else
+#end#end
+## Macro to get the Java env file CLASSPATH parameter
+## $claspath is where USS-supplied Java objects are found
+#macro(getClasspath $claspath)
+#set ($txt = "echo CLASSPATH=" + $claspath)
+#if ($claspath.endsWith("/"))
+#set ($line = $txt + "gxljapi.jar;")
+#else
+#set ($line = $txt + "/gxljapi.jar;")
+#end
+${line}
+#end
+## Macro to get Java env or JVM startup opt STDOUT DD
+## $path is the Java env or JVM startup opt full path name
+#macro(getDD $path)
+#set ($plen = $path.length())
+#if ($plen > 49)
+#set ($plen2 = $plen - 50)
+#set ($modplen2 = $plen2 % 56)
+#else#end
+#if ($plen == 49)
+#set ($line = "//STDOUT   DD PATH='" + $path)
+#elseif ($plen > 49 && $modplen2 == 55)
+#set ($line = "//STDOUT   DD PATH='" + $path)
+#else
+#set ($line = "//STDOUT   DD  PATH='" + $path)
+#end
+#set ($line = $line + "',")
+#formatLine($line, 71, 13, "//", "+")#end
+## Macro to format a line and ensure continuation char atcolumn 72.
+## $line is the statement to be formatted.
+## $len is the maximum length of a line.
+## $indent is the length of the indentation.
+## $prfx is the string at the beginning of a line.
+## $suffix is the continuation character.
+#macro(formatLine $line $len $indent $prfx $suffix)
+#if($line.length() <= $len)
+$line.format("%-${len}s", $line)
+#else
+#makeIndent("$line", $len, $indent, "$prfx", "$!{suffix}")
+#end#end
+## Macro to handle indentation if JCL statement does notfit in 71 chars
+## $line is the statement to be formatted
+## $len is the maximum length of a line.
+## $indent is the length of the indentation.
+## $prfx is the string at the beginning of a line.
+## $suffix is the continuation character.
+#macro(makeIndent $line $len $indent $prfx $suffix)
+$line.substring(0, ${len})$suffix
+#set ($left = $line.substring(${len}))
+#set ($size = $indent + $left.length())
+#set ($left = $left.format("%${size}s", $left))
+#set ($left = $prfx + $left)
+#if($left.length() <= $len)
+$line.format("%-${len}s", $left)
+#else
+#makeIndent("$left", $len, $indent, "$prfx", "$suffix")
+#end#end
+## Macro to generate JVM startup option initial heap size
+## $iheap is the initial Java heap size
+#macro(actIheap $iheap)
+#if($iheap != "" && $iheap != "DEFAULT")
+#set ($option = "-Xms" + $iheap)
+#set ($option = $option + "M")
+echo '${option}';#else
+echo '#-Xms64M';#end#end
+## Macro to generate JVM startup option max heap size
+## $mheap is the initial Java heap size
+#macro(actMheap $mheap)
+#if($mheap != "" && $mheap != "DEFAULT")
+#set ($option = "-Xmx" + $mheap)
+#set ($option = $option + "M")
+echo '${option}';#else
+echo '#-Xmx128M';#end#end
+## Macro to escape "##"
+#macro (hh)
+#set ($h = "#")
+$h$h#end
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

@@ -1,0 +1,145 @@
+//*********************************************************************
+//* JOB NAME = DSNTIJRV
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2016 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//* FUNCTION = Verify the DB2-supplied routines
+//*
+//* PSEUDOCODE =
+//*   DSNTRVFY STEP      Verify the DB2-supplied routines
+//*
+//* NOTES =
+//*
+//* If the RACF facility class is active and a profile has been
+//* defined for MVSADMIN.WLM.POLICY, then the person submitting
+//* this job require READ access.
+//*
+//* PERMIT MVSADMIN.WLM.POLICY CLASS(FACILITY) ID(user) ACCESS(READ)
+//*
+//* If the RACF OPERCMDS class is active and a profile has been
+//* defined for MVS.MCSOPER.*, then the person submitting this job
+//* require READ access. Alternatively, you can add a discrete
+//* profile for the console used in this job (console name DSNTRVFY).
+//* To add a discrete profile, the RACF security administrator must:
+//*
+//* 1. Issue RDEFINE command to establish a discrete profile for
+//*    MVS.MCSOPER.DSNTRVFY
+//*
+//* RDEFINE OPERCMDS MVS.MCSOPER.DSNTRVFY UACC(NONE)
+//*
+//* 2. Give the user that submits this job READ access.
+//*
+//* PERMIT MVS.MCSOPER.DSNTRVFY CLASS(OPERCMDS) ID(user) ACCESS(READ)
+//*
+//* 3. Issue the SETROPTS RACLIST command to refresh the
+//*    OPERCMDS class.
+//*
+//* SETROPTS RACLIST(OPERCMDS) REFRESH
+//*
+//*                                                             PM80868
+//* If the DSNTRVFY console is already in use by another instance of
+//* this program, it will retry every 30 seconds for up to 30 minutes
+//* for the console to become available.
+//*
+//* RECOMMENDATION: Run this job with a user ID that has         s24922
+//* primary or secondary authorization as DB2 Installation       s24922
+//* System Administrator or DB2 Installation System Operator.    s24922
+//* See the explanation of the AUTHID and PKOWNER parameters     182781
+//* for additional requirements when running with Installation   s24922
+//* System Operator authority.                                   s24922
+//*
+//********************************************************************
+//*
+//* The DSNTRVFY batch program accepts the following parameters:
+//*
+//*   DB2SSN(ssid)
+//*
+//*   The DB2SSN parameter specifies the DB2 subsystem ID where
+//*   the DB2-supplied routines will be verified.
+//*
+//*   AUTHID(authid)
+//*
+//*   The AUTHID parameter is optional. If specified, this parameter is
+//*   used as the CURRENT SQLID when issuing SQL statements,     s24922
+//*   and as the owner of the package and plan for DSNTRVFY      s24922
+//*   unless the PKOWNER parameter is also specified.            s24922
+//*   -> Specify SYSINSTL here when using DB2 Installation       s24922
+//*      System Operator authority to execute this job.          s24922
+//*
+//*   PKOWNER(pkowner)                                           s24922
+//*
+//*   The PKOWNER parameter is optional. If specified, this
+//*   parameter is used as the owner of the package and plan
+//*   for DSNTRVFY.
+//*   -> Specify an authorization ID that has been granted       s24922
+//*      system DBADM and DATAACCESS authorities when using      s24922
+//*      DB2 System Operator authority to execute this job.      s24922
+//*
+//*   ROUTINE(routine)
+//*
+//*   The ROUTINE parameter indicates the routine to be verified.
+//*   This parameter supports the following values:
+//*
+//*      ALL = The batch program will verify all DB2-supplied
+//*       routines.
+//*
+//*      DD:SYSIN = The batch program will verify a list of routines
+//*       specified under the SYSIN DD statement.
+//*
+//*      schema-name.specific-name = The batch program will verify
+//*       a specific DB2-supplied routine.
+//*
+//* If the routine specified is DD:SYSIN, additional input is required
+//* from SYSIN to specify a list of DB2-supplied routines to be
+//* verified. The entries should be in the form of
+//*
+//*   schema-name.specific-name
+//*
+//* and each line should only have one routine. For example:
+//*
+//*   //SYSIN    DD   *
+//*     schema-nameA.specific-nameA
+//*     schema-nameB.specific-nameB
+//*      :
+//*     schema-nameX.specific-nameX
+//*
+//* CHANGE LOG =
+//*   06/07/2013 Note wait on busy console                      PM80868
+//*   10/02/2015 Installation w/o SYSADM            s24922_inst1 s24922
+//*   02/15/2016 Long data set names                            PI42601
+//*
+//*********************************************************************
+//*
+//JOBLIB   DD DISP=SHR,DSN=${DSNEXIT}
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//         DD DISP=SHR,DSN=${LERUN}
+//*
+//*   DSNTRVFY: Verify the DB2-supplied routines
+//*
+//DSNTRVFY EXEC PGM=DSNTRVFY,COND=(4,LT),
+//             PARM=('#getJRVParm("${MVSSNAME}"
+               "${AUTHID}") ',
+//             'PKOWNER(#defPKOWN("${INSPKOWN}","${AUTHID}")) ROUTINE(ALL)')
+//DBRMLIB  DD DISP=SHR,DSN=${DSNDBRM}
+//SYSUT1   DD UNIT=${TVOLDEVT},SPACE=(32000,(30,30)),
+//            DCB=(RECFM=VB,LRECL=133)
+//SYSTSPRT DD SYSOUT=*
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+#macro (getJRVParm $dsn $authid)
+DB2SSN($dsn) AUTHID($authid)#end
+#macro (defPKOWN $inspkown $authid)
+#if ($inspkown != "")
+$inspkown#else$authid#end#end
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

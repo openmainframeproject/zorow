@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<workflow>
+  <workflowInfo>
+    <workflowID>DB2 deprovisioning empty database workflow</workflowID>
+    <workflowDescription>Standard Procedure to deprovision a DB2.</workflowDescription>
+    <workflowVersion>0.1</workflowVersion>
+    <vendor>IBM</vendor>
+    <Provisioning>
+      <productID>5740XYR00</productID>
+      <productName>DB2 for z/OS</productName>
+      <productVersion>B10</productVersion>
+      <softwareType>DB2zDB</softwareType>
+    </Provisioning>
+  </workflowInfo>
+  <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+  <!-- Deprovision Security Workflow Variables                      -->
+  <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+  <variable name="DSNLOAD" scope="instance">
+    <label>DSNLOAD</label>
+    <abstract>DB2 LOAD LIBRARY</abstract>
+    <description>The name of the main APF-authorized DB2 load module library that is to be used by installation and sample jobs.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="MVSSNAME" scope="instance">
+    <label>MVSSNAME</label>
+    <abstract>DB2 SUBSYSTEM NAME</abstract>
+    <description>The z/OS subsystem name for DB2.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>8</maxLength>
+    </string>
+  </variable>
+  <variable name="PROGNAME" scope="instance">
+    <label>PROGNAME</label>
+    <abstract>PROGRAM NAME</abstract>
+    <description>The name of the program to execute dynamic queries, e.g. DSNTEP2.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>8</maxLength>
+    </string>
+  </variable>
+  <variable name="PLANNAME" scope="instance">
+    <label>PLANNAME</label>
+    <abstract>PLAN NAME OF DSNTEP2</abstract>
+    <description>The name of the plan for the program to execute dynamic queries, e.g. DSNTEPB1.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>8</maxLength>
+    </string>
+  </variable>
+  <variable name="RUNLIB" scope="instance">
+    <label>RUNLIB</label>
+    <abstract>DB2 APPLICATION LOAD LIBRARY</abstract>
+    <description>The name of the DB2 sample application load module library.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="SQLID" scope="instance">
+    <label>SQLID</label>
+    <abstract>SQL authorization ID</abstract>
+    <description>ID to execute DDL to create the databases.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>8</maxLength>
+    </string>
+  </variable>
+  <variable name="USERNAME" scope="instance">
+    <label>USERNAME</label>
+    <abstract>User name</abstract>
+    <description>User name of DBADM of the DATABASE.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>8</maxLength>
+    </string>
+  </variable>
+  <variable name="DBNAME" scope="instance" visibility="public">
+    <label>Database name</label>
+    <abstract>Database name</abstract>
+    <description>The name of the provisioned database</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>8</maxLength>
+    </string>
+  </variable>
+  <variable name="deprovisionCMD">
+    <label>Deprovision commands</label>
+    <abstract>Deprovision commands</abstract>
+    <description/>
+    <category>DB2</category>
+    <string multiLine="true" />
+  </variable>
+  <variable name="CONTEXTNAME" scope="instance">
+    <label>CONTEXTNAME</label>
+    <abstract>DB2 Trusted Context</abstract>
+    <description>The name of the trusted context to be created.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="REMOTECONTEXTNAME" scope="instance">
+    <label>REMOTECONTEXTNAME</label>
+    <abstract>DB2 Remote Trusted Context</abstract>
+    <description>The name of the remote trusted context to be created.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="CLIENTIPADDRESS" scope="instance">
+    <label>CLIENTIPADDRESS</label>
+    <abstract>Client IP Address of Trusted Context</abstract>
+    <description>The client ip address to be added into the remote trusted context to be created.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>50</maxLength>
+    </string>
+  </variable>
+  <variable name="ROLENAME" scope="instance">
+    <label>ROLENAME</label>
+    <abstract>DB2 Role Name</abstract>
+    <description>The name of the rule to be created and to be granted with the privilege.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="LTCUSERNAME" scope="instance">
+    <label>LTCUSERNAME</label>
+    <abstract>DB2 User Name</abstract>
+    <description>The DB2 user name who can use the the trusted context.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="RMTUSERNAME" scope="instance">
+    <label>RMTUSERNAME</label>
+    <abstract>DB2 User Name</abstract>
+    <description>The DB2 user name who can build the connection of the remote trusted context.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="RMTUSER" scope="instance">
+    <label>RMTUSER</label>
+    <abstract>DB2 User Name</abstract>
+    <description>The DB2 user name who can use the connection of the remote trusted context.</description>
+    <category>DB2</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="RMTDISTID" scope="instance">
+    <label>RMTDISTID</label>
+    <abstract>Distributed Identify User Name</abstract>
+    <description>The user name of distributed identity that maps to a RACF ID.</description>
+    <category>RACF</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="RMTDISTREG" scope="instance">
+    <label>RMTDISTREG</label>
+    <abstract>Distributed Identify Registry Name</abstract>
+    <description>The registry name that contains the distributed identify user name.</description>
+    <category>RACF</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="RACFOWNER" scope="instance">
+    <label>RACFOWNER</label>
+    <abstract>RACF Group Owner Name</abstract>
+    <description>The name of the owner of the RACF group to be created.</description>
+    <category>RACF</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="RACFSUPERGRP" scope="instance">
+    <label>RACFSUPERGRP</label>
+    <abstract>RACF Super Group Name</abstract>
+    <description>The name of the RACF super group of the RACF group to be created.</description>
+    <category>RACF</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="RACFGROUP" scope="instance">
+    <label>RACFGROUP</label>
+    <abstract>RACF Group Name</abstract>
+    <description>The name of the RACF group to be created.</description>
+    <category>RACF</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <variable name="RACFUSER" scope="instance">
+    <label>RACFUSER</label>
+    <abstract>RACF User Name</abstract>
+    <description>The name of the RACF user to be created.</description>
+    <category>RACF</category>
+    <string>
+      <maxLength>200</maxLength>
+    </string>
+  </variable>
+  <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+  <!-- Workflow Steps                                               -->
+  <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+  <step name="step1" optional="false">
+    <title>Deprovision authority</title>
+    <description>Revoke DBADM authority from a user</description>
+    <variableMapping>
+      <fromCallingToCalled>
+        <variableName mapTo="DSNLOAD">DSNLOAD</variableName>
+        <variableName mapTo="DSNEXIT">DSNEXIT</variableName>
+        <variableName mapTo="MVSSNAME">ssid</variableName>
+        <variableName mapTo="PROGNAME">PROGNAME</variableName>
+        <variableName mapTo="PLANNAME">PLANNAME</variableName>
+        <variableName mapTo="RUNLIB">RUNLIB</variableName>
+        <variableName mapTo="SQLID">SQLID</variableName>
+        <variableName mapTo="USERNAME">USERNAME</variableName>
+        <variableName mapTo="DBNAME">DBNAME</variableName>
+        <variableName mapTo="CONTEXTNAME">CONTEXTNAME</variableName>
+        <variableName mapTo="REMOTECONTEXTNAME">REMOTECONTEXTNAME</variableName>
+        <variableName mapTo="CLIENTIPADDRESS">CLIENTIPADDRESS</variableName>
+        <variableName mapTo="ROLENAME">ROLENAME</variableName>
+        <variableName mapTo="LTCUSERNAME">LTCUSERNAME</variableName>
+        <variableName mapTo="RMTUSERNAME">RMTUSERNAME</variableName>
+        <variableName mapTo="RMTUSER">RMTUSER</variableName>
+        <variableName mapTo="RMTDISTID">RMTDISTID</variableName>
+        <variableName mapTo="RMTDISTREG">RMTDISTREG</variableName>
+        <variableName mapTo="RACFOWNER">RACFOWNER</variableName>
+        <variableName mapTo="RACFSUPERGRP">RACFSUPERGRP</variableName>
+        <variableName mapTo="RACFGROUP">RACFGROUP</variableName>
+        <variableName mapTo="RACFUSER">RACFUSER</variableName>
+      </fromCallingToCalled>
+    </variableMapping>
+    <callingStepWeight>1</callingStepWeight>
+    <callingStepSkills>Security Administrator</callingStepSkills>
+    <callingStepAutoEnable>true</callingStepAutoEnable>
+    <canCallingStepMarkAsFailed>false</canCallingStepMarkAsFailed>
+    <calledWorkflowDefinitionFile>./security/deprovisionSecurity.xml</calledWorkflowDefinitionFile>
+    <calledWorkflowDescription>Deprovision security</calledWorkflowDescription>
+    <calledWorkflowID>workflow.deproSec</calledWorkflowID>
+    <calledWorkflowVersion>1.0</calledWorkflowVersion>
+  </step>
+  <step name="step2">
+    <title>Deprovision objects</title>
+    <description>Deprovision the provisioned objects and snapshots</description>
+    <variableValue name="deprovisionCMD" scope="instance" noPromptIfSet="true" required="true" />
+    <instructions>Invoke the supplied stored procedure to deprovision the objects and snapshots</instructions>
+    <weight>1</weight>
+    <skills>UNIX shell script</skills>
+    <autoEnable>true</autoEnable>
+    <template>
+      <inlineTemplate substitution="true">${instance-deprovisionCMD}</inlineTemplate>
+      <submitAs maxRc="0">shell-JCL</submitAs>
+    </template>
+  </step>
+</workflow>

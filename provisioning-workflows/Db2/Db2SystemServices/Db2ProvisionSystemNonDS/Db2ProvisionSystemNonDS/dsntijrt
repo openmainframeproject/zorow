@@ -1,0 +1,1675 @@
+//*********************************************************************
+//* JOB NAME = DSNTIJRT
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2016 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//* FUNCTION = Install and configure DB2-supplied routines
+//*
+//* PSEUDOCODE =
+//*   DSNTRIN  STEP      Install and configure DB2-supplied routines
+//*
+//* NOTES =
+//*
+//*   Before running this job, verify that the configuration control
+//*   statements contain the desired settings for each routine.
+//*
+//*   RECOMMENDATION: Run this job with a user ID that has       s24922
+//*   primary or secondary authorization as DB2 Installation     s24922
+//*   System Administrator or DB2 Installation System Operator.  s24922
+//*   See the explanation of the AUTHID and DEFPKOWN parameters  s24922
+//*   for additional requirements when running with              s24922
+//*   Installation System Operator authority.                    s24922
+//*
+//*   See further below for an explanation of the parameters and DD
+//*   statements used by the DSNTRIN program.
+//*
+//*   =================================================================
+//*   |          THE FOLLOWING NOTICES ARE FOR ALL CUSTOMERS          |
+//*   =================================================================
+//*
+//*   -----------------------------------------------------------------
+//*   If you want to use the DB2 ODBC and JDBC MetaData methods to
+//*   get information about a remote ALIAS, you need to bind a pack-
+//*   age called DSNACLRU on the locaL DB2 for z/OS system where the
+//*   alias resides and also on the remote DB2 for z/OS server where
+//*   the base table or view for the alias resides.  Running this job
+//*   binds the local package for DSNACLRU.  Use a command like the
+//*   following to bind DSNACLRU on the remote system:
+//*
+//*     BIND PACKAGE(<RTLOCB>.DSNASPCC) MEMBER(DSNACLRU) -
+//*          ACTION(REPLACE) ISOLATION(UR) -
+//*          RELEASE(COMMIT) ENCODING(UNICODE) -
+//*          LIBRARY('<PREFIX>.SDSNDBRM')
+//*
+//*   where <RTLOCB> is the location name of the DB2 for z/OS server
+//*   where the base table of view for the remote alias resides, and
+//*   <PREFIX> is the data set name prefix of the SDSNDBRM library.
+//*   -----------------------------------------------------------------
+//*
+//*   The authorization ID that owns the package for stored procedure
+//*   SYSPROC.DSNAHVPM needs to have authority to access the catalog
+//*   tables SYSIBM.SYSPACKSTMT and SYSIBM.SYSSTMT: Ensure that the
+//*   PKGOWNER option of the configuration control statement for
+//*   SYSPROC.DSNAHVPM specifies an authorization ID with the required
+//*   authority.
+//*   -----------------------------------------------------------------
+//*
+//*   For native SQL procedures and compiled SQL scalar functions,
+//*   DSNTRIN recognizes only the routine's V1 version as the official
+//*   DB2-supplied routine. Versions other than V1 are each reported
+//*   by error message DSNT058I and cause DSNTRIN to terminate
+//*   with return code 12 before other processing occurs.
+//*   -----------------------------------------------------------------
+//*
+//*   The DB2XML.SOAPHTTPV and DB2XML.SOAPHTTPC Web Services Consumer
+//*   UDFs require different external modules depending on the version
+//*   of the XML Toolkit for z/OS you use:
+//*
+//*                |               | External name required
+//*                |               | by XML Toolkit for z/OS
+//*        UDF     |   Specific    |-------------------------
+//*        name    |   name        | V1.8, V1.9 |   V1.10
+//*      ----------+---------------+-------------------------
+//*      SOAPHTTPC | SOAPHTTPCICO  |  DSNASHCC  |  DSNASJCC
+//*      SOAPHTTPC | SOAPHTTPVICO  |  DSNASHVC  |  DSNASJVC
+//*      SOAPHTTPV | SOAPHTTPCIVO  |  DSNASHCV  |  DSNASJCV
+//*      SOAPHTTPV | SOAPHTTPVIVO  |  DSNASHVV  |  DSNASJVV
+//*
+//*   DSNTRIN does not check or modify the external names of existing
+//*   instances of these functions.  However, when creating them, it
+//*   assigns the DSNASJxx modules required by XML Toolkit V1.10.
+//*   Therefore, if you use a previous version of the XML Toolkit
+//*   then, after you run DSNTRIN to create these functions, you need
+//*   alter them to use the DSNASHxx external names.
+//*
+//*   -----------------------------------------------------------------
+//*
+//*   The DSNTRIN batch program accepts the following parameters:
+//*     - DB2SSN  : Specifies the name of the DB2 subsystem
+//*
+//*     - MODE    : Specifies the processing mode:
+//*                 - INSTALL
+//*                     Creates, binds, and grants access to the
+//*                     DB2-supplied routines and related objects.
+//*                     Existing objects are not replaced except as
+//*                     discussed above under special notices.
+//*                 - INSTALL-PREVIEW
+//*                     Same as INSTALL mode except that no changes
+//*                     are processed.  Generated JCL is outputted to
+//*                     the JCLOUT DD.
+//*                 - REINSTALL
+//*                     Similar to INSTALL mode, except that existing
+//*                     DB2-supplied routines and CGTTs are first
+//*                     dropped.  Existing related databases, table
+//*                     spaces, tables, and indexes are not dropped
+//*                     except as discussed under special notices.
+//*                 - REINSTALL-PREVIEW
+//*                     Same as REINSTALL mode except that no changes
+//*                     are processed.  Generated JCL is outputted to
+//*                     the JCLOUT DD.
+//*                 - REINITIALIZE
+//*                     Similar to REINSTALL mode, except that
+//*                     existing related databases, table spaces,
+//*                     tables, and indexes are first dropped.
+//*                 - REINITIALIZE-PREVIEW
+//*                     Same as REINITIALIZE mode except that no changes
+//*                     are processed.  Generated JCL is outputted to
+//*                     the JCLOUT DD.
+//*
+//*     - AUTHID  : Specifies the CURRENT SQLID setting to be used to
+//*                 create and configure most DB2-supplied routines
+//*                 and related objects.  Also, the default OWNER for
+//*                 binding packages for these routines when     s24922
+//*                 the DEFPKOWN parameter is not specified.     s24922
+//*                 -> Specify SYSINSTL here when using DB2      s24922
+//*                    Installation System Operator authority    s24922
+//*                    to execute this job.                      s24922
+//*
+//*     - SECDEFID: Specifies the CURRENT SQLID setting to be used to
+//*                 create and configure DB2-supplied routines that
+//*                 use SECURITY DEFINER.  This ID must be a logonable
+//*                 ID because it will be used by WLM to execute such
+//*                 routines.
+//*                 -> Specify SYSINSTL here when using DB2      s24922
+//*                    Installation System Operator authority    s24922
+//*                    to execute this job.                      s24922
+//*
+//*     - DEFPKOWN: Specifies the default OWNER for binding the  s24922
+//*                 package for a DB2-supplied routine when one
+//*                 is not specified explicity via the PKOWNER
+//*                 parameter of the routine's configuration
+//*                 control statement.
+//*                 -> This parameter is required only when the  s24922
+//*                    AUTHID parameter is set to SYSINSTL.      s24922
+//*                 -> Specify an installation system            s24922
+//*                    administrator ID when using DB2 System    s24922
+//*                    Operator authority to execute this job    s24922
+//*                    for DB2 installation.                     s24922
+//*                 -> Specify an authorization ID that has      s24922
+//*                    been granted system DBADM and DATAACCESS  s24922
+//*                    authorities when using DB2 System         s24922
+//*                    Operator authority to execute this job    s24922
+//*                    for DB2 migration.                        s24922
+//*
+//*   The DSNTRIN batch program allocates the following DD statements:
+//*   * Input DDs used by DSNTRIN:
+//*     - DBRMLIB : For DB2-supplied DBRMs (SDSNDBRM target library)
+//*
+//*     - DB2OPT  : For optional configuration preferences:
+//*                 - STOGROUP
+//*                     The name of the STOGROUP for databases and
+//*                     table spaces created by DSNTRIN.  SYSDEFLT is
+//*                     used if this parameter is not specified.
+//*                 - INDEXSTOG
+//*                     The name of the STOGROUP for indexes     DM1679
+//*                     created by DSNTRIN.  SYSDEFLT is
+//*                     used if this parameter is not specified.
+//*                 - BP4K
+//*                     The name of the 4-KB page size buffer pool for
+//*                     table spaces created by DSNTRIN.  BP0 is used
+//*                     if this parameter is not specified.
+//*                 - BP8K
+//*                     The name of the 8-KB page size buffer pool for
+//*                     table spaces created by DSNTRIN.  BP8K0 is used
+//*                     if this parameter is not specified.
+//*                 - BP16K
+//*                     The name of the 16-KB page size buffer pool for
+//*                     table spaces created by DSNTRIN. BP16K0 is used
+//*                     if this parameter is not specified.
+//*                 - BP32K
+//*                     The name of the 32-KB page size buffer pool for
+//*                     table spaces created by DSNTRIN. BP32K is used
+//*                     if this parameter is not specified.
+//*                 - LOBBP8K
+//*                     The name of the 8-KB page size buffer pool for
+//*                     LOB table spaces created by DSNTRIN.  BP8K0 is
+//*                     used if this parameter is not specified.
+//*                 - LOBBP16K
+//*                     The name of the 16-KB page size buffer pool for
+//*                     LOB table spaces created by DSNTRIN.  BP16K0 is
+//*                     used if this parameter is not specified.
+//*                 - LOBBP32K
+//*                     The name of the 32-KB page size buffer pool for
+//*                     LOB table spaces created by DSNTRIN.  BP32K is
+//*                     used if this parameter is not specified.
+//*                 - IMS_SECURITY
+//*                     The SECURITY type (DB2, DEFINER, or USER) for
+//*                     the DB2-supplied IMS routines.  SECURITY DB2
+//*                     is assumed when this keyword is not specified.
+//*                     -> Existing DB2-supplied IMS routines will be
+//*                        altered if needed to conform with the
+//*                        SECURITY type specified here.
+//*                 - MQ_SECURITY
+//*                     The SECURITY type (DB2, DEFINER, or USER) for
+//*                     the DB2-supplied MQ routines.  SECURITY DB2
+//*                     is assumed when this keyword is not specified.
+//*                     -> Existing DB2-supplied MQ routines will be
+//*                        altered if needed to conform with the
+//*                        SECURITY type specified here.
+//*                 - SOAP_SECURITY
+//*                     The SECURITY type (DB2, DEFINER, or USER) for
+//*                     the DB2-supplied SOAP routines.  SECURITY DB2
+//*                     is assumed when this keyword is not specified.
+//*                     -> Existing DB2-supplied SOAP routines will be
+//*                        altered if needed to conform with the
+//*                        SECURITY type specified here.
+//*                 NOTE: DSNTRIN does not create or activate the
+//*                   storage group or buffer pools specified here.
+//*
+//*     - CFIGIN  : For configuration control statements for the
+//*                 DB2-supplied routines, using these parameters:
+//*                 - WLMENV
+//*                     Required: The name of the WLM environment for
+//*                     running the routine.  Note: This parameter is
+//*                     not required for the following routines:
+//*                     - SYSIBMADM.CREATE_WRAPPED
+//*                     - SYSPROC.SET_MAINT_MODE_RECORD_NO_TEMPORAL-
+//*                       HISTORY
+//*                     - SYSTOOLS.REGSP
+//*                     - SYSTOOLS.REG_MATCHES
+//*                     - SYSTOOLS.REG_MATCHES_NOFLAGS
+//*                 - GRANTTO
+//*                     Required: A list of authorization IDs to be
+//*                     granted access to the routine
+//*                 - PKGOWNER
+//*                     Optional: The authorization ID to be specified
+//*                     as OWNER when binding a package for the
+//*                     routine.  If not given, the package owner is
+//*                     given by the DSNTRIN DEFPKOWN parameter  s24922
+//*                     (if specified) or by the DSNTRIN AUTHID  s24922
+//*                     parameter (otherwise).                   s24922
+//*
+//* * Work DDs used by DSNTRIN:
+//*     - SYSUT1  : For internal bind processing
+//*
+//* * Output DDs used by DSNTRIN:
+//*     - SYSPRINT: For DSNTRIN messages and reports
+//*
+//*     - SYSTSPRT: For internal bind processing
+//*
+//*     - CFIGOUT : For configuration control statements
+//*
+//*     - SQLOUT  : For SQL statements generated by DSNTRIN
+//*
+//*     - BINDOUT : For BIND commands generated by DSNTRIN
+//*
+//*     - JCLOUT  : For JCL generated by DSNTRIN in MODE(xxxx-PREVIEW)
+//*                 By default this DD allocates member DSNTRINO of
+//*                 DSN=${SRCLIB}
+//*
+//*   -----------------------------------------------------------------
+//*   To ensure consistency between the user-managed XSR database
+//*   (DSNXSR) and the XSR database in the DB2 catalog, DSNTRIN creates
+//*   the following tables with RESTRICT ON DROP or alters them to ADD
+//*   RESTRICT ON DROP (if it is not already in effect):
+//*     - SYSIBM.XSRANNOTATIONINFO
+//*     - SYSIBM.XSROBJECTCOMPONENTS
+//*     - SYSIBM.XSROBJECTHIERARCHIES
+//*     - SYSIBM.XSROBJECTS
+//*   In MODE(REINITIALIZE), the DROP DATABASE DSNXSR request will fail
+//*   with SQLCODE -672 and DSNTRIN will end with return code 12 when
+//*   RESTRICT ON DROP is in effect for these tables.  To drop these
+//*   tables intentionally, first alter them to remove the RESTRICT ON
+//*   DROP.  You must also remove all registered XML objects from DB2
+//*   or the request will fail with SQLCODE -616 and DSNTRIN will end
+//*   with return code 12.
+//*
+//*   To ensure recoverability, you should create regular backup copies
+//*   of these tables.
+//*   -----------------------------------------------------------------
+//*
+//*
+//* CHANGE LOG =
+//*   09/19/2011 Remove obsolete AMI-based MQ functions  DM1548/PM48451
+//*              ffdm1548
+//*   12/07/2011 Add note regarding dropping of AMI-     DM1548/PM48451
+//*              based and XML MQ routines                      PM47246
+//*   12/26/2011 Add SYSPROC.SYSTS_ALTER                 DK1594/PM55239
+//*   08/08/2011 Add SYSIBM.SQLPSEUDOCOLUMNS           DK1559 / PM41083
+//*                                                             pm63574
+//*   08/22/2012 Add INDEXSTOG option                    DM1679/PM70897
+//*   10/06/2012 Remove SYSPROC.DSNAEXP                 DM1290 / 161046
+//*   09/20/2012 Add ADMIN_UPDATE_SYSPARM                DK1557/PM71114
+//*   10/15/2012 Add proc SYSPROC.SET_PLAN_HINT          DM1662/PM66047
+//*              and LOBBP32K option
+//*   11/29/2012 Add SYSPROC.ADMIN_COMMAND_MVS                   DN1682
+//*   04/19/2012 Add proc                              DM1541 / PM61811
+//*                  SYSPROC.SET_MAINT_MODE_RECORD_NO_TEMPORALHISTORY
+//*   08/26/2013 Add SYSFUN.XSLTRANSFORM               DM1737 / PM90866
+//*   06/21/2013 Add JSON UDFs                         DM1727 / PM98357
+//*   01/03/2014 Add SYSPROC.ADMIN_EXPLAIN_MAINT       DN1801 / PI05200
+//*   03/18/2014 JSON fixes and additions                 171264 DM1727
+//*   06/21/2013 Add JSON UDFs                         DM1727 / PI10521
+//*   07/26/2014 Add notice for DSNUTILU recreate   s20128_inst1 s20128
+//*   01/24/2014 Remove extraneous JSON support                  176043
+//*   05/11/2015 Document dependency of SOAPHTTPV      PI30443 / DM1848
+//*              and SOAPHTTPC functions on XML                  DM1848
+//*              Toolkit V1.10                                   DM1848
+//*   07/15/2015 Add SYSPROC.DSNUTILV               s25173_inst2 s25173
+//*   10/02/2015 Installation w/o SYSADM            s24922_inst1 s24922
+//*   10/27/2015 Add proc SYSIBMADM.CREATE_WRAPPED  s25900_inst1 s25900
+//*   01/15/2016 Add DB2OPT options IMS_SECURITY,        PI56913 DN1955
+//*              MQ_SECURITY, and SOAP_SECURITY                  DN1955
+//*   02/15/2016 Long data set names                            PI42601
+//*
+//*********************************************************************
+//*
+//JOBLIB   DD DISP=SHR,DSN=${DSNEXIT}
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//         DD DISP=SHR,DSN=${LERUN}
+//*
+//*   DSNTRIN : Install and configure DB2-supplied routines
+//*
+//DSNTRIN EXEC PGM=DSNTRIN,COND=(4,LT),
+//             PARM=('DB2SSN(${MVSSNAME}) MODE(INSTALL)',
+//             ' AUTHID(${AUTHID}) SECDEFID(${SECDEFID})',
+//             ' DEFPKOWN(#defPKOWN("${INSPKOWN}","${AUTHID}"))')
+//DBRMLIB  DD DISP=SHR,DSN=${DSNDBRM}
+//SYSUT1   DD UNIT=${TVOLDEVT},SPACE=(27930,(10,5)),
+//            DCB=(RECFM=FB,LRECL=133)
+//SYSPRINT DD SYSOUT=*,DCB=(RECFM=FB,LRECL=133)
+//SYSTSPRT DD SYSOUT=*
+//CFIGOUT  DD SYSOUT=*
+//SQLOUT   DD SYSOUT=*
+//BINDOUT  DD SYSOUT=*
+//JCLOUT   DD DISP=SHR,
+//         DSN=${SRCLIB}(DSNTRINO)
+//DB2OPT   DD  *
+  STOGROUP(SYSDEFLT)
+  INDEXSTOG(SYSDEFLT)
+  BP4K(BP0)
+  BP8K(BP8K0)
+  BP16K(BP16K0)
+  BP32K(BP32K)
+  LOBBP8K(BP8K0)
+  LOBBP16K(BP16K0)
+  LOBBP32K(BP32K)
+  IMS_SECURITY(DB2)
+  MQ_SECURITY(DB2)
+  SOAP_SECURITY(DB2)
+//CFIGIN   DD *
+*
+* The statements below are used by PGM=DSNTRIN to customize
+* DB2-supplied stored procedures and UDFs on this DB2.
+*
+* Rules:
+* (1) All statements are required - do not remove any.
+* (2) Statements must be separated by an all-blank line
+* (3) Lines that contain '*' in column 1 are comment lines
+* (4) Each statement specifies the WLM ENVIRONMENT (WLMENV) and
+*     execute access list (GRANTTO) for the indicated routine.
+*     WLMENV and GRANTTO are required parameters but you can modify
+*     the settings.
+* (5) Some statements also specify the package owner (PKGOWNER)
+*     for the routine.  PKGOWNER is optional.  It is ignored if
+*     specified for a routine that does not have a package.
+* (6) Do not use embedded blanks in values specified for WLMENV,
+*     GRANTTO, or PKGOWNER
+*
+*
+***********************************************************************
+** Trace formatting routines
+***********************************************************************
+  SYSPROC.DSNWSPM
+    WLMENV(${RTB01WLM})
+    GRANTTO(${RTB01ACL})
+#if ( ${RTB01PKO} != "" )
+    PKGOWNER(${RTB01PKO})
+#end
+
+  SYSPROC.DSNWZP
+    WLMENV(${RTB02WLM})
+    GRANTTO(${RTB02ACL})
+#if ( ${RTB02PKO} != "" )
+    PKGOWNER(${RTB02PKO})
+#end
+
+***********************************************************************
+** Utility invocation routines
+***********************************************************************
+  SYSPROC.DSNUTILS
+    WLMENV(${RTC01WLM})
+    GRANTTO(${RTC01ACL})
+#if ( ${RTC01PKO} != "" )
+    PKGOWNER(${RTC01PKO})
+#end
+
+  SYSPROC.DSNUTILU
+    WLMENV(${RTC02WLM})
+    GRANTTO(${RTC02ACL})
+#if ( ${RTC02PKO} != "" )
+    PKGOWNER(${RTC02PKO})
+#end
+
+  SYSPROC.DSNUTILV
+    WLMENV(${RTC03WLM})
+    GRANTTO(${RTC03ACL})
+#if ( ${RTC03PKO} != "" )
+    PKGOWNER(${RTC03PKO})
+#end
+
+***********************************************************************
+** Runtime Statistics processing routines
+***********************************************************************
+ SYSPROC.DSNACCOR
+    WLMENV(${RTD01WLM})
+    GRANTTO(${RTD01ACL})
+#if ( ${RTD01PKO} != "" )
+    PKGOWNER(${RTD01PKO})
+#end
+
+***********************************************************************
+** SYSIBM.USERNAMES encryption routine
+***********************************************************************
+  SYSPROC.DSNLEUSR
+    WLMENV(${RTE01WLM})
+    GRANTTO(${RTE01ACL})
+#if ( ${RTE01PKO} != "" )
+    PKGOWNER(${RTE01PKO})
+#end
+
+***********************************************************************
+** SQL procedure processing routines
+***********************************************************************
+  SYSIBMADM.CREATE_WRAPPED
+    GRANTTO(PUBLIC)
+
+  SYSPROC.DSNTBIND
+    WLMENV(${RTF01WLM})
+    GRANTTO(${RTF01ACL})
+
+  SYSPROC.DSNTPSMP
+    WLMENV(${RTF02WLM})
+    GRANTTO(${RTF02ACL})
+
+  SYSPROC.WLM_REFRESH
+    WLMENV(${RTF03WLM})
+    GRANTTO(${RTF03ACL})
+#if ( ${RTF03PKO} != "" )
+    PKGOWNER(${RTF03PKO})
+#end
+
+***********************************************************************
+** Java procedure processing routines
+***********************************************************************
+  SQLJ.ALTER_JAVA_PATH
+    WLMENV(${RTG01WLM})
+    GRANTTO(${RTG01ACL})
+#if ( ${RTG01PKO} != "" )
+    PKGOWNER(${RTG01PKO})
+#end
+
+  SQLJ.DB2_INSTALL_JAR
+    WLMENV(${RTG02WLM})
+    GRANTTO(${RTG02ACL})
+#if ( ${RTG02PKO} != "" )
+    PKGOWNER(${RTG02PKO})
+#end
+
+  SQLJ.DB2_REMOVE_JAR
+    WLMENV(${RTG03WLM})
+    GRANTTO(${RTG03ACL})
+#if ( ${RTG03PKO} != "" )
+    PKGOWNER(${RTG03PKO})
+#end
+
+  SQLJ.DB2_REPLACE_JAR
+    WLMENV(${RTG04WLM})
+    GRANTTO(${RTG04ACL})
+#if ( ${RTG04PKO} != "" )
+    PKGOWNER(${RTG04PKO})
+#end
+
+  SQLJ.DB2_UPDATEJARINFO
+    WLMENV(${RTG05WLM})
+    GRANTTO(${RTG05ACL})
+#if ( ${RTG05PKO} != "" )
+    PKGOWNER(${RTG05PKO})
+#end
+
+  SQLJ.INSTALL_JAR
+    WLMENV(${RTG06WLM})
+    GRANTTO(${RTG06ACL})
+#if ( ${RTG06PKO} != "" )
+    PKGOWNER(${RTG06PKO})
+#end
+
+  SQLJ.REMOVE_JAR
+    WLMENV(${RTG07WLM})
+    GRANTTO(${RTG07ACL})
+#if ( ${RTG07PKO} != "" )
+    PKGOWNER(${RTG07PKO})
+#end
+
+  SQLJ.REPLACE_JAR
+    WLMENV(${RTG08WLM})
+    GRANTTO(${RTG08ACL})
+#if ( ${RTG08PKO} != "" )
+    PKGOWNER(${RTG08PKO})
+#end
+
+***********************************************************************
+** Unified debugger for SQL and Java routines
+***********************************************************************
+  DB2DEBUG.CREATE_SESSION
+    WLMENV(${RTH01WLM})
+    GRANTTO(${RTH01ACL})
+
+  DB2DEBUG.DEBUGGERLEVEL
+    WLMENV(${RTH02WLM})
+    GRANTTO(${RTH02ACL})
+
+  DB2DEBUG.DESTROY_SESSION
+    WLMENV(${RTH03WLM})
+    GRANTTO(${RTH03ACL})
+
+  DB2DEBUG.GET_REPORT
+    WLMENV(${RTH04WLM})
+    GRANTTO(${RTH04ACL})
+
+  DB2DEBUG.LIST_SESSION
+    WLMENV(${RTH05WLM})
+    GRANTTO(${RTH05ACL})
+
+  DB2DEBUG.PUT_COMMAND
+    WLMENV(${RTH06WLM})
+    GRANTTO(${RTH06ACL})
+
+  DB2DEBUG.QUERY_SESSION
+    WLMENV(${RTH07WLM})
+    GRANTTO(${RTH07ACL})
+
+  SYSPROC.DBG_ENDSESSIONMANAGER
+    WLMENV(${RTH08WLM})
+    GRANTTO(${RTH08ACL})
+
+  SYSPROC.DBG_INITIALIZECLIENT
+    WLMENV(${RTH09WLM})
+    GRANTTO(${RTH09ACL})
+
+  SYSPROC.DBG_LOOKUPSESSIONMANAGER
+    WLMENV(${RTH10WLM})
+    GRANTTO(${RTH10ACL})
+
+  SYSPROC.DBG_PINGSESSIONMANAGER
+    WLMENV(${RTH11WLM})
+    GRANTTO(${RTH11ACL})
+
+  SYSPROC.DBG_RECVCLIENTREPORTS
+    WLMENV(${RTH12WLM})
+    GRANTTO(${RTH12ACL})
+
+  SYSPROC.DBG_RUNSESSIONMANAGER
+    WLMENV(${RTH13WLM})
+    GRANTTO(${RTH13ACL})
+
+  SYSPROC.DBG_SENDCLIENTCOMMANDS
+    WLMENV(${RTH14WLM})
+    GRANTTO(${RTH14ACL})
+
+  SYSPROC.DBG_SENDCLIENTREQUESTS
+    WLMENV(${RTH15WLM})
+    GRANTTO(${RTH15ACL})
+
+  SYSPROC.DBG_TERMINATECLIENT
+    WLMENV(${RTH16WLM})
+    GRANTTO(${RTH16ACL})
+
+***********************************************************************
+** XML schema processing routines
+***********************************************************************
+  SYSFUN.XSLTRANSFORM
+    WLMENV(${RTI03WLM})
+    GRANTTO(${RTI03ACL})
+
+  SYSPROC.XSR_ADDSCHEMADOC
+    WLMENV(${RTI04WLM})
+    GRANTTO(${RTI04ACL})
+#if ( ${RTI04PKO} != "" )
+    PKGOWNER(${RTI04PKO})
+#end
+
+  SYSPROC.XSR_COMPLETE
+    WLMENV(${RTI05WLM})
+    GRANTTO(${RTI05ACL})
+#if ( ${RTI05PKO} != "" )
+    PKGOWNER(${RTI05PKO})
+#end
+
+  SYSPROC.XSR_REGISTER
+    WLMENV(${RTI06WLM})
+    GRANTTO(${RTI06ACL})
+#if ( ${RTI06PKO} != "" )
+    PKGOWNER(${RTI06PKO})
+#end
+
+  SYSPROC.XSR_REMOVE
+    WLMENV(${RTI07WLM})
+    GRANTTO(${RTI07ACL})
+#if ( ${RTI07PKO} != "" )
+    PKGOWNER(${RTI07PKO})
+#end
+
+***********************************************************************
+** IBM Text Search routines
+***********************************************************************
+  SYSPROC.SYSTS_ALTER
+    WLMENV(${RTJ09WLM})
+    GRANTTO(${RTJ09ACL})
+#if ( ${RTJ09PKO} != "" )
+    PKGOWNER(${RTJ09PKO})
+#end
+
+  SYSPROC.SYSTS_CREATE
+    WLMENV(${RTJ01WLM})
+    GRANTTO(${RTJ01ACL})
+#if ( ${RTJ01PKO} != "" )
+    PKGOWNER(${RTJ01PKO})
+#end
+
+  SYSPROC.SYSTS_DROP
+    WLMENV(${RTJ02WLM})
+    GRANTTO(${RTJ02ACL})
+#if ( ${RTJ02PKO} != "" )
+    PKGOWNER(${RTJ02PKO})
+#end
+
+  SYSFUN.SYSTS_ENCRYPT
+    WLMENV(${RTJ03WLM})
+    GRANTTO(${RTJ03ACL})
+#if ( ${RTJ03PKO} != "" )
+    PKGOWNER(${RTJ03PKO})
+#end
+
+  SYSPROC.SYSTS_RESTORE
+    WLMENV(${RTJ04WLM})
+    GRANTTO(${RTJ04ACL})
+#if ( ${RTJ04PKO} != "" )
+    PKGOWNER(${RTJ04PKO})
+#end
+
+  SYSPROC.SYSTS_START
+    WLMENV(${RTJ05WLM})
+    GRANTTO(${RTJ05ACL})
+#if ( ${RTJ05PKO} != "" )
+    PKGOWNER(${RTJ05PKO})
+#end
+
+  SYSPROC.SYSTS_STOP
+    WLMENV(${RTJ06WLM})
+    GRANTTO(${RTJ06ACL})
+#if ( ${RTJ06PKO} != "" )
+    PKGOWNER(${RTJ06PKO})
+#end
+
+  SYSPROC.SYSTS_TAKEOVER
+    WLMENV(${RTJ07WLM})
+    GRANTTO(${RTJ07ACL})
+#if ( ${RTJ07PKO} != "" )
+    PKGOWNER(${RTJ07PKO})
+#end
+
+  SYSPROC.SYSTS_UPDATE
+    WLMENV(${RTJ08WLM})
+    GRANTTO(${RTJ08ACL})
+#if ( ${RTJ08PKO} != "" )
+    PKGOWNER(${RTJ08PKO})
+#end
+
+***********************************************************************
+** Database MetaData routines
+***********************************************************************
+  SYSIBM.SQLCAMESSAGE
+    WLMENV(${RTK01WLM})
+    GRANTTO(${RTK01ACL})
+
+  SYSIBM.SQLCOLPRIVILEGES
+    WLMENV(${RTK02WLM})
+    GRANTTO(${RTK02ACL})
+#if ( ${RTK02PKO} != "" )
+    PKGOWNER(${RTK02PKO})
+#end
+
+  SYSIBM.SQLCOLUMNS
+    WLMENV(${RTK03WLM})
+    GRANTTO(${RTK03ACL})
+#if ( ${RTK03PKO} != "" )
+    PKGOWNER(${RTK03PKO})
+#end
+
+  SYSIBM.SQLFOREIGNKEYS
+    WLMENV(${RTK04WLM})
+    GRANTTO(${RTK04ACL})
+#if ( ${RTK04PKO} != "" )
+    PKGOWNER(${RTK04PKO})
+#end
+
+  SYSIBM.SQLFUNCTIONCOLS
+    WLMENV(${RTK05WLM})
+    GRANTTO(${RTK05ACL})
+#if ( ${RTK05PKO} != "" )
+    PKGOWNER(${RTK05PKO})
+#end
+
+  SYSIBM.SQLFUNCTIONS
+    WLMENV(${RTK06WLM})
+    GRANTTO(${RTK06ACL})
+#if ( ${RTK06PKO} != "" )
+    PKGOWNER(${RTK06PKO})
+#end
+
+  SYSIBM.SQLGETTYPEINFO
+    WLMENV(${RTK07WLM})
+    GRANTTO(${RTK07ACL})
+#if ( ${RTK07PKO} != "" )
+    PKGOWNER(${RTK07PKO})
+#end
+
+  SYSIBM.SQLPRIMARYKEYS
+    WLMENV(${RTK08WLM})
+    GRANTTO(${RTK08ACL})
+#if ( ${RTK08PKO} != "" )
+    PKGOWNER(${RTK08PKO})
+#end
+
+  SYSIBM.SQLPROCEDURECOLS
+    WLMENV(${RTK09WLM})
+    GRANTTO(${RTK09ACL})
+#if ( ${RTK09PKO} != "" )
+    PKGOWNER(${RTK09PKO})
+#end
+
+  SYSIBM.SQLPROCEDURES
+    WLMENV(${RTK10WLM})
+    GRANTTO(${RTK10ACL})
+#if ( ${RTK10PKO} != "" )
+    PKGOWNER(${RTK10PKO})
+#end
+
+  SYSIBM.SQLPSEUDOCOLUMNS
+    WLMENV(${RTK16WLM})
+    GRANTTO(${RTK16ACL})
+#if ( ${RTK16PKO} != "" )
+    PKGOWNER(${RTK16PKO})
+#end
+
+  SYSIBM.SQLSPECIALCOLUMNS
+    WLMENV(${RTK11WLM})
+    GRANTTO(${RTK11ACL})
+#if ( ${RTK11PKO} != "" )
+    PKGOWNER(${RTK11PKO})
+#end
+
+  SYSIBM.SQLSTATISTICS
+    WLMENV(${RTK12WLM})
+    GRANTTO(${RTK12ACL})
+#if ( ${RTK12PKO} != "" )
+    PKGOWNER(${RTK12PKO})
+#end
+
+  SYSIBM.SQLTABLEPRIVILEGES
+    WLMENV(${RTK13WLM})
+    GRANTTO(${RTK13ACL})
+#if ( ${RTK13PKO} != "" )
+    PKGOWNER(${RTK13PKO})
+#end
+
+  SYSIBM.SQLTABLES
+    WLMENV(${RTK14WLM})
+    GRANTTO(${RTK14ACL})
+#if ( ${RTK14PKO} != "" )
+    PKGOWNER(${RTK14PKO})
+#end
+
+  SYSIBM.SQLUDTS
+    WLMENV(${RTK15WLM})
+    GRANTTO(${RTK15ACL})
+#if ( ${RTK15PKO} != "" )
+    PKGOWNER(${RTK15PKO})
+#end
+
+***********************************************************************
+** Administrative Scheduler and Administrative Enablement routines
+***********************************************************************
+  SYSPROC.ADMIN_COMMAND_DB2
+    WLMENV(${RTL01WLM})
+    GRANTTO(${RTL01ACL})
+#if ( ${RTL01PKO} != "" )
+    PKGOWNER(${RTL01PKO})
+#end
+
+  SYSPROC.ADMIN_COMMAND_DSN
+    WLMENV(${RTL02WLM})
+    GRANTTO(${RTL02ACL})
+#if ( ${RTL02PKO} != "" )
+    PKGOWNER(${RTL02PKO})
+#end
+
+  SYSPROC.ADMIN_COMMAND_MVS
+    WLMENV(${RTL41WLM})
+    GRANTTO(${RTL41ACL})
+#if ( ${RTL41PKO} != "" )
+    PKGOWNER(${RTL41PKO})
+#end
+
+  SYSPROC.ADMIN_COMMAND_UNIX
+    WLMENV(${RTL03WLM})
+    GRANTTO(${RTL03ACL})
+#if ( ${RTL03PKO} != "" )
+    PKGOWNER(${RTL03PKO})
+#end
+
+  SYSPROC.ADMIN_DS_BROWSE
+    WLMENV(${RTL04WLM})
+    GRANTTO(${RTL04ACL})
+#if ( ${RTL04PKO} != "" )
+    PKGOWNER(${RTL04PKO})
+#end
+
+  SYSPROC.ADMIN_DS_DELETE
+    WLMENV(${RTL05WLM})
+    GRANTTO(${RTL05ACL})
+#if ( ${RTL05PKO} != "" )
+    PKGOWNER(${RTL05PKO})
+#end
+
+  SYSPROC.ADMIN_DS_LIST
+    WLMENV(${RTL06WLM})
+    GRANTTO(${RTL06ACL})
+#if ( ${RTL06PKO} != "" )
+    PKGOWNER(${RTL06PKO})
+#end
+
+  SYSPROC.ADMIN_DS_RENAME
+    WLMENV(${RTL07WLM})
+    GRANTTO(${RTL07ACL})
+#if ( ${RTL07PKO} != "" )
+    PKGOWNER(${RTL07PKO})
+#end
+
+  SYSPROC.ADMIN_DS_SEARCH
+    WLMENV(${RTL08WLM})
+    GRANTTO(${RTL08ACL})
+#if ( ${RTL08PKO} != "" )
+    PKGOWNER(${RTL08PKO})
+#end
+
+  SYSPROC.ADMIN_DS_WRITE
+    WLMENV(${RTL09WLM})
+    GRANTTO(${RTL09ACL})
+#if ( ${RTL09PKO} != "" )
+    PKGOWNER(${RTL09PKO})
+#end
+
+  SYSPROC.ADMIN_EXPLAIN_MAINT
+    WLMENV(${RTL42WLM})
+    GRANTTO(${RTL42ACL})
+#if ( ${RTL42PKO} != "" )
+    PKGOWNER(${RTL42PKO})
+#end
+
+  SYSPROC.ADMIN_INFO_HOST
+    WLMENV(${RTL10WLM})
+    GRANTTO(${RTL10ACL})
+#if ( ${RTL10PKO} != "" )
+    PKGOWNER(${RTL10PKO})
+#end
+
+  SYSPROC.ADMIN_INFO_SMS
+    WLMENV(${RTL35WLM})
+    GRANTTO(${RTL35ACL})
+#if ( ${RTL35PKO} != "" )
+    PKGOWNER(${RTL35PKO})
+#end
+
+  SYSPROC.ADMIN_INFO_SQL
+    WLMENV(${RTL36WLM})
+    GRANTTO(${RTL36ACL})
+#if ( ${RTL36PKO} != "" )
+    PKGOWNER(${RTL36PKO})
+#end
+
+  SYSPROC.ADMIN_INFO_SSID
+    WLMENV(${RTL11WLM})
+    GRANTTO(${RTL11ACL})
+#if ( ${RTL11PKO} != "" )
+    PKGOWNER(${RTL11PKO})
+#end
+
+  SYSPROC.ADMIN_INFO_SYSLOG
+    WLMENV(${RTL37WLM})
+    GRANTTO(${RTL37ACL})
+
+  SYSPROC.ADMIN_INFO_SYSPARM
+    WLMENV(${RTL28WLM})
+    GRANTTO(${RTL28ACL})
+#if ( ${RTL28PKO} != "" )
+    PKGOWNER(${RTL28PKO})
+#end
+
+  SYSPROC.ADMIN_JOB_CANCEL
+    WLMENV(${RTL12WLM})
+    GRANTTO(${RTL12ACL})
+#if ( ${RTL12PKO} != "" )
+    PKGOWNER(${RTL12PKO})
+#end
+
+  SYSPROC.ADMIN_JOB_FETCH
+    WLMENV(${RTL13WLM})
+    GRANTTO(${RTL13ACL})
+#if ( ${RTL13PKO} != "" )
+    PKGOWNER(${RTL13PKO})
+#end
+
+  SYSPROC.ADMIN_JOB_QUERY
+    WLMENV(${RTL14WLM})
+    GRANTTO(${RTL14ACL})
+#if ( ${RTL14PKO} != "" )
+    PKGOWNER(${RTL14PKO})
+#end
+
+  SYSPROC.ADMIN_JOB_SUBMIT
+    WLMENV(${RTL15WLM})
+    GRANTTO(${RTL15ACL})
+#if ( ${RTL15PKO} != "" )
+    PKGOWNER(${RTL15PKO})
+#end
+
+  SYSPROC.ADMIN_TASK_ADD
+    WLMENV(${RTL17WLM})
+    GRANTTO(${RTL17ACL})
+#if ( ${RTL17PKO} != "" )
+    PKGOWNER(${RTL17PKO})
+#end
+
+  SYSPROC.ADMIN_TASK_CANCEL
+    WLMENV(${RTL23WLM})
+    GRANTTO(${RTL23ACL})
+#if ( ${RTL23PKO} != "" )
+    PKGOWNER(${RTL23PKO})
+#end
+
+  DSNADM.ADMIN_TASK_LIST
+    WLMENV(${RTL18WLM})
+    GRANTTO(${RTL18ACL})
+#if ( ${RTL18PKO} != "" )
+    PKGOWNER(${RTL18PKO})
+#end
+
+  DSNADM.ADMIN_TASK_OUTPUT
+    WLMENV(${RTL24WLM})
+    GRANTTO(${RTL24ACL})
+#if ( ${RTL24PKO} != "" )
+    PKGOWNER(${RTL24PKO})
+#end
+
+  SYSPROC.ADMIN_TASK_REMOVE
+    WLMENV(${RTL19WLM})
+    GRANTTO(${RTL19ACL})
+#if ( ${RTL19PKO} != "" )
+    PKGOWNER(${RTL19PKO})
+#end
+
+  DSNADM.ADMIN_TASK_STATUS
+    WLMENV(${RTL20WLM})
+    GRANTTO(${RTL20ACL})
+#if ( ${RTL20PKO} != "" )
+    PKGOWNER(${RTL20PKO})
+#end
+
+  DSNADM.ADMIN_TASK_STATUSH
+    WLMENV(${RTL20WLM})
+    GRANTTO(${RTL20ACL})
+#if ( ${RTL20PKO} != "" )
+    PKGOWNER(${RTL20PKO})
+#end
+
+  SYSPROC.ADMIN_TASK_UPDATE
+    WLMENV(${RTL34WLM})
+    GRANTTO(${RTL34ACL})
+#if ( ${RTL34PKO} != "" )
+    PKGOWNER(${RTL34PKO})
+#end
+
+  SYSPROC.ADMIN_UPDATE_SYSPARM
+    WLMENV(${RTL38WLM})
+    GRANTTO(${RTL38ACL})
+
+  SYSPROC.ADMIN_UTL_EXECUTE
+    WLMENV(${RTL30WLM})
+    GRANTTO(${RTL30ACL})
+#if ( ${RTL30PKO} != "" )
+    PKGOWNER(${RTL30PKO})
+#end
+
+  SYSPROC.ADMIN_UTL_MODIFY
+    WLMENV(${RTL31WLM})
+    GRANTTO(${RTL31ACL})
+#if ( ${RTL31PKO} != "" )
+    PKGOWNER(${RTL31PKO})
+#end
+
+  SYSPROC.ADMIN_UTL_MONITOR
+    WLMENV(${RTL32WLM})
+    GRANTTO(${RTL32ACL})
+#if ( ${RTL32PKO} != "" )
+    PKGOWNER(${RTL32PKO})
+#end
+
+  SYSPROC.ADMIN_UTL_SCHEDULE
+    WLMENV(${RTL21WLM})
+    GRANTTO(${RTL21ACL})
+#if ( ${RTL21PKO} != "" )
+    PKGOWNER(${RTL21PKO})
+#end
+
+  SYSPROC.ADMIN_UTL_SORT
+    WLMENV(${RTL22WLM})
+    GRANTTO(${RTL22ACL})
+#if ( ${RTL22PKO} != "" )
+    PKGOWNER(${RTL22PKO})
+#end
+
+ SYSPROC.DSN_WLM_APPLENV
+    WLMENV(${RTL33WLM})
+    GRANTTO(${RTL33ACL})
+
+ SYSPROC.DSNACCOX
+    WLMENV(${RTD02WLM})
+    GRANTTO(${RTD02ACL})
+#if ( ${RTD02PKO} != "" )
+    PKGOWNER(${RTD02PKO})
+#end
+
+  SYSPROC.GET_CONFIG
+    WLMENV(${RTL25WLM})
+    GRANTTO(${RTL25ACL})
+#if ( ${RTL25PKO} != "" )
+    PKGOWNER(${RTL25PKO})
+#end
+
+  SYSPROC.GET_MESSAGE
+    WLMENV(${RTL26WLM})
+    GRANTTO(${RTL26ACL})
+#if ( ${RTL26PKO} != "" )
+    PKGOWNER(${RTL26PKO})
+#end
+
+  SYSPROC.GET_SYSTEM_INFO
+    WLMENV(${RTL27WLM})
+    GRANTTO(${RTL27ACL})
+#if ( ${RTL27PKO} != "" )
+    PKGOWNER(${RTL27PKO})
+#end
+
+  SYSPROC.SET_MAINT_MODE_RECORD_NO_TEMPORALHISTORY
+    GRANTTO(${RTL39ACL})
+
+  SYSPROC.SET_PLAN_HINT
+    WLMENV(${RTL40WLM})
+    GRANTTO(${RTL40ACL})
+#if ( ${RTL40PKO} != "" )
+    PKGOWNER(${RTL40PKO})
+#end
+
+  SYSPROC.WLM_SET_CLIENT_INFO
+    WLMENV(${RTL29WLM})
+    GRANTTO(${RTL29ACL})
+#if ( ${RTL29PKO} != "" )
+    PKGOWNER(${RTL29PKO})
+#end
+
+***********************************************************************
+** DB2 optimization routine
+***********************************************************************
+  SYSPROC.DSNAHVPM
+    WLMENV(${RTM05WLM})
+    GRANTTO(${RTM05ACL})
+    PKGOWNER(${RTM05PKO})
+
+***********************************************************************
+** CICS and IMS transaction invocation routines
+***********************************************************************
+  SYSPROC.DSNACICS
+    WLMENV(${RTN01WLM})
+    GRANTTO(${RTN01ACL})
+#if ( ${RTN01PKO} != "" )
+    PKGOWNER(${RTN01PKO})
+#end
+
+  SYSPROC.DSNAIMS
+    WLMENV(${RTN02WLM})
+    GRANTTO(${RTN02ACL})
+#if ( ${RTN02PKO} != "" )
+    PKGOWNER(${RTN02PKO})
+#end
+
+  SYSPROC.DSNAIMS2
+    WLMENV(${RTN03WLM})
+    GRANTTO(${RTN03ACL})
+#if ( ${RTN03PKO} != "" )
+    PKGOWNER(${RTN03PKO})
+#end
+
+***********************************************************************
+** MQSeries routines
+***********************************************************************
+* Specific name 1 for UDF DB2MQ.MQREAD:
+  DB2MQ.DSN2RD
+    WLMENV(${RTO02WLM})
+    GRANTTO(${RTO02ACL})
+#if ( ${RTO02PKO} != "" )
+    PKGOWNER(${RTO02PKO})
+#end
+
+* Specific name 2 for UDF DB2MQ.MQREAD:
+  DB2MQ.DSN2RD0
+    WLMENV(${RTO02WLM})
+    GRANTTO(${RTO02ACL})
+#if ( ${RTO02PKO} != "" )
+    PKGOWNER(${RTO02PKO})
+#end
+
+* Specific name 3 for UDF DB2MQ.MQREAD:
+  DB2MQ.DSN2RD1
+    WLMENV(${RTO02WLM})
+    GRANTTO(${RTO02ACL})
+#if ( ${RTO02PKO} != "" )
+    PKGOWNER(${RTO02PKO})
+#end
+
+* Specific name 4 for UDF DB2MQ.MQREAD:
+  DB2MQ.DSN2RD2
+    WLMENV(${RTO02WLM})
+    GRANTTO(${RTO02ACL})
+#if ( ${RTO02PKO} != "" )
+    PKGOWNER(${RTO02PKO})
+#end
+
+* Specific name 1 for UDF DB2MQ.MQREADALL:
+  DB2MQ.DSN2Z
+    WLMENV(${RTO03WLM})
+    GRANTTO(${RTO03ACL})
+#if ( ${RTO03PKO} != "" )
+    PKGOWNER(${RTO03PKO})
+#end
+
+* Specific name 2 for UDF DB2MQ.MQREADALL:
+  DB2MQ.DSN2Z0
+    WLMENV(${RTO03WLM})
+    GRANTTO(${RTO03ACL})
+#if ( ${RTO03PKO} != "" )
+    PKGOWNER(${RTO03PKO})
+#end
+
+* Specific name 3 for UDF DB2MQ.MQREADALL:
+  DB2MQ.DSN2Z0R
+    WLMENV(${RTO03WLM})
+    GRANTTO(${RTO03ACL})
+#if ( ${RTO03PKO} != "" )
+    PKGOWNER(${RTO03PKO})
+#end
+
+* Specific name 4 for UDF DB2MQ.MQREADALL:
+  DB2MQ.DSN2Z1
+    WLMENV(${RTO03WLM})
+    GRANTTO(${RTO03ACL})
+#if ( ${RTO03PKO} != "" )
+    PKGOWNER(${RTO03PKO})
+#end
+
+* Specific name 5 for UDF DB2MQ.MQREADALL:
+  DB2MQ.DSN2Z1R
+    WLMENV(${RTO03WLM})
+    GRANTTO(${RTO03ACL})
+#if ( ${RTO03PKO} != "" )
+    PKGOWNER(${RTO03PKO})
+#end
+
+* Specific name 6 for UDF DB2MQ.MQREADALL:
+  DB2MQ.DSN2Z2
+    WLMENV(${RTO03WLM})
+    GRANTTO(${RTO03ACL})
+#if ( ${RTO03PKO} != "" )
+    PKGOWNER(${RTO03PKO})
+#end
+
+* Specific name 7 for UDF DB2MQ.MQREADALL:
+  DB2MQ.DSN2Z2R
+    WLMENV(${RTO03WLM})
+    GRANTTO(${RTO03ACL})
+#if ( ${RTO03PKO} != "" )
+    PKGOWNER(${RTO03PKO})
+#end
+
+* Specific name 8 for UDF DB2MQ.MQREADALL:
+  DB2MQ.DSN2Z3
+    WLMENV(${RTO03WLM})
+    GRANTTO(${RTO03ACL})
+#if ( ${RTO03PKO} != "" )
+    PKGOWNER(${RTO03PKO})
+#end
+
+* Specific name 1 for UDF DB2MQ.MQREADALLCLOB:
+  DB2MQ.DSN2ZC
+    WLMENV(${RTO04WLM})
+    GRANTTO(${RTO04ACL})
+#if ( ${RTO04PKO} != "" )
+    PKGOWNER(${RTO04PKO})
+#end
+
+* Specific name 2 for UDF DB2MQ.MQREADALLCLOB:
+  DB2MQ.DSN2ZC0
+    WLMENV(${RTO04WLM})
+    GRANTTO(${RTO04ACL})
+#if ( ${RTO04PKO} != "" )
+    PKGOWNER(${RTO04PKO})
+#end
+
+* Specific name 3 for UDF DB2MQ.MQREADALLCLOB:
+  DB2MQ.DSN2ZC0R
+    WLMENV(${RTO04WLM})
+    GRANTTO(${RTO04ACL})
+#if ( ${RTO04PKO} != "" )
+    PKGOWNER(${RTO04PKO})
+#end
+
+* Specific name 4 for UDF DB2MQ.MQREADALLCLOB:
+  DB2MQ.DSN2ZC1
+    WLMENV(${RTO04WLM})
+    GRANTTO(${RTO04ACL})
+#if ( ${RTO04PKO} != "" )
+    PKGOWNER(${RTO04PKO})
+#end
+
+* Specific name 5 for UDF DB2MQ.MQREADALLCLOB:
+  DB2MQ.DSN2ZC1R
+    WLMENV(${RTO04WLM})
+    GRANTTO(${RTO04ACL})
+#if ( ${RTO04PKO} != "" )
+    PKGOWNER(${RTO04PKO})
+#end
+
+* Specific name 6 for UDF DB2MQ.MQREADALLCLOB:
+  DB2MQ.DSN2ZC2
+    WLMENV(${RTO04WLM})
+    GRANTTO(${RTO04ACL})
+#if ( ${RTO04PKO} != "" )
+    PKGOWNER(${RTO04PKO})
+#end
+
+* Specific name 7 for UDF DB2MQ.MQREADALLCLOB:
+  DB2MQ.DSN2ZC2R
+    WLMENV(${RTO04WLM})
+    GRANTTO(${RTO04ACL})
+#if ( ${RTO04PKO} != "" )
+    PKGOWNER(${RTO04PKO})
+#end
+
+* Specific name 8 for UDF DB2MQ.MQREADALLCLOB:
+  DB2MQ.DSN2ZC3
+    WLMENV(${RTO04WLM})
+    GRANTTO(${RTO04ACL})
+#if ( ${RTO04PKO} != "" )
+    PKGOWNER(${RTO04PKO})
+#end
+
+* Specific name 1 for UDF DB2MQ.MQREADCLOB:
+  DB2MQ.DSN2RDC
+    WLMENV(${RTO05WLM})
+    GRANTTO(${RTO05ACL})
+#if ( ${RTO05PKO} != "" )
+    PKGOWNER(${RTO05PKO})
+#end
+
+* Specific name 2 for UDF DB2MQ.MQREADCLOB:
+  DB2MQ.DSN2RDC0
+    WLMENV(${RTO05WLM})
+    GRANTTO(${RTO05ACL})
+#if ( ${RTO05PKO} != "" )
+    PKGOWNER(${RTO05PKO})
+#end
+
+* Specific name 3 for UDF DB2MQ.MQREADCLOB:
+  DB2MQ.DSN2RDC1
+    WLMENV(${RTO05WLM})
+    GRANTTO(${RTO05ACL})
+#if ( ${RTO05PKO} != "" )
+    PKGOWNER(${RTO05PKO})
+#end
+
+* Specific name 4 for UDF DB2MQ.MQREADCLOB:
+  DB2MQ.DSN2RDC2
+    WLMENV(${RTO05WLM})
+    GRANTTO(${RTO05ACL})
+#if ( ${RTO05PKO} != "" )
+    PKGOWNER(${RTO05PKO})
+#end
+
+* Specific name 1 for UDF DB2MQ.MQRECEIVE:
+  DB2MQ.DSN2RV
+      WLMENV(${RTO06WLM})
+    GRANTTO(${RTO06ACL})
+#if ( ${RTO06PKO} != "" )
+    PKGOWNER(${RTO06PKO})
+#end
+
+* Specific name 2 for UDF DB2MQ.MQRECEIVE:
+  DB2MQ.DSN2RV0
+      WLMENV(${RTO06WLM})
+    GRANTTO(${RTO06ACL})
+#if ( ${RTO06PKO} != "" )
+    PKGOWNER(${RTO06PKO})
+#end
+
+* Specific name 3 for UDF DB2MQ.MQRECEIVE:
+  DB2MQ.DSN2RV1
+      WLMENV(${RTO06WLM})
+    GRANTTO(${RTO06ACL})
+#if ( ${RTO06PKO} != "" )
+    PKGOWNER(${RTO06PKO})
+#end
+
+* Specific name 4 for UDF DB2MQ.MQRECEIVE:
+  DB2MQ.DSN2RV2
+      WLMENV(${RTO06WLM})
+    GRANTTO(${RTO06ACL})
+#if ( ${RTO06PKO} != "" )
+    PKGOWNER(${RTO06PKO})
+#end
+
+* Specific name 1 for UDF DB2MQ.MQRECEIVEALL:
+  DB2MQ.DSN2X
+    WLMENV(${RTO07WLM})
+    GRANTTO(${RTO07ACL})
+#if ( ${RTO07PKO} != "" )
+    PKGOWNER(${RTO07PKO})
+#end
+
+* Specific name 2 for UDF DB2MQ.MQRECEIVEALL:
+  DB2MQ.DSN2X0
+    WLMENV(${RTO07WLM})
+    GRANTTO(${RTO07ACL})
+#if ( ${RTO07PKO} != "" )
+    PKGOWNER(${RTO07PKO})
+#end
+
+* Specific name 3 for UDF DB2MQ.MQRECEIVEALL:
+  DB2MQ.DSN2X0R
+    WLMENV(${RTO07WLM})
+    GRANTTO(${RTO07ACL})
+#if ( ${RTO07PKO} != "" )
+    PKGOWNER(${RTO07PKO})
+#end
+
+* Specific name 4 for UDF DB2MQ.MQRECEIVEALL:
+  DB2MQ.DSN2X1
+    WLMENV(${RTO07WLM})
+    GRANTTO(${RTO07ACL})
+#if ( ${RTO07PKO} != "" )
+    PKGOWNER(${RTO07PKO})
+#end
+
+* Specific name 5 for UDF DB2MQ.MQRECEIVEALL:
+  DB2MQ.DSN2X1R
+    WLMENV(${RTO07WLM})
+    GRANTTO(${RTO07ACL})
+#if ( ${RTO07PKO} != "" )
+    PKGOWNER(${RTO07PKO})
+#end
+
+* Specific name 6 for UDF DB2MQ.MQRECEIVEALL:
+  DB2MQ.DSN2X2
+    WLMENV(${RTO07WLM})
+    GRANTTO(${RTO07ACL})
+#if ( ${RTO07PKO} != "" )
+    PKGOWNER(${RTO07PKO})
+#end
+
+* Specific name 7 for UDF DB2MQ.MQRECEIVEALL:
+  DB2MQ.DSN2X2R
+    WLMENV(${RTO07WLM})
+    GRANTTO(${RTO07ACL})
+#if ( ${RTO07PKO} != "" )
+    PKGOWNER(${RTO07PKO})
+#end
+
+* Specific name 8 for UDF DB2MQ.MQRECEIVEALL:
+  DB2MQ.DSN2X3
+    WLMENV(${RTO07WLM})
+    GRANTTO(${RTO07ACL})
+#if ( ${RTO07PKO} != "" )
+    PKGOWNER(${RTO07PKO})
+#end
+
+* Specific name 1 for UDF DB2MQ.MQRECEIVEALLCLOB:
+  DB2MQ.DSN2XC
+    WLMENV(${RTO08WLM})
+    GRANTTO(${RTO08ACL})
+#if ( ${RTO08PKO} != "" )
+    PKGOWNER(${RTO08PKO})
+#end
+
+* Specific name 2 for UDF DB2MQ.MQRECEIVEALLCLOB:
+  DB2MQ.DSN2XC0
+    WLMENV(${RTO08WLM})
+    GRANTTO(${RTO08ACL})
+#if ( ${RTO08PKO} != "" )
+    PKGOWNER(${RTO08PKO})
+#end
+
+* Specific name 3 for UDF DB2MQ.MQRECEIVEALLCLOB:
+  DB2MQ.DSN2XC0R
+    WLMENV(${RTO08WLM})
+    GRANTTO(${RTO08ACL})
+#if ( ${RTO08PKO} != "" )
+    PKGOWNER(${RTO08PKO})
+#end
+
+* Specific name 4 for UDF DB2MQ.MQRECEIVEALLCLOB:
+  DB2MQ.DSN2XC1
+    WLMENV(${RTO08WLM})
+    GRANTTO(${RTO08ACL})
+#if ( ${RTO08PKO} != "" )
+    PKGOWNER(${RTO08PKO})
+#end
+
+* Specific name 5 for UDF DB2MQ.MQRECEIVEALLCLOB:
+  DB2MQ.DSN2XC1R
+    WLMENV(${RTO08WLM})
+    GRANTTO(${RTO08ACL})
+#if ( ${RTO08PKO} != "" )
+    PKGOWNER(${RTO08PKO})
+#end
+
+* Specific name 6 for UDF DB2MQ.MQRECEIVEALLCLOB:
+  DB2MQ.DSN2XC2
+    WLMENV(${RTO08WLM})
+    GRANTTO(${RTO08ACL})
+#if ( ${RTO08PKO} != "" )
+    PKGOWNER(${RTO08PKO})
+#end
+
+* Specific name 7 for UDF DB2MQ.MQRECEIVEALLCLOB:
+  DB2MQ.DSN2XC2R
+    WLMENV(${RTO08WLM})
+    GRANTTO(${RTO08ACL})
+#if ( ${RTO08PKO} != "" )
+    PKGOWNER(${RTO08PKO})
+#end
+
+* Specific name 8 for UDF DB2MQ.MQRECEIVEALLCLOB:
+  DB2MQ.DSN2XC3
+    WLMENV(${RTO08WLM})
+    GRANTTO(${RTO08ACL})
+#if ( ${RTO08PKO} != "" )
+    PKGOWNER(${RTO08PKO})
+#end
+
+* Specific name 1 for UDF DB2MQ.MQRECEIVECLOB:
+  DB2MQ.DSN2RVC
+    WLMENV(${RTO09WLM})
+    GRANTTO(${RTO09ACL})
+#if ( ${RTO09PKO} != "" )
+    PKGOWNER(${RTO09PKO})
+#end
+
+* Specific name 2 for UDF DB2MQ.MQRECEIVECLOB:
+  DB2MQ.DSN2RVC0
+    WLMENV(${RTO09WLM})
+    GRANTTO(${RTO09ACL})
+#if ( ${RTO09PKO} != "" )
+    PKGOWNER(${RTO09PKO})
+#end
+
+* Specific name 3 for UDF DB2MQ.MQRECEIVECLOB:
+  DB2MQ.DSN2RVC1
+    WLMENV(${RTO09WLM})
+    GRANTTO(${RTO09ACL})
+#if ( ${RTO09PKO} != "" )
+    PKGOWNER(${RTO09PKO})
+#end
+
+* Specific name 4 for UDF DB2MQ.MQRECEIVECLOB:
+  DB2MQ.DSN2RVC2
+    WLMENV(${RTO09WLM})
+    GRANTTO(${RTO09ACL})
+#if ( ${RTO09PKO} != "" )
+    PKGOWNER(${RTO09PKO})
+#end
+
+* Specific name 1 for UDF DB2MQ.MQSEND:
+  DB2MQ.DSN2SD
+    WLMENV(${RTO10WLM})
+    GRANTTO(${RTO10ACL})
+#if ( ${RTO10PKO} != "" )
+    PKGOWNER(${RTO10PKO})
+#end
+
+* Specific name 2 for UDF DB2MQ.MQSEND:
+  DB2MQ.DSN2SD1
+    WLMENV(${RTO10WLM})
+    GRANTTO(${RTO10ACL})
+#if ( ${RTO10PKO} != "" )
+    PKGOWNER(${RTO10PKO})
+#end
+
+* Specific name 3 for UDF DB2MQ.MQSEND:
+  DB2MQ.DSN2SD2
+    WLMENV(${RTO10WLM})
+    GRANTTO(${RTO10ACL})
+#if ( ${RTO10PKO} != "" )
+    PKGOWNER(${RTO10PKO})
+#end
+
+* Specific name 4 for UDF DB2MQ.MQSEND:
+  DB2MQ.DSN2SD3
+    WLMENV(${RTO10WLM})
+    GRANTTO(${RTO10ACL})
+#if ( ${RTO10PKO} != "" )
+    PKGOWNER(${RTO10PKO})
+#end
+
+* Specific name 5 for UDF DB2MQ.MQSEND:
+  DB2MQ.DSN2SDC
+    WLMENV(${RTO10WLM})
+    GRANTTO(${RTO10ACL})
+#if ( ${RTO10PKO} != "" )
+    PKGOWNER(${RTO10PKO})
+#end
+
+* Specific name 6 for UDF DB2MQ.MQSEND:
+  DB2MQ.DSN2SDC1
+    WLMENV(${RTO10WLM})
+    GRANTTO(${RTO10ACL})
+#if ( ${RTO10PKO} != "" )
+    PKGOWNER(${RTO10PKO})
+#end
+
+* Specific name 7 for UDF DB2MQ.MQSEND:
+  DB2MQ.DSN2SDC2
+    WLMENV(${RTO10WLM})
+    GRANTTO(${RTO10ACL})
+#if ( ${RTO10PKO} != "" )
+    PKGOWNER(${RTO10PKO})
+#end
+
+* Specific name 8 for UDF DB2MQ.MQSEND:
+  DB2MQ.DSN2SDC3
+    WLMENV(${RTO10WLM})
+    GRANTTO(${RTO10ACL})
+#if ( ${RTO10PKO} != "" )
+    PKGOWNER(${RTO10PKO})
+#end
+
+***********************************************************************
+** Web services/SOAP routines
+***********************************************************************
+* Specific name 1 for UDF DB2XML.SOAPHTTPC:
+  DB2XML.SOAPHTTPCICO
+    WLMENV(${RTP01WLM})
+    GRANTTO(${RTP01ACL})
+
+* Specific name 2 for UDF DB2XML.SOAPHTTPC:
+  DB2XML.SOAPHTTPVICO
+    WLMENV(${RTP01WLM})
+    GRANTTO(${RTP01ACL})
+
+* Specific name 1 for UDF DB2XML.SOAPHTTPNC:
+  DB2XML.SOAPHTTPNCICO
+    WLMENV(${RTP02WLM})
+    GRANTTO(${RTP02ACL})
+
+* Specific name 2 for UDF DB2XML.SOAPHTTPNC:
+  DB2XML.SOAPHTTPNVICO
+    WLMENV(${RTP02WLM})
+    GRANTTO(${RTP02ACL})
+
+* Specific name 1 for UDF DB2XML.SOAPHTTPNV:
+  DB2XML.SOAPHTTPNCIVO
+    WLMENV(${RTP03WLM})
+    GRANTTO(${RTP03ACL})
+
+* Specific name 2 for UDF DB2XML.SOAPHTTPNV:
+  DB2XML.SOAPHTTPNVIVO
+    WLMENV(${RTP03WLM})
+    GRANTTO(${RTP03ACL})
+
+* Specific name 1 for UDF DB2XML.SOAPHTTPV:
+  DB2XML.SOAPHTTPCIVO
+    WLMENV(${RTP04WLM})
+    GRANTTO(${RTP04ACL})
+
+* Specific name 2 for UDF DB2XML.SOAPHTTPV:
+  DB2XML.SOAPHTTPVIVO
+    WLMENV(${RTP04WLM})
+    GRANTTO(${RTP04ACL})
+
+***********************************************************************
+** JSON routines
+***********************************************************************
+  SYSTOOLS.BSON2JSON
+    WLMENV(${RTQ11WLM})
+    GRANTTO(${RTQ11ACL})
+
+  SYSTOOLS.JSON_BINARY
+    WLMENV(${RTQ01WLM})
+    GRANTTO(${RTQ01ACL})
+
+  SYSTOOLS.JSON_BINARY2
+    WLMENV(${RTQ02WLM})
+    GRANTTO(${RTQ02ACL})
+
+  SYSTOOLS.JSON_GET_POS_ARR_INDEX
+    WLMENV(${RTQ03WLM})
+    GRANTTO(${RTQ03ACL})
+
+  SYSTOOLS.JSON_LEN
+    WLMENV(${RTQ04WLM})
+    GRANTTO(${RTQ04ACL})
+
+  SYSTOOLS.JSON_TABLE
+    WLMENV(${RTQ05WLM})
+    GRANTTO(${RTQ05ACL})
+
+  SYSTOOLS.JSON_TABLE_BINARY
+    WLMENV(${RTQ06WLM})
+    GRANTTO(${RTQ06ACL})
+
+  SYSTOOLS.JSON_TYPE
+    WLMENV(${RTQ07WLM})
+    GRANTTO(${RTQ07ACL})
+
+  SYSTOOLS.JSON_UPDATE
+    WLMENV(${RTQ08WLM})
+    GRANTTO(${RTQ08ACL})
+
+  SYSTOOLS.JSON2BSON
+    WLMENV(${RTQ12WLM})
+    GRANTTO(${RTQ12ACL})
+
+  SYSTOOLS.REGSP
+    GRANTTO(${RTQ09ACL})
+
+* Specific name 1 for UDF SYSTOOLS.REG_MATCHES:
+  SYSTOOLS.REG_MATCHES
+    GRANTTO(${RTQ10ACL})
+
+* Specific name 2 for UDF SYSTOOLS.REG_MATCHES:
+  SYSTOOLS.REG_MATCHES_NOFLAGS
+    GRANTTO(${RTQ10ACL})
+#macro (defPKOWN $inspkown $authid)
+#if ($inspkown != "")
+$inspkown#else$authid#end#end
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end
