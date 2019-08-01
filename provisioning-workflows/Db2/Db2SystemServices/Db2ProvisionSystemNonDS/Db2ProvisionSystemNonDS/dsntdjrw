@@ -1,0 +1,91 @@
+//*********************************************************************
+//* JOB NAME = DSNTDJRW
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    LICENSED MATERIALS - PROPERTY OF IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2018 IBM CORP.  ALL RIGHTS RESERVED.
+//*
+//*    STATUS = VERSION 12
+//*
+//* FUNCTION = THIS JOB IS EXECUTED DURING DEPROVISION ACTION AND
+//*            PERFORMS THE FOLLOWING:
+//*
+//* PSEUDOCODE:
+//* -----------
+//*   STEP DSNWLMX: DELETE WLM ENVIRONMENTS
+//*                 THAT WERE DEFINED AT PROVISIONING TIME.
+//*   STEP DSNAWLM: ACTIVATE WLM SERVICE POLICY
+//*
+//* CHANGE ACTIVITY =
+//*   11/14/2018 INTRODUCTION                                   E75766
+//*********************************************************************
+//*
+//JOBLIB   DD  DISP=SHR,DSN=${DSNLOAD}
+//         DD  DISP=SHR,DSN=CEE.SCEERUN
+//*********************************************************************
+//DSNWLMA  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENV})
+//*********************************************************************
+//DSNWLMB  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENV1})
+//*********************************************************************
+//DSNWLMC  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVC})
+//*********************************************************************
+//DSNWLMD  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVD})
+//*********************************************************************
+//DSNWLME  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVG})
+//*********************************************************************
+//DSNWLMF  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVJ})
+//*********************************************************************
+//DSNWLMG  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVM})
+//*********************************************************************
+//DSNWLMH  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVP})
+//*********************************************************************
+//DSNWLMI  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVR})
+//*********************************************************************
+//DSNWLMJ  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVW})
+//*********************************************************************
+//DSNWLMJ  EXEC PGM=DSNTWLMB,PARM='ACTION(REMOVE_IF_EXISTS)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVX})
+/*
+//*********************************************************************
+//*   DSNWLMA: ACTIVATE SERVICE POLICY
+//*********************************************************************
+//DSNWLMA  EXEC PGM=DSNTWLMB,COND=(4,LT),
+// PARM='ACTION(ACTIVATE) POLICY(ACTIVE)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+/*
+

@@ -1,0 +1,557 @@
+//*********************************************************************
+//* JOB NAME = DSNTIJMW
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2018 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//* FUNCTION = Adds the startup procs for the DB2-supplied WLM
+//*            environments to the system proclib
+//*
+//* PSEUDOCODE =
+//*   DSNTIPM  STEP      Add DB2 WLM env startup procs to SYS1.PROCLIB
+//*
+//* NOTES =
+//*   Please check this job carefully to ensure that the system
+//*   library names are the correct library names for your site.
+//*
+//* CHANGE LOG:
+//*   05/07/2017 Split up DSNTIJMV                               s74993
+//*               - DSNTIJMV: Defines DB2 and IRLM to z/OS
+//*               - DSNTIJMA: Adds the DB2 and IRLM startup procs to
+//*                           the system proclib
+//*               - DSNTIJMP: Adds the DB2 language procs to the
+//*                           system proclib
+//*               - DSNTIJMW: Adds the startup procs for the DB2-
+//*                           supplied WLM environments to the system
+//*                           proclib
+//*               - DSNTIJMJ: Creates the environment files for the
+//*                           DB2-supplied Java WLM environment
+//*   07/25/2018 Replace prefix.NEW.SDSNSAMP(DSNADMZW)           d81236
+//*              with SYS1.PROCLIB(DSNADMZ)                      d81236
+//*********************************************************************
+//*
+//DSNTIPM EXEC PGM=IEBUPDTE,PARM=NEW,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//SYSUT2   DD DISP=SHR,DSN=${PROCLIB}
+//SYSIN    DD DATA
+./  ADD NAME=${STORWLM}
+//*************************************************************
+//*    JCL FOR RUNNING THE WLM-ESTABLISHED STORED PROCEDURES
+//*    ADDRESS SPACE
+//*       RGN     -- THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*       DB2SSN  -- THE DB2 SUBSYSTEM NAME.
+//*       NUMTCB  -- THE NUMBER OF TCBS USED TO PROCESS
+//*                  END USER REQUESTS.
+//*       APPLENV -- THE MVS WLM APPLICATION ENVIRONMENT
+//*                  SUPPORTED BY THIS JCL PROCEDURE.
+//*
+//*************************************************************
+//${STORWLM} PROC RGN=0K,APPLENV=xxxxxxxx,
+//        DB2SSN=${MVSSNAME},NUMTCB=${STORTCBS}
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//        PARM='&DB2SSN,&NUMTCB,&APPLENV'
+//STEPLIB  DD DISP=SHR,DSN=${RUNLIB}
+#if (${LERUN} != "")
+//         DD DISP=SHR,DSN=${LERUN}
+#end
+//         DD DISP=SHR,DSN=${DSNEXIT}
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}WLMC
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING
+//* THE DSNACICS STORED PROCEDURE.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT, SPECIFY A NUMTCB OF 25 - 100.
+//*             THE RECOMMENDED VALUE IS 40.
+//*
+//* NOTES:
+//* (1) ALL LIBRARIES IN THE STEPLIB CONCATENATION NEED TO BE APF-
+//*     AUTHORIZED
+//* (2) THE STEPLIB DD MUST ALLOCATE THE CICS SDFHEXCI LIBRARY
+//* (3) UNCOMMENT THE DSNDUMP DD STATEMENT BELOW TO CAUSE THE DSNACICS
+//*     STORED PROCEDURE TO TAKE AN SVC WHENEVER IT IS GOING TO
+//*     GENERATE AN ERROR MESSAGE.
+//*
+//*********************************************************************
+//${MVSSNAME}WLMC  PROC APPLENV='${WLMENVC}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=25
+//*
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             PARM='&DB2SSN,&NUMTCB,&APPLENV'
+//STEPLIB  DD DISP=SHR,DSN=${CICSEXCI}
+#if (${LERUN} != "")
+//         DD DISP=SHR,DSN=${LERUN}
+#end
+//         DD DISP=SHR,DSN=${DSNEXIT}
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//*DSNDUMP  DD SYSOUT=A
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}WLMD
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING THE
+//* STORED PROCEDURES FOR THE UNIFIED DEBUGGER.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT, SPECIFY A NUMTCB OF 5 - 20.
+//*
+//* NOTES:
+//* (1) THERE IS NO SPECIAL APF REQUIREMENT FOR THIS WLM ENVIRONMENT.
+//* (2) UNCOMMENT THE PSMDEBUG DD STATEMENT BELOW TO ACTIVATE DEBUG
+//*     TRACING.
+//*
+//*********************************************************************
+//${MVSSNAME}WLMD  PROC APPLENV='${WLMENVD}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=5
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             PARM='&DB2SSN,&NUMTCB,&APPLENV'
+#if (${LERUN} != "")
+//STEPLIB  DD DISP=SHR,DSN=${LERUN}
+//         DD DISP=SHR,DSN=${DSNEXIT}
+#else
+//STEPLIB  DD DISP=SHR,DSN=${DSNEXIT}
+#end
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//SYSIN    DD  SYSOUT=*
+//SYSPRINT DD  SYSOUT=*
+//*PSMDEBUG DD SYSOUT=A                  <-- activate for debug tracing
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}WLMG
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING
+//* MOST DB2-SUPPLIED STORED PROCEDURES AND USER-DEFINED FUNCTIONS.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT, SPECIFY A NUMTCB OF 40 - 60.
+//*
+//* NOTES:
+//*     ALL LIBRARIES IN THE STEPLIB CONCATENATION NEED TO BE APF-
+//*     AUTHORIZED.
+//*
+//*********************************************************************
+//${MVSSNAME}WLMG  PROC APPLENV='${WLMENVG}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=40
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             PARM='&DB2SSN,&NUMTCB,&APPLENV'
+#if (${LERUN} != "")
+//STEPLIB  DD DISP=SHR,DSN=${LERUN}
+//         DD DISP=SHR,DSN=${DSNEXIT}
+#else
+//STEPLIB  DD DISP=SHR,DSN=${DSNEXIT}
+#end
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}WLMJ
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING
+//* DB2-SUPPLIED JAVA STORED PROCEDURES AND USER-DEFINED FUNCTIONS.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT:
+//*             - SPECIFY A NUMTCB OF 5 - 8 IF IT RUNS IN A 32-BIT JVM
+//*             - SPECIFY A NUMTCB OF 25 IF IT RUNS IN A 64-BIT JVM
+//*
+//* NOTES:
+//* (1) THE APF AUTHORIZATION STATUS OF THE ADDRESS SPACE PROC FOR A
+//*     JAVA WLM APPLICATION ENVIRONMENT MUST AGREE WITH THE APF-
+//*     AUTHORIZED EXTENDED ATTRIBUTE OF THE DLL FILE FOR ANY JAVA
+//*     STORED PROCEDURE OR FUNCTION THAT IS ASSIGNED TO RUN IN THAT
+//*     WLM ENVIRONMENT.  THE AUTHORIZED EXTENDED ATTRIBUTE OF THE DLL
+//*     FILES FOR THE DB2-SUPPLIED JAVA ROUTINES IS DISABLED BY DEFAULT
+//*     SO THESE ROUTINES REQUIRE A JAVA WLM ENVIRONMENT THAT IS
+//*     NOT APF AUTHORIZED.   THEREFORE, AT LEAST ONE LIBRARY IN THE
+//*     STEPLIB CONCATENATION OF THIS PROC NEEDS TO BE NON-APF
+//*     AUTHORIZED.
+//* (2) THE JAVAENV DD STATEMENT IS REQUIRED AND NEEDS TO BE ALLOCATED
+//*     TO THE IBM LANGUAGE ENVIRONMENT RUN-TIME OPTIONS DATA SET FOR
+//*     JAVA STORED PROCEDURES AND UDFS THAT USE THIS WLM ENVIRONMENT.
+//*     THIS DATA SET IS CREATED BY DB2 INSTALLATION JOB DSNTIJMJ.
+//*     FOR FURTHER INFORMATION ABOUT THE JAVAENV DATA SET, SEE THE
+//*     DISCUSSION OF RUN-TIME ENVIRONMENTS FOR JAVA ROUTINES IN THE
+//*     DB2 FOR Z/OS APPLICATION PROGRAMMING GUIDE AND REFERENCE FOR
+//*     JAVA.
+//* (3) THE JSPDEBUG DD STATEMENT IS ALSO REQUIRED.
+//*
+//*********************************************************************
+//${MVSSNAME}WLMJ  PROC APPLENV='${WLMENVJ}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=5
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             PARM='&DB2SSN,&NUMTCB,&APPLENV'
+#if (${LERUN} != "")
+//STEPLIB  DD DISP=SHR,DSN=${LERUN}
+//         DD DISP=SHR,DSN=${DSNEXIT}
+#else
+//STEPLIB  DD DISP=SHR,DSN=${DSNEXIT}
+#end
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//         DD DISP=SHR,DSN=${DSNLOD2}
+//         DD  DISP=SHR,                       <== Forces non-APF env
+//             DSN=${DBRMLIB}
+//JAVAENV  DD  DISP=SHR,
+//             DSN=${INSDSPRE}.${MVSSNAME}WLMJ.JAVAENV
+//JSPDEBUG DD  SYSOUT=*
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}WLMM
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING
+//* THE MQSERIES FUNCTIONS.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT, SPECIFY A NUMTCB OF 10 OR
+//*             MORE.
+//*
+//* NOTES:
+//*     THERE IS NO SPECIAL APF REQUIREMENT FOR THIS WLM ENVIRONMENT.
+//*
+//*     UNCOMMENT THE DD STATEMENTS UNDER STEPLIB FOR THE MQSERIES
+//*     SCSQLOAD, SCSQAUTH, AND SCSQANLE RUNTIME LIBRARIES IF THEY
+//*     ARE NOT INCLUDED IN YOUR SYSTEM LINKLIST.  YOU ALSO NEED TO
+//*     EDIT THE DATA SET NAME PREFIXES FOR THESE LIBRARIES.
+//*
+//*********************************************************************
+//${MVSSNAME}WLMM  PROC APPLENV='${WLMENVM}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=10
+//*
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             PARM='&DB2SSN,&NUMTCB,&APPLENV'
+#if (${LERUN} != "")
+//STEPLIB  DD DISP=SHR,DSN=${LERUN}
+//         DD DISP=SHR,DSN=${DSNEXIT}
+#else
+//STEPLIB  DD DISP=SHR,DSN=${DSNEXIT}
+#end
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//* Uncomment the following if not included in the LINKLIST
+//*        DD DISP=SHR,DSN=CSQ.SCSQLOAD
+//*        DD DISP=SHR,DSN=CSQ.SCSQAUTH
+//*        DD DISP=SHR,DSN=CSQ.SCSQANLE
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}WLMP
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING
+//* DB2-SUPPLIED STORED PROCEDURES AND USER-DEFINED FUNCTIONS THAT
+//* ARE REGISTERED TO RACF PROGRAM CONTROL OR EQUIVALENT.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT, SPECIFY A NUMTCB OF 40 - 60.
+//*
+//* NOTES:
+//* (1) ALL LIBRARIES IN THE STEPLIB CONCATENATION NEED TO BE APF-
+//*     AUTHORIZED.
+//* (2) THIS WLM ENVIRONMENT IS FOR EXCLUSIVE USE OF STORED PROCEDURES
+//*     AND UDFS THAT ARE DEFINED TO PROGRAM CONTROL.
+//*
+//*********************************************************************
+//${MVSSNAME}WLMP  PROC APPLENV='${WLMENVP}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=40
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             PARM='&DB2SSN,&NUMTCB,&APPLENV'
+#if (${LERUN} != "")
+//STEPLIB  DD DISP=SHR,DSN=${LERUN}
+//         DD DISP=SHR,DSN=${DSNEXIT}
+#else
+//STEPLIB  DD DISP=SHR,DSN=${DSNEXIT}
+#end
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}WLMR
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING
+//* DB2-SUPPLIED REXX STORED PROCEDURES.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT, ALWAYS SPECIFY A NUMTCB OF 1.
+//*
+//* NOTES:
+//* (1) AT LEAST ONE LIBRARY IN THE STEPLIB CONCATENATION NEEDS TO BE
+//*     NON-APF AUTHORIZED.
+//* (2) FOR DSNTPSMP AND ADMIN_UPDATE_SYSPARM, NUMTCB=1 IS REQUIRED.
+//*     SPECIFY NO OTHER VALUE.  THIS ASSURES CONCURRENT EXECUTIONS
+//*     OF DSNTPSMP AND ADMIN_UPDATE_SYSPARM WILL RUN IN THEIR OWN
+//*     ADDRESS SPACE, WHICH IS NEEDED FOR PROPER DATASET OPERATION
+//*     FROM WITHIN A REXX/TSO DB2 STORED PROCEDURE.
+//*
+//*********************************************************************
+//${MVSSNAME}WLMR  PROC APPLENV='${WLMENVR}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=1
+//*
+//NUMTCB@1 SET NUMTCB=                         <== Null NUMTCB symbol
+//*
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             DYNAMNBR=5,                     <== Allow for Dyn Allocs
+//             PARM='&DB2SSN,1,&APPLENV'       <== Use 1, not NUMTCB
+//*
+//* Include SDSNEXIT to use Secondary Authids (DSN3@ATH DSN3@SGN exits)
+//STEPLIB  DD  DISP=SHR,
+//             DSN=${DSNEXIT}
+//         DD  DISP=SHR,
+//             DSN=${DSNLOAD}
+//         DD  DISP=SHR,                       <== C Compiler
+#if (${CCOMP} != "")
+//             DSN=${CCOMP}
+//         DD  DISP=SHR,                       <== LE runtime
+#end
+#if (${LERUN} != "")
+//             DSN=${LERUN}
+//         DD  DISP=SHR,                       <== Forces non-APF env
+#end
+//             DSN=${DBRMLIB}
+//SYSEXEC  DD  DISP=SHR,                       <== Location of DSNTPSMP
+//             DSN=${DSNCLIST}
+//SYSTSPRT DD  SYSOUT=*
+//CEEDUMP  DD  SYSOUT=*
+//SYSPRINT DD  SYSOUT=*
+//SYSABEND DD  DUMMY
+//DSNTRACE DD  SYSOUT=*
+//*
+//**** Data sets required by the SQL Procedures Processor
+//SQLDBRM  DD  DISP=SHR,                       <== DBRM Library
+//             DSN=${DBRMLIB}
+//SQLCSRC  DD  DISP=SHR,                       <== Generated C Source
+//             DSN=${SRCLIB}
+//SQLLMOD  DD  DISP=SHR,                       <== Application Loadlib
+//             DSN=${RUNLIB}
+//SQLLIBC  DD  DISP=SHR,                       <== C header files
+//             DSN=${CHDRS}
+//         DD  DISP=SHR,
+//             DSN=#getCeeHPre("${CHDRS}").SYS.H
+//         DD  DISP=SHR,                       <== Debug header file
+//             DSN=${DSNCHDRS}
+//SQLLIBL  DD  DISP=SHR,                       <== Linkedit includes
+//             DSN=${LELKED}
+//         DD  DISP=SHR,
+//             DSN=${DSNLOAD}
+//SYSMSGS  DD  DISP=SHR,                       <== Prelinker msg file
+//         DSN=${LEPLMSGL}(EDCPMSGE)
+//*
+//**** DSNTPSMP Configuration File - CFGTPSMP (optional)
+//*             A site provided sequential dataset or member, used to
+//*             define customized operation of DSNTPSMP in this APPLENV.
+//*CFGTPSMP DD  DISP=SHR,DSN=
+//*
+//**** Workfiles required by the SQL Procedures Processor
+//SQLSRC   DD  UNIT=SYSALLDA,SPACE=(23440,(20,20)),
+//             DCB=(RECFM=FB,LRECL=80,BLKSIZE=23440)
+//SQLPRINT DD  UNIT=SYSALLDA,SPACE=(23476,(20,20)),
+//             DCB=(RECFM=VB,LRECL=137,BLKSIZE=23476)
+//SQLTERM  DD  UNIT=SYSALLDA,SPACE=(23476,(20,20)),
+//             DCB=(RECFM=VB,LRECL=137,BLKSIZE=23476)
+//SQLOUT   DD  UNIT=SYSALLDA,SPACE=(23476,(20,20)),
+//             DCB=(RECFM=VB,LRECL=137,BLKSIZE=23476)
+//SQLCPRT  DD  UNIT=SYSALLDA,SPACE=(23476,(20,20)),
+//             DCB=(RECFM=VB,LRECL=137,BLKSIZE=23476)
+//SQLUT1   DD  UNIT=SYSALLDA,SPACE=(23440,(20,20)),
+//             DCB=(RECFM=FB,LRECL=80,BLKSIZE=23440)
+//SQLUT2   DD  UNIT=SYSALLDA,SPACE=(23440,(20,20)),
+//             DCB=(RECFM=FB,LRECL=80,BLKSIZE=23440)
+//SQLCIN   DD  UNIT=SYSALLDA,SPACE=(32000,(20,20))
+//SQLLIN   DD  UNIT=SYSALLDA,SPACE=(3200,(30,30)),
+//             DCB=(RECFM=FB,LRECL=80,BLKSIZE=3200)
+//SQLDUMMY DD  DUMMY
+//SYSMOD   DD  UNIT=SYSALLDA,SPACE=(23440,(20,20)),   <= PRELINKER
+//             DCB=(RECFM=FB,LRECL=80,BLKSIZE=23440)
+//**** Data sets required by ADMIN_UPDATE_SYSPARM
+//ZPMDFLTS DD  DISP=SHR,                       <== Defaults file
+//         DSN=${PROCLIB}(${MVSSNAME}ADMZ)
+./  ADD NAME=${MVSSNAME}WLM1
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING
+//* DB2-SUPPLIED STORED PROCEDURES AND USER-DEFINED FUNCTIONS THAT
+//* CANNOT SHARE A TASK CONTROL BLOCK WITH ANOTHER ROUTINE.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT, ALWAYS SPECIFY A NUMTCB OF 1.
+//*
+//* NOTES:
+//*     ALL LIBRARIES IN THE STEPLIB CONCATENATION NEED TO BE APF-
+//*     AUTHORIZED
+//*
+//*********************************************************************
+//${MVSSNAME}WLM1  PROC APPLENV='${WLMENV1}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=1
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             PARM='&DB2SSN,&NUMTCB,&APPLENV'
+#if (${LERUN} != "")
+//STEPLIB  DD DISP=SHR,DSN=${LERUN}
+//         DD DISP=SHR,DSN=${DSNEXIT}
+#else
+//STEPLIB  DD DISP=SHR,DSN=${DSNEXIT}
+#end
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}WLMU
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING
+//* DB2 UTILITIES STORED PROCEDURES.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT, ALWAYS SPECIFY A NUMTCB OF 1.
+//*
+//* NOTES:
+//* (1) ALL LIBRARIES IN THE STEPLIB CONCATENATION NEED TO BE APF-
+//*     AUTHORIZED
+//* (2) THE SYSIN AND SYSPRINT DD STATEMENTS ARE REQUIRED AND NEED TO
+//*     BE ALLOCATED TO WORK FILES
+//* (3) THE UTPRINT, RNPRIN01, STPRIN01, AND DSSPRINT DD STATEMENTS ARE
+//*     ALSO REQUIRED
+//*
+//*********************************************************************
+//${MVSSNAME}WLMU  PROC APPLENV='${WLMENVU}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=1
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             PARM='&DB2SSN,&NUMTCB,&APPLENV'
+#if (${LERUN} != "")
+//STEPLIB  DD DISP=SHR,DSN=${LERUN}
+//         DD DISP=SHR,DSN=${DSNEXIT}
+#else
+//STEPLIB  DD DISP=SHR,DSN=${DSNEXIT}
+#end
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//UTPRINT  DD  SYSOUT=*
+//RNPRIN01 DD  SYSOUT=*
+//STPRIN01 DD  SYSOUT=*
+//DSSPRINT DD  SYSOUT=*
+//SYSIN    DD #unitl("${TVOLDEVT}"," ")${B},SPACE=(4000,(20,20),,,ROUND),
+//             DCB=(RECFM=V,LRECL=32708)
+//SYSPRINT DD #unitl("${TVOLDEVT}"," ")${B},SPACE=(4000,(20,20),,,ROUND)
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}WLMW
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING
+//* THE DB2 WEB SERVICES/SOAP FUNCTIONS.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT, SPECIFY A NUMTCB OF 10 OR
+//*             MORE.
+//*
+//* NOTES:
+//*     THERE IS NO SPECIAL APF REQUIREMENT FOR THIS WLM ENVIRONMENT.
+//*
+//*     THE WSERROR DD STATEMENT SHOULD REMAIN COMMENTED-OUT EXCEPT
+//*     WHEN REQUESTED BY IBM SERVICE.
+//*
+//*********************************************************************
+//${MVSSNAME}WLMW  PROC APPLENV='${WLMENVW}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=10
+//*
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             PARM='&DB2SSN,&NUMTCB,&APPLENV'
+#if (${LERUN} != "")
+//STEPLIB  DD DISP=SHR,DSN=${LERUN}
+//         DD DISP=SHR,DSN=${DSNEXIT}
+#else
+//STEPLIB  DD DISP=SHR,DSN=${DSNEXIT}
+#end
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//         DD DISP=SHR,DSN=${DSNLOD2}
+//*WSERROR  DD  PATH='/tmp/wsc.err',
+//*             PATHOPTS=(ORDWR,OCREAT,OAPPEND),
+//*             PATHMODE=(SIRUSR,SIWUSR,SIRGRP,SIWGRP,SIROTH,SIWOTH)
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}WLMX
+//*********************************************************************
+//* JCL FOR STARTING THE WLM-ESTABLISHED ADDRESS SPACE FOR RUNNING
+//* MOST DB2-SUPPLIED STORED PROCEDURES AND USER-DEFINED FUNCTIONS FOR
+//* XML PROCESSSING.
+//*    APPLENV: THE MVS WLM APPLICATION ENVIRONMENT
+//*             SUPPORTED BY THIS JCL PROCEDURE.
+//*    DB2SSN : THE DB2 SUBSYSTEM NAME.
+//*    RGN    : THE MVS REGION SIZE FOR THE ADDRESS SPACE.
+//*    NUMTCB : THE NUMBER OF TCBS USED TO PROCESS END USER REQUESTS.
+//*             FOR THIS WLM ENVIRONMENT, SPECIFY A NUMTCB OF 40 - 60.
+//*
+//* NOTES:
+//*     ALL LIBRARIES IN THE STEPLIB CONCATENATION NEED TO BE APF-
+//*     AUTHORIZED.
+//*
+//*********************************************************************
+//${MVSSNAME}WLMX  PROC APPLENV='${WLMENVX}',
+//             DB2SSN=${MVSSNAME},RGN=0K,NUMTCB=40
+//IEFPROC EXEC PGM=DSNX9WLM,REGION=&RGN,TIME=NOLIMIT,
+//             PARM='&DB2SSN,&NUMTCB,&APPLENV'
+#if (${LERUN} != "")
+//STEPLIB  DD DISP=SHR,DSN=${LERUN}
+//         DD DISP=SHR,DSN=${DSNEXIT}
+#else
+//STEPLIB  DD DISP=SHR,DSN=${DSNEXIT}
+#end
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//*CEEDUMP  DD SYSOUT=A
+./  ADD NAME=${MVSSNAME}ADMZ
+* NAME = ${MVSSNAME}ADMZ
+*
+* FUNCTION = Data set template for SYSPROC.ADMIN_UPDATE_SYSPARM
+*
+* This member specifies the data sets and device type used by DB2
+* stored procedure SYSPROC.ADMIN_UPDATE_SYSPARM.
+* (1) Copy this member into the library allocated by the ZPMDFLTS DD
+*     of the address space proc for the WLM environment you use to run
+*     SYSPROC.ADMIN_UPDATE_SYSPARM.
+* (2) Customize the data set and device type names for your site.
+*     For more information about SYSPROC.ADMIN_UPDATE_SYSPARM and
+*     related setup, see the DB2 Installation Guide.
+*
+SDSNEXIT_NAME=${DSNEXIT}
+SDSNLOAD_NAME=${DSNLOAD}
+SDSNMACS_NAME=${DSNMACS}
+SRCLIB_NAME=${SRCLIB}
+SYSDA_NAME=${TVOLDEVT}
+SYSMACS_NAME=${MACLIB}
+./  ENDUP
+/*
+## Macro to get the prefix of C/CPP header library
+## $dsn is the C/CPP header library
+#macro(getCeeHPre $dsn)
+#set ($len = $dsn.length() - 2)
+#if ($dsn.endsWith(".H"))
+$dsn.substring(0,$len)#else
+CEE.SCEEH#end#end
+## Macro to get the UNIT parameter of a DD statement.
+## $device is the device type.
+## $pad is the string to be padded on the left.
+#macro(unitl $devtype $pad)
+#if($devtype != "")${pad}UNIT=${devtype}#else#end
+#end
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

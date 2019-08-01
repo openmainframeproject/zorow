@@ -1,0 +1,134 @@
+//**********************************************************************
+//*  NAME = DSNTEJ8                                                    *
+//*                                                                    *
+//*  DESCRIPTIVE NAME = DB2/ODBC SAMPLE APPLICATION JCL                *
+//*                     C++ APPLICATION                                *
+//*                                                                    *
+//*    Licensed Materials - Property of IBM                            *
+//*    5605-DB2                                                        *
+//*    (C) COPYRIGHT 1982, 2010 IBM Corp.  All Rights Reserved.        *
+//*                                                                    *
+//*    STATUS = Version 10                                             *
+//*                                                                    *
+//*  FUNCTION = THIS ODBC SAMPLE JCL COMPILES, PRELINKS, LINKEDITS     *
+//*        AND EXCUTES THE ODBC APPLICATIONS.                          *
+//*        THIS IS SAMPLE JCL TO SUPPORT THE ODBC GUIDE AND            *
+//*        AND REFERENCE SECTION 'APPLICATION EXECUTION'               *
+//*        THIS JCL IS INITIALLY SET TO EXECUTE THE ODBC 2.0 SAMPLE    *
+//*        INSTALL VERIFICATION APPLICATION DSN!!0.SDSNSAMP(DSN8OIVP). *
+//*        THIS JCL CAN ALSO BE ALTERED TO EXECUTE THE ODBC 3.0 SAMPLE *
+//*        INSTALL VERIFICATION APPLICATION DSN!!0.SDSNSAMP(DSN8O3VP). *
+//*        THIS JCL ALSO USES THE ODBC SAMPLE INITIALZATION FILE (INI) *
+//*        DSN!!0.SDSNSAMP(DSNAOINI).                                  *
+//*                                                                    *
+//*  DEPENDENCIES: REQUIRES DB2 V10.1 FOR Z/OS ODBC/CLI                *
+//*                REQUIRES IBM C/C++ FOR Z/OS V1R10 OR HIGHER         *
+//*                THIS SAMPLE JCL IS BASED ON COMPILER SAMPLE PROC    *
+//*                 CBC.SCCNPRC(CBCCLG)                                *
+//*                                                                    *
+//*  DATASET NAMES:                                                    *
+//*   DSN!!0              - HIGH LEVEL QUALIFIER FOR DB2 FOR Z/OS      *
+//*   CBC                 - HIGH LEVEL QUALIFIER FOR Z/OS              *
+//*                         C/C++ COMPILER                             *
+//*   CEE                 - HIGH LEVEL QUALIFIER FOR Z/OS              *
+//*                         LANGUAGE ENVIRONMENT                       *
+//*   ADMF001.CLI.INCLUDE - USER HEADER FILE LIBRARY                   *
+//*   ADMF001.CLI.OBJ     - USER APPLICTION OBJ LIBRARY                *
+//*   USER.RUNLIB.LOAD    - USER LOAD LIBRARY                          *
+//*                                                                    *
+//*  PRE-EXECUTEION CHANGES REQUIRED- BEFORE RUNNING THIS JOB:         *
+//*  -CHANGE ALL OCCURRENCES OF DSN!!0 TO THE PREFIX OF YOUR DB2 V10.1 *
+//*   DATA SETS                                                        *
+//*  -CHANGE ADMF001.CLI.OBJ TO USER TARGET OBJ LIBRARY                *
+//*  -CHANGE LSEARCH(//'ADMF001.CLI.INCLUDE.+') TO USER SOURCE INCLUDE *
+//*   LIBRARY OR DELETE                                                *
+//*  -CHANGE USER.RUNLIB.LOAD OT USER LOAD LIBRARY                     *
+//*  -TO EXECUTE THE ODBC 3.0 SAMPLE, CHANGE ALL OCCURENCES OF DSN8OIVP*
+//*   TO DSN8O3VP                                                      *
+//*                                                                    *
+//**********************************************************************
+//**-------------------------------------------------------------------
+//**  COMPILE STEP:
+//**-------------------------------------------------------------------
+//COMPILE EXEC PGM=CCNDRVR,REGION=32M,
+//    PARM=('/CXX OPTFILE(DD:CCOPT)')
+//STEPLIB  DD  DSN=${LERUN},DISP=SHR
+//         DD  DSN=${CCOMP},DISP=SHR
+//SYSMSGS  DD  DUMMY,DSN=CBC.SCBC3MSG(EDCMSGE),DISP=SHR
+//SYSXMSGS DD  DUMMY,DSN=CBC.SCBC3MSG(CBCMSGE),DISP=SHR
+//SYSIN    DD  DSN=${DSNSAMP}(DSN8OIVP),DISP=SHR
+//SYSLIN   DD  DSN=&&TEMP(DSN8OIVP),
+//             DCB=(RECFM=FB,LRECL=80,BLKSIZE=3200),
+//             UNIT=VIO,SPACE=(32000,(30,30,10)),
+//             DISP=(NEW,PASS)
+//SYSPRINT DD  SYSOUT=*
+//SYSOUT   DD  SYSOUT=*
+//SYSCPRT  DD  SYSOUT=*
+//CCOPT    DD  DSN=${PPROCLIB}(DSNHCPPS),DISP=SHR
+//         DD  *
+  LIST
+  SOURCE
+  LONG
+//SYSUT1   DD  UNIT=VIO,SPACE=(32000,(30,30)),
+//             DCB=(RECFM=FB,LRECL=80,BLKSIZE=3200)
+//SYSUT4   DD  UNIT=VIO,SPACE=(32000,(30,30)),
+//             DCB=(RECFM=FB,LRECL=80,BLKSIZE=3200)
+//SYSUT5   DD  UNIT=VIO,SPACE=(32000,(30,30)),
+//             DCB=(RECFM=FB,LRECL=3200,BLKSIZE=12800)
+//SYSUT6   DD  UNIT=VIO,SPACE=(32000,(30,30)),
+//             DCB=(RECFM=FB,LRECL=3200,BLKSIZE=12800)
+//SYSUT7   DD  UNIT=VIO,SPACE=(32000,(30,30)),
+//             DCB=(RECFM=FB,LRECL=3200,BLKSIZE=12800)
+//SYSUT8   DD  UNIT=VIO,SPACE=(32000,(30,30)),
+//             DCB=(RECFM=FB,LRECL=3200,BLKSIZE=12800)
+//SYSUT9   DD  UNIT=VIO,SPACE=(32000,(30,30)),
+//             DCB=(RECFM=VB,LRECL=137,BLKSIZE=882)
+//SYSUT10  DD  SYSOUT=*
+//SYSUT14  DD  UNIT=VIO,SPACE=(32000,(30,30)),
+//             DCB=(RECFM=FB,LRECL=3200,BLKSIZE=12800)
+//SYSUT15  DD  SYSOUT=*
+//*
+//*-------------------------------------------------------------
+//* PRE-LINKEDIT STEP:
+//*-------------------------------------------------------------
+//PLKED  EXEC PGM=EDCPRLK,REGION=2048K,
+//       PARM='MAP,NOER'
+//STEPLIB  DD  DSN=${LERUN},DISP=SHR
+//SYSMSGS  DD  DSN=${LEPLMSGL}(EDCPMSGE),DISP=SHR
+//SYSLIB   DD  DSN=${CPPAUTCL},DISP=SHR
+//SYSIN    DD  DSN=&&TEMP(DSN8OIVP),DISP=(OLD,PASS)
+//         DD  DSN=CBC.SCLBSID(IOSTREAM),DISP=SHR
+//         DD  DSN=CBC.SCLBSID(COMPLEX),DISP=SHR
+//         DD  DSN=CEE.SCEELIB(C128),DISP=SHR
+//         DD  DSN=${DSNMACS}(DSNAOCLI),DISP=SHR
+//SYSMOD   DD  DSN=&&PLKSET,UNIT=VIO,DISP=(NEW,PASS),
+//             SPACE=(32000,(30,30)),
+//             DCB=(RECFM=FB,LRECL=80,BLKSIZE=3200)
+//SYSDEFSD DD  DUMMY
+//SYSOUT   DD  SYSOUT=*
+//SYSPRINT DD  SYSOUT=*
+//*
+//*-------------------------------------------------------------------
+//* LINKEDIT STEP:
+//*-------------------------------------------------------------------
+//LKED   EXEC PGM=HEWL,REGION=1024K,
+//       PARM='AMODE=31,MAP,RENT'
+//SYSLIB   DD  DSN=${LELKED},DISP=SHR
+//SYSLIN   DD  DSN=*.PLKED.SYSMOD,DISP=(OLD,DELETE)
+//SYSLMOD  DD  DSN=${RUNLIB}(DSN8OIVP),DISP=SHR
+//SYSUT1   DD  UNIT=VIO,SPACE=(32000,(30,30))
+//SYSPRINT DD  SYSOUT=*
+//*
+//*----------------------------------------------------------------
+//* GO STEP:
+//*----------------------------------------------------------------
+//GO     EXEC PGM=DSN8OIVP
+//STEPLIB  DD  DSN=${RUNLIB}(DSN8OIVP),DISP=SHR
+//         DD  DSN=${DSNEXIT},DISP=SHR
+//         DD  DSN=${DSNLOAD},DISP=SHR
+//         DD  DSN=${LERUN},DISP=SHR
+//         DD  DSN=CBC.SCLBDLL,DISP=SHR
+//SYSPRINT DD  SYSOUT=*
+//CEEDUMP  DD  SYSOUT=*
+//DSNAOINI DD DSN=${PPROCLIB}(DSNAOINI),DISP=SHR
+/*

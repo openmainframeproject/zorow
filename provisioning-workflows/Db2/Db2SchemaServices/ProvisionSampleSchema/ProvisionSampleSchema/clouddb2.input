@@ -1,0 +1,72 @@
+## --------------------------------------------------------------------
+## Parameters for the steps of CREATE and DROP DATABASE, LOAD DATA and
+## DB2 internal GRANT/REVOKE.
+## If USERNAME is left blank, then the step to grant and revoke DB2
+## internal privileges will be skipped.
+## If SCHEMANAME is left blank, a name will be generated dynamically
+## based on the instance name.
+## --------------------------------------------------------------------
+DSNLOAD    = <sdsnload_library>
+DSNEXIT    = <db2_exit_library>
+DSNSAMP    = <db2_sample_library>
+DSNIVPD    = <db2_ivp_job_library>
+MVSSNAME   = <db2_subsystem_id>
+PROGNAME   = DSNTEP2
+PLANNAME   = <dsntep2_plan_name>
+RUNLIB     = <dsntep2_load_library>
+SORTLIB    = <sort_library>
+TSPREFIX   = <prefix_of_tablespace_name>
+SQLID      = <id_to_execute_sql_script>
+USERNAME   = <dbadm_grantee_on_db>
+SCHEMANAME =
+BP         = <default_bufferpool>
+STOGROUP   = <storage_group_name>
+
+## --------------------------------------------------------------------
+## Parameters for the steps of deprovision.
+## --------------------------------------------------------------------
+## Full path name of deprovision shell script
+deprovisionShell = <full_path_name_of_deprovision_shell>
+## RACF ApplID used to generate RACF passticket to execute deprovision stored procedure
+racfappid        = <racf_applid>
+## Hostname of the target Db2 subsystem
+hostname         = <hostname_of_target_db2_subsystem>
+## Port number of the target Db2 subsystem
+db2port          = <port_of_target_db2_subsystem>
+## Location of the target Db2 subsystem
+db2location      = <location_of_target_db2_subsystem>
+## Userid to connect to the target Db2 subsystem with RACF passticket
+conn_userid      = <db2_connection_userid>
+## Schema name of stored procedure DEPROVISION_SCHEMA, DEVSERVICE by default
+deproSPSchema    = <schema_name_of_deprovision_stored_procedure>
+
+## --------------------------------------------------------------------
+## Parameters for CREATE and DROP trusted context.
+## If ROLENAME is left bank, then the step to create and delete a
+## trusted context will be skipped.
+## --------------------------------------------------------------------
+CONTEXTNAME       = <db2_trusted_context_name>
+REMOTECONTEXTNAME = <db2_remote_trusted_context_name>
+CLIENTIPADDRESS   = <client_ip_address>
+ROLENAME          = <db2_role_name>
+LTCUSERNAME       = <db2_local_trusted_context_username>
+RMTUSERNAME       = <db2_remote_trusted_context_username>
+RMTUSER           = <user_of_remote_trusted_context>
+
+## --------------------------------------------------------------------
+## Parameters for CREATE/DELETE RACF distributed map.
+## If RMTDISTID is left blank, then the step to create and delete a
+## RACF distributed map will be skipped.
+## --------------------------------------------------------------------
+RMTDISTID  = <distributed_identity_user_name>
+RMTDISTREG = <distributed_identity_registry_name>
+
+## --------------------------------------------------------------------
+## Parameters for CREATE and DELETE RACF group and user.
+## If RACFGROUP is left blank, then the step to create and delete a
+## RACF group and user will be skipped.
+## --------------------------------------------------------------------
+RACFOWNER    = <racf_owner_name>
+RACFSUPERGRP = <racf_super_group_name>
+RACFGROUP    = <racf_group_name>
+RACFUSER     = <racf_user_id>
