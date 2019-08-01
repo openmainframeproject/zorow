@@ -12,14 +12,14 @@ function dodir
                 if [[ -L "$fname" ]] ; then
                         echo 'skipped link '  "$fname"
                 elif [[ -f "$fname" ]] ; then
-                        setfacl -m group:USNZOS01:rwx "$fname"
+                        setfacl -m group:${instance-SYSPROG_RACF_GROUP}:rwx "$fname"
                         setfacl -m user:${instance-ZOSMF_INSTALL_USER}:rwx "$fname"
 
                 elif [[ -d "$fname" ]] ; then
                         savedir=$(pwd)
-                        setfacl -m group:USNZOS01:rwx "$fname"
+                        setfacl -m group:${instance-SYSPROG_RACF_GROUP}:rwx "$fname"
                         setfacl -m user:${instance-ZOSMF_INSTALL_USER}:rwx "$fname"
-                        setfacl -m f:group:USNZOS01:rwx   ./ 
+                        setfacl -m f:group:${instance-SYSPROG_RACF_GROUP}:rwx   ./ 
                         setfacl -m f:user:${instance-ZOSMF_INSTALL_USER}:rwx   ./
 
                         cd "$fname"
@@ -33,8 +33,8 @@ function dodir
 fname2=/plex/var/mqsi/brokers/${instance-IIB_BROKER_NAME_LC}/
 cd $fname2 && \
 dodir $(pwd)
-setfacl -m group:USNZOS01:rwx ./           
-setfacl -m d:group:USNZOS01:rwx   ./       
+setfacl -m group:${instance-SYSPROG_RACF_GROUP}:rwx ./           
+setfacl -m d:group:${instance-SYSPROG_RACF_GROUP}:rwx   ./       
 
 setfacl -m user:${instance-ZOSMF_INSTALL_USER}:rwx ./           
 setfacl -m d:user:${instance-ZOSMF_INSTALL_USER}:rwx   ./

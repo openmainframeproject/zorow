@@ -7,4 +7,4 @@
 //******************************************************************
 //STOPIIB EXEC PGM=IEFBR14
 //SYSPRINT DD SYSOUT=*    
-//   COMMAND 'P ${instance-IIB-BROKER-NAME}' 
+//   COMMAND 'P ${instance-IIB_BROKER_NAME}' 

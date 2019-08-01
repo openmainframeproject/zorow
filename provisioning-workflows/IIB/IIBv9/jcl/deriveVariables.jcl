@@ -43,6 +43,10 @@
             Exit 999
           end
  end
+additional = ${instance-ADDITIONAL_MEMBER}
+if additional = "NONE"
+then sysplexha = "NO" 
+else sysplexha = "YES"
 
  brokername = "IB${instance-IIB_ENVIRONMENT}"substr(lpar,4,1)"${instance-IIB_BROKER_SEQ}"
  brokernamelc = translate(brokername,l,u)
@@ -67,8 +71,9 @@
  data.17 = "IIB_DBSRV_NAME = "db2subsys
  data.18 = "IIB_JDBC_PORTNR = "db2port
  data.19 = "RABO_INSTANCEID = "brokername
+ data.20 = "RABO_SYSPLEXHA = "sysplexha
 
- data.0 = 19
+ data.0 = 20
 
  ADDRESS SYSCALL "WRITEFILE $_output 777 data."
  rcw = rc

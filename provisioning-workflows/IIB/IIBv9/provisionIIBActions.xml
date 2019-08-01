@@ -24,6 +24,8 @@
             <wfVar name="IIB_BROKER_PORT_ID" updateRegistry="false">$!{IIB_BROKER_PORT_ID}</wfVar>
             <wfVar name="IIB_PLEX" updateRegistry="false">$!{IIB_PLEX}</wfVar>
             <wfVar name="IIB_WORK_DIR_SYMLINK" updateRegistry="false">$!{IIB_WORK_DIR_SYMLINK}</wfVar>
+            <wfVar name="RABO_SYSPLEXHA" updateRegistry="false">$!{RABO_SYSPLEXHA}</wfVar>
+            <wfVar name="ADDITIONAL_MEMBER" updateRegistry="false">$!{ADDITIONAL_MEMBER}</wfVar>
         </workflow>
     </action>
 </actionList>

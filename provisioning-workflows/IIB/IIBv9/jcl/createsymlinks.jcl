@@ -4,13 +4,8 @@
 //* create directories if they do not yet exist
 //* then create symbolic link
 //SYSIN   DD *
-mkdir -p /${instance-IIB_PLEX}5${instance-IIB_WORK_DIR_SYMLINK} 
-mkdir -p /${instance-IIB_PLEX}6${instance-IIB_WORK_DIR_SYMLINK} 
-
-ls -alF /${instance-IIB_PLEX}5${instance-IIB_WORK_DIR_SYMLINK}                               
-ls -alF /${instance-IIB_PLEX}6${instance-IIB_WORK_DIR_SYMLINK}                               
-ln -s ${instance-IIB_WORK_DIR} /${instance-IIB_PLEX}5${instance-IIB_WORK_DIR_SYMLINK}   
-ln -s ${instance-IIB_WORK_DIR} /${instance-IIB_PLEX}6${instance-IIB_WORK_DIR_SYMLINK}   
-ls -alF /${instance-IIB_PLEX}5${instance-IIB_WORK_DIR_SYMLINK} 
-ls -alF /${instance-IIB_PLEX}6${instance-IIB_WORK_DIR_SYMLINK} 
-/*
+umask 022
+mkdir -p /${_workflow-systemName}/var/mqsi/brokers 
+ls -alF /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}                                                            
+ln -s /plex${instance-IIB_WORK_DIR} /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}   
+ls -alF /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}                                                            

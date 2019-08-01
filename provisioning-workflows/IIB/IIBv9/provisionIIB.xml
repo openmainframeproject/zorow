@@ -452,6 +452,34 @@ Will be appended with subsystem in the flow.</description>
         <category>General</category>
         <string valueMustBeChoice="false" multiLine="false"/>
     </variable>
+    <variable name="SYSPROG_RACF_GROUP" scope="instance" visibility="private">
+        <label>SYSPROG_RACF_GROUP</label>
+        <abstract>RACF GROUP</abstract>
+        <description>GroupID of the SYSPROG RACF group</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>GROUP</validationType>
+            <default>USNZOS01</default>
+        </string>
+    </variable>
+    <variable name="ADDITIONAL_MEMBER" scope="instance" visibility="private">
+        <label>ADDITIONAL_MEMBER</label>
+        <abstract>Specify complete LPAR member name (e.g. MVS2)</abstract>
+        <description>Specify to indicate that additional (USS) configuration must be done on another LPAR in the sysplex.</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>4</maxLength>
+            <default>NONE</default>
+        </string>
+    </variable>
+    <variable name="RABO_SYSPLEXHA" scope="instance" visibility="private">
+        <label>RABO_SYSPLEXHA</label>
+        <abstract>If broker should be made HA</abstract>
+        <description>decision whenever USS directories should be created on a second member</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
     <atCreate name="IIB_STCDFLTGROUP" scope="instance" required="true" prompt="false"/>
     <atCreate name="IIB_MQ_DS_PREFIX" scope="instance" required="true" prompt="false"/>
     <atCreate name="IIB_JDBC_JARS" scope="instance" required="true" prompt="false"/>
@@ -482,6 +510,7 @@ Will be appended with subsystem in the flow.</description>
     <atCreate name="ZOSMF_INSTANCE_RUNASGRP" scope="instance" required="true" prompt="false"/>
     <atCreate name="IIB_WAS_PW" scope="instance" required="true" prompt="true"/>
     <atCreate name="IIB_DB2_DS_PREFIX" scope="instance" required="true" prompt="false"/>
+    <atCreate name="ADDITIONAL_MEMBER" scope="instance" required="false" prompt="true"/>
     <step name="setVariables" optional="false">
         <title>Specify IIB parameters</title>
         <description>Sets the parameters required for the IIB.</description>
@@ -518,7 +547,7 @@ Update this field with your own text</instructions>
             <fileTemplate filePathSubstitution="false" substitution="true">jcl/deriveVariables.jcl</fileTemplate>
             <submitAs maxRc="0">JCL</submitAs>
             <maxLrecl>80</maxLrecl>
-            <output needResolveConflicts="true" sysoutDD="false" substitution="true">/plex/var/zosmf/workflow/${_workflow-softwareServiceInstanceName}</output>
+            <output needResolveConflicts="true" sysoutDD="false" loadOutputFileArrayValue="true" substitution="true">/plex/var/zosmf/workflow/${_workflow-softwareServiceInstanceName}</output>
         </template>
     </step>
     <step name="DisplayVariables" optional="false">
@@ -636,9 +665,6 @@ PE ${instance-ZOSMF_INSTANCE}.ZOSMF.TEMPLATE.RUNASUSERS.${_workflow-domainID}.${
 PE ${MQCONNBATCH}.BATCH CL(MQCONN) ID(${instance-ZOSMF_INSTALL_USER}) ACCESS(READ)
 PE *.DELETE.QLOCAL CL(MQCMDS) ID($IIB_STCUSER) ACCESS(ALTER)
 
-PE IEFUSI.PLUS256 CLASS(FACILITY) ID($IIB_STCUSER) ACCESS(READ)
-PE IEFUSI.PLUS256 CLASS(FACILITY) ID(${instance-ZOSMF_INSTALL_USER}) ACCESS(READ)
-
 SETROPTS RACLIST(ZMFCLOUD) REFRESH
 SETROPTS RACLIST(FACILITY) REFRESH
 
@@ -748,7 +774,7 @@ Update this field with your own text</instructions>
         <prereqStep name="CreateBrokerhomedir"/>
         <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
         <instructions>Run job createworkfs.jcl.</instructions>
-        <weight>25</weight>
+        <weight>1</weight>
         <skills>IIB administration</skills>
         <autoEnable>true</autoEnable>
         <canMarkAsFailed>false</canMarkAsFailed>
@@ -777,18 +803,12 @@ Will be linked to via symlinks, see next steps.
             <maxLrecl>80</maxLrecl>
         </template>
     </step>
-    <step name="CreateSymlinksforBrokerFS-NOT-for-XAT" optional="false">
-        <title>CreateSymlinksforBrokerFS-NOT-for-XAT</title>
+    <step name="CreateSymlinksforBrokerFS" optional="false">
+        <title>CreateSymlinksforBrokerFS</title>
         <description>Create symlinks for broker file system:
-/&lt;system&gt;/var/mqsi/brokers/&lt;broker&gt; points to /plex/var/mqsi/berokers/&lt;broker&gt;.
-This step is for all sysplexes but XAT. </description>
+/&lt;system&gt;/var/mqsi/brokers/&lt;broker&gt; points to /plex/var/mqsi/berokers/&lt;broker&gt;.</description>
         <prereqStep name="Createmountpoint"/>
         <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
-        <condition>
-            <expression>${instance-IIB_PLEX} != "XAT"</expression>
-            <description>For all systems except XAT this step is valid</description>
-            <targetState>ready</targetState>
-        </condition>
         <instructions substitution="false">Generated instruction text for step: CreateSymlinksforBrokerFS
 Update this field with your own text</instructions>
         <weight>1</weight>
@@ -799,25 +819,35 @@ Update this field with your own text</instructions>
             <submitAs maxRc="0">JCL</submitAs>
         </template>
     </step>
-    <step name="CreateSymlinksforBrokerFSonXATOnly" optional="false">
-        <title>CreateSymlinksforBrokerFSonXATOnly</title>
-        <description>Create symlinks for broker file system:
-/&lt;system&gt;/var/mqsi/brokers/&lt;broker&gt; points to /plex/var/mqsi/berokers/&lt;broker&gt;.
-This step is for XAT only. </description>
+    <step name="CreateSymlinkAdditionalMember" optional="true">
+        <title>Create Symlink on the additional members in the Sysplex</title>
+        <description>Create Symlink on the additional members in the Sysplex</description>
         <prereqStep name="Createmountpoint"/>
         <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
         <condition>
-            <expression>${instance-IIB_PLEX} == "XAT"</expression>
-            <description>On XAT only this step is valid</description>
-            <targetState>ready</targetState>
+            <expression>${Createmountpoint.returnCode} == "0000"</expression>
+            <description>Conditional step to determine if additional members need to be configured yes or no.</description>
+            <targetStateSet>
+                <extendStateExpression>
+                    <description>We need to make additional Symlinks</description>
+                    <expression>${instance-RABO_SYSPLEXHA} == "YES"</expression>
+                    <targetState>ready</targetState>
+                </extendStateExpression>
+                <extendStateExpression>
+                    <description>Skip step, no additional members in the sysplex need configuring.</description>
+                    <expression>${instance-RABO_SYSPLEXHA} == "NO"</expression>
+                    <targetState>skipped</targetState>
+                </extendStateExpression>
+            </targetStateSet>
         </condition>
-        <instructions substitution="false">Generated instruction text for step: CreateSymlinksforBrokerFS
+        <instructions substitution="false">Generated instruction text for step: CreateSymlinkAdditionalMember
 Update this field with your own text</instructions>
         <weight>1</weight>
+        <skills>z/OS</skills>
         <autoEnable>true</autoEnable>
         <canMarkAsFailed>false</canMarkAsFailed>
         <template>
-            <fileTemplate filePathSubstitution="false" substitution="true">jcl/createsymlinksxat.jcl</fileTemplate>
+            <fileTemplate filePathSubstitution="false" substitution="true">jcl/createsymlinksa.jcl</fileTemplate>
             <submitAs maxRc="0">JCL</submitAs>
         </template>
     </step>
@@ -895,7 +925,7 @@ Must run under Broker userID</instructions>
         <prereqStep name="CreateBroker"/>
         <runAsUser substitution="true">${instance-ZOSMF_RACF_USER}</runAsUser>
         <instructions>Run job AUTHFS.jcl.</instructions>
-        <weight>10</weight>
+        <weight>1</weight>
         <skills>IIB administration</skills>
         <autoEnable>true</autoEnable>
         <canMarkAsFailed>false</canMarkAsFailed>
@@ -912,7 +942,7 @@ Must run under Broker userID</instructions>
         <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
         <instructions substitution="false">Run job CreateBrokerQueues.jcl.
 Run with Broker userid.</instructions>
-        <weight>5</weight>
+        <weight>1</weight>
         <skills>IIB administration</skills>
         <autoEnable>true</autoEnable>
         <canMarkAsFailed>false</canMarkAsFailed>
@@ -944,9 +974,10 @@ Enable the Web UI</instructions>
 Enhancement: use better way to fire operator commands.</description>
         <prereqStep name="CreateBrokerqueues"/>
         <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
+        <variableValue name="IIB_BROKER_NAME" scope="instance" noPromptIfSet="false" required="false"/>
         <instructions substitution="false">Generated instruction text for step: StartBroker
 Update this field with your own text</instructions>
-        <weight>5</weight>
+        <weight>1</weight>
         <skills>IIB administration</skills>
         <autoEnable>true</autoEnable>
         <canMarkAsFailed>false</canMarkAsFailed>
@@ -954,6 +985,20 @@ Update this field with your own text</instructions>
             <fileTemplate filePathSubstitution="false" substitution="true">jcl/StartBroker.jcl</fileTemplate>
             <submitAs maxRc="0">JCL</submitAs>
             <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="Wait" optional="false">
+        <title>Wait to allow startup Broker</title>
+        <description>Wait to allow startup Broker</description>
+        <instructions substitution="false">Generated instruction text for step: Wait
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <skills>z/OS</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="false">sleep 10</inlineTemplate>
+            <submitAs maxRc="0">shell-JCL</submitAs>
         </template>
     </step>
     <step name="SetIIBWebAdminPort" optional="false">

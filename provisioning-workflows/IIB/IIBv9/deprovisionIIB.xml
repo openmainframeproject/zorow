@@ -212,6 +212,23 @@ xxx.SCSQLOAD.</description>
         <category>IIB</category>
         <string valueMustBeChoice="false" multiLine="false"/>
     </variable>
+    <variable name="RABO_SYSPLEXHA" scope="instance" visibility="private">
+        <label>RABO_SYSPLEXHA</label>
+        <abstract>RABO_SYSPLEXHA</abstract>
+        <description>RABO_SYSPLEXHA</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>2</minLength>
+            <maxLength>3</maxLength>
+        </string>
+    </variable>
+    <variable name="ADDITIONAL_MEMBER" scope="instance" visibility="private">
+        <label>ADDITIONAL_MEMBER</label>
+        <abstract>ADDITIONAL_MEMBER</abstract>
+        <description>ADDITIONAL_MEMBER</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
     <atCreate name="ZOSMF_PROCLIB" scope="instance" required="true" prompt="false"/>
     <step name="setVariables" optional="false">
         <title>Specify IIB parameters</title>
@@ -247,6 +264,19 @@ Update this field with your own text</instructions>
             <fileTemplate filePathSubstitution="false" substitution="true">jcl/StopBroker.jcl</fileTemplate>
             <submitAs maxRc="0">JCL</submitAs>
             <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="Wait" optional="false">
+        <title>Wait for stop broker</title>
+        <description>Allow time for the broker to stop.</description>
+        <instructions substitution="false">Generated instruction text for step: Wait
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="false">sleep 60</inlineTemplate>
+            <submitAs maxRc="0">shell-JCL</submitAs>
         </template>
     </step>
     <step name="DeleteBroker" optional="false">
@@ -326,19 +356,11 @@ Update this field with your own text</instructions>
             <expectedStatusCode>204</expectedStatusCode>
         </rest>
     </step>
-    <step name="DeleteSymlinksforBrokerFSonXATOnly" optional="true">
-        <title>DeleteSymlinksforBrokerFSonXATOnly</title>
+    <step name="DeleteSymlinksforBrokerF" optional="false">
+        <title>DeleteSymlinksforBrokerF</title>
         <description>Create symlinks for broker file system</description>
         <prereqStep name="returnTCPIPPort"/>
         <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
-        <condition>
-            <expression>${instance-IIB_PLEX} == "XAT"</expression>
-            <description/>
-            <targetStateSet>
-                <stateExpression state="ready">${instance-IIB_PLEX} == "XAT"</stateExpression>
-                <stateExpression state="skipped">${instance-IIB_PLEX} != "XAT"</stateExpression>
-            </targetStateSet>
-        </condition>
         <instructions substitution="false">Generated instruction text for step: CreateSymlinksforBrokerFS
 Update this field with your own text</instructions>
         <weight>1</weight>
@@ -352,31 +374,34 @@ Update this field with your own text</instructions>
 //* then create symbolic link
 //SYSIN   DD *
 
-ls -alF /${instance-IIB_PLEX}1${instance-IIB_WORK_DIR_SYMLINK}                               
-ls -alF /${instance-IIB_PLEX}2${instance-IIB_WORK_DIR_SYMLINK}                               
-ls -alF /${instance-IIB_PLEX}3${instance-IIB_WORK_DIR_SYMLINK}                               
-rm /${instance-IIB_PLEX}1${instance-IIB_WORK_DIR_SYMLINK}   
-rm /${instance-IIB_PLEX}2${instance-IIB_WORK_DIR_SYMLINK}   
-rm /${instance-IIB_PLEX}3${instance-IIB_WORK_DIR_SYMLINK}   
-ls -alF /${instance-IIB_PLEX}1${instance-IIB_WORK_DIR_SYMLINK}                               
-ls -alF /${instance-IIB_PLEX}2${instance-IIB_WORK_DIR_SYMLINK}                               
-ls -alF /${instance-IIB_PLEX}3${instance-IIB_WORK_DIR_SYMLINK}                               
+ls -alF /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}                                                          
+rm /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}   
+ls -alF /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}                               
+                              
 /*
 </inlineTemplate>
             <submitAs maxRc="1">JCL</submitAs>
         </template>
     </step>
-    <step name="DeleteSymlinksforBrokerFS-NOT-for-XAT" optional="true">
-        <title>CreateSymlinksforBrokerFS-NOT-for-XAT</title>
-        <description>Create symlinks for broker file system</description>
+    <step name="DeleteSymlinksforBrokerFA" optional="true">
+        <title>DeleteSymlinksforBrokerF Additional Member</title>
+        <description>Delete symlinks for broker file system</description>
         <prereqStep name="returnTCPIPPort"/>
         <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
         <condition>
-            <expression>${instance-IIB_PLEX} != "XAT"</expression>
-            <description/>
+            <expression>${DeleteSymlinksforBrokerF.returnCode} == "0001"</expression>
+            <description></description>
             <targetStateSet>
-                <stateExpression state="ready">${instance-IIB_PLEX} != "XAT"</stateExpression>
-                <stateExpression state="skipped">${instance-IIB_PLEX} == "XAT"</stateExpression>
+                <extendStateExpression>
+                    <description></description>
+                    <expression>${instance-RABO_SYSPLEXHA} == "YES"</expression>
+                    <targetState>ready</targetState>
+                </extendStateExpression>
+                <extendStateExpression>
+                    <description></description>
+                    <expression>${instance-RABO_SYSPLEXHA} == "NO"</expression>
+                    <targetState>skipped</targetState>
+                </extendStateExpression>
             </targetStateSet>
         </condition>
         <instructions substitution="false">Generated instruction text for step: CreateSymlinksforBrokerFS
@@ -391,12 +416,10 @@ Update this field with your own text</instructions>
 //* create directories if they do not yet exist
 //* then create symbolic link
 //SYSIN   DD *
-ls -alF /${instance-IIB_PLEX}5${instance-IIB_WORK_DIR_SYMLINK}                               
-ls -alF /${instance-IIB_PLEX}6${instance-IIB_WORK_DIR_SYMLINK}                               
-rm /${instance-IIB_PLEX}5${instance-IIB_WORK_DIR_SYMLINK}   
-rm /${instance-IIB_PLEX}6${instance-IIB_WORK_DIR_SYMLINK}   
-ls -alF /${instance-IIB_PLEX}5${instance-IIB_WORK_DIR_SYMLINK} 
-ls -alF /${instance-IIB_PLEX}6${instance-IIB_WORK_DIR_SYMLINK} 
+ls -alF /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}                                                          
+rm /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}   
+ls -alF /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}                               
+                               
 /*
 </inlineTemplate>
             <submitAs maxRc="1">JCL</submitAs>

@@ -23,6 +23,7 @@
  Say  "_workflow-tenantID = ${_workflow-tenantID}"
  Say "_workflow-domainID = ${_workflow-domainID}" 
  Say "_workflow-templateName = ${_workflow-templateName}"
+ Say "RABO_SYSPLEXHA = ${instance-RABO_SYSPLEXHA}"
 
  Say "Rexx ran ok"
  Exit 0
