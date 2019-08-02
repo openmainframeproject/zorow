@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<actionList>
+    <action name="deprovision" deprovision="true">
+        <workflow cleanAfterComplete="inherit">
+            <wfDefFile>./deprovisionIIB.xml</wfDefFile>
+            <wfVar name="IIB_STCUSER" updateRegistry="false">$!{IIB_STCUSER}</wfVar>
+            <wfVar name="ZOSMF_INSTALL_USER" updateRegistry="false">$!{ZOSMF_INSTALL_USER}</wfVar>
+            <wfVar name="IIB_QMGR_NAME" updateRegistry="false">$!{IIB_QMGR_NAME}</wfVar>
+            <wfVar name="IIB_BROKER_NAME" updateRegistry="false">$!{IIB_BROKER_NAME}</wfVar>
+            <wfVar name="ZOSMF_RACF_USER" updateRegistry="false">$!{ZOSMF_RACF_USER}</wfVar>
+            <wfVar name="IIB_MQ_DS_PREFIX" updateRegistry="false">$!{IIB_MQ_DS_PREFIX}</wfVar>
+            <wfVar name="IIB_USS_BIN" updateRegistry="false">$!{IIB_USS_BIN}</wfVar>
+            <wfVar name="IIB_DSNAOINI" updateRegistry="false">$!{IIB_DSNAOINI}</wfVar>
+            <wfVar name="IIB_CURRENTSQLID" updateRegistry="false">$!{IIB_CURRENTSQLID}</wfVar>
+            <wfVar name="IIB_LPAR_NAME" updateRegistry="false">$!{IIB_LPAR_NAME}</wfVar>
+            <wfVar name="IIB_HOME_DIR" updateRegistry="false">$!{IIB_HOME_DIR}</wfVar>
+            <wfVar name="ZOSMF_PROCLIB" updateRegistry="false">$!{ZOSMF_PROCLIB}</wfVar>
+            <wfVar name="ZOSMF_PARMLIB" updateRegistry="false">$!{ZOSMF_PARMLIB}</wfVar>
+            <wfVar name="IIB_WORK_DIR" updateRegistry="false">$!{IIB_WORK_DIR}</wfVar>
+            <wfVar name="IIB_RUNASUSER" updateRegistry="false">$!{IIB_RUNASUSER}</wfVar>
+            <wfVar name="IIB_BROKER_NAME_LC" updateRegistry="false">$!{IIB_BROKER_NAME_LC}</wfVar>
+            <wfVar name="IIB_WAS_USER" updateRegistry="false">$!{IIB_WAS_USER}</wfVar>
+            <wfVar name="IIB_XDBC_USER" updateRegistry="false">$!{IIB_XDBC_USER}</wfVar>
+            <wfVar name="IIB_BROKER_PORT_ID" updateRegistry="false">$!{IIB_BROKER_PORT_ID}</wfVar>
+            <wfVar name="IIB_PLEX" updateRegistry="false">$!{IIB_PLEX}</wfVar>
+            <wfVar name="IIB_WORK_DIR_SYMLINK" updateRegistry="false">$!{IIB_WORK_DIR_SYMLINK}</wfVar>
+            <wfVar name="RABO_SYSPLEXHA" updateRegistry="false">$!{RABO_SYSPLEXHA}</wfVar>
+            <wfVar name="ADDITIONAL_MEMBER" updateRegistry="false">$!{ADDITIONAL_MEMBER}</wfVar>
+        </workflow>
+    </action>
+</actionList>

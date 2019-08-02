@@ -1,0 +1,9 @@
+//USSBATCH PROC SU=NO,ERRSTOP=NO,USERPARM=''                         
+//PRSTEP1  EXEC PGM=IKJEFT1A,PARM='USSBATCH &SU &ERRSTOP &USERPARM', 
+//         REGION=256M                                               
+//SYSEXEC  DD DSN=<Your.own.proclib.here>,DISP=SHR                   
+//SYSTSPRT DD SYSOUT=*                                               
+//SYSPRINT DD DUMMY                                                  
+//STDOUT   DD SYSOUT=*                                               
+//SYSTSIN  DD DUMMY                                                  
+//SYSIN    DD DUMMY  
