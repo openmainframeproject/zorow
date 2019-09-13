@@ -1,0 +1,28 @@
+//*********************************************************************
+//* JOB NAME = DSNTDJMD
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    LICENSED MATERIALS - PROPERTY OF IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2018 IBM CORP.  ALL RIGHTS RESERVED.
+//*
+//*    STATUS = VERSION 12
+//*
+//* FUNCTION = THIS JOB IS EXECUTED DURING DEPROVISION ACTION AND
+//*            PERFORMS THE FOLLOWING:
+//*
+//* PSEUDOCODE:
+//* -----------
+//*   STEP SETSSI: DELETE DB2 AND IRLM SYSTEMS BEING DEPROVISIONED
+//*                FROM Z/OS.
+//*
+//* CHANGE ACTIVITY =
+//*   11/14/2018 INTRODUCTION                                   E75766
+//*********************************************************************
+//*
+//SETSSI  EXEC PGM=IEFBR14
+//SYSPRINT DD SYSOUT=*
+// COMMAND 'SETSSI DELETE,SUB=${MVSSNAME},FORCE'
+// COMMAND 'SETSSI DELETE,SUB=${IRLMSSID},FORCE'
+//* ----------------------------------------------------------------- *

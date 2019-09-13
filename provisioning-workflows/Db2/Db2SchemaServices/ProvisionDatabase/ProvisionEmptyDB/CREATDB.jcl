@@ -1,0 +1,19 @@
+//CREATDB EXEC PGM=IKJEFT01,DYNAMNBR=20
+//STEPLIB DD DISP=SHR,
+//  DSN=${instance-DSNLOAD}
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD *
+ DSN S(${instance-MVSSNAME})
+ RUN PROGRAM(${instance-PROGNAME}) PLAN(${instance-PLANNAME}) -
+      LIB('${instance-RUNLIB}')
+ END
+//SYSPRINT DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//SYSIN    DD *
+ CREATE DATABASE ${instance-DBNAME}
+          BUFFERPOOL ${instance-DATABP}
+          INDEXBP ${instance-INDEXBP}
+          STOGROUP ${instance-STOGROUP}
+          CCSID EBCDIC
+ ;
+ COMMIT;
