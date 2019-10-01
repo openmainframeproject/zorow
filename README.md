@@ -1,4 +1,8 @@
-# ZORoW - z/OS® Open Repository of Workflows
+![](https://github.com/openmainframeproject/artwork/blob/master/projects/zorow/zorow-color.svg)
+
+![GitHub](https://img.shields.io/github/license/openmainframeproject/zorow)
+
+# z/OS® Open Repository of Workflows (zorow)
 This repository contains workflow definitions and other associated material that can be used with the z/OS® Management Facility (z/OSMF).
 
 A z/OSMF workflow is a guided set of steps that help you perform an activity on z/OS®, such as configuring a software product, managing a z/OS® resource, or simplifying some relatively complex operation. To support these activities, a workflow can be designed to perform a wide variety of operations, such as configuring and starting z/OS® subsystems using the Cloud Provisioning and Management plug-in, submitting jobs and scripts, issuing REST APIs and invoking TSO/E functions.
