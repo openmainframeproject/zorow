@@ -19,7 +19,7 @@ You can install any of these workflows into z/OSMF following the instructions on
 Anyone can contribute z/OSMF workflow definitions to this repository - learn more at [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Governance
-Zorow is a project hosted by the Open Mainframe Project. This project has established it's own processes for managing day-to-day processes in the project at [GOVERNANCE.md](GOVERNANCE.md).
+Zorow is a project hosted by the [Open Mainframe Project](https://openmainframeproject.org). This project has established it's own processes for managing day-to-day processes in the project at [GOVERNANCE.md](GOVERNANCE.md).
 
 ## Reporting Issues
-To report a problem, you can open an [issue](https://github.com/openmainframeproject/zorow/issues) in repository against a specific workflow. If the project is senstive in nature or a security related issue, please do not report in the issue tracker but instead email zorow-private@lists.openmainframeproject.org.
+To report a problem, you can open an [issue](https://github.com/openmainframeproject/zorow/issues) in repository against a specific workflow. If the issue is senstive in nature or a security related issue, please do not report in the issue tracker but instead email zorow-private@lists.openmainframeproject.org.
