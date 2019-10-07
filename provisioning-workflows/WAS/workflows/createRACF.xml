@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- cWAS Provisioning : Create RACF commands to define users, groups,    -->
+    <!-- and profiles required for the provisioning environment.              -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>cWAS_RACF</workflowID>
+      <workflowDescription>Create RACF commands required for the provisioning environment.</workflowDescription>
+      <workflowVersion>1.0</workflowVersion>
+      <vendor>IBM</vendor>
+      <Configuration>
+          <productID>zosWAS</productID>
+          <productName>WAS for z/OS</productName>
+          <productVersion>Version 9</productVersion>
+      </Configuration>
+  </workflowInfo>
+
+  <!--+++++++++++++++++++++++++++++++++++++++++-->
+  <!--     Variables                           -->
+  <!--+++++++++++++++++++++++++++++++++++++++++-->
+
+  <variable name="CONFIG_ROOT" visibility="public">
+      <label>CONFIG_ROOT</label>
+      <abstract>Directory to contain server profiles</abstract>
+      <description>Each app server profile will be created in its own file system. This directory will contain mount points for each of those file systems.</description>
+      <category>Specified in properties file</category>
+      <string/>
+
+  </variable>
+
+  <variable name="MAX_SERVERS" visibility="public">
+      <label>MAX_SERVERS</label>
+      <abstract>Maximum number of servers to be provisioned</abstract>
+      <description>Maximum number of servers to be provisioned</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SERVER_GROUP_PREFIX" visibility="public">
+      <label>SERVER_GROUP_PREFIX</label>
+      <abstract>Two character prefix for all servers in group</abstract>
+      <description>Two character prefix for all servers in group. This is used to create user names, group names, proc names, and paths.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="CERT_AUTH_LABEL" visibility="public">
+      <label>CERT_AUTH_LABEL</label>
+      <abstract>CERT_AUTH_LABEL</abstract>
+      <description>Label of the Certificate authority to be created.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="RACF_COMMANDS_DSN" visibility="public">
+      <label>RACF_COMMANDS_DSN</label>
+      <abstract>RACF_COMMANDS_DSN</abstract>
+      <description>Name of dataset to contain execs with RACF commands.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="RACF_TEMPLATE_DSN" visibility="private">
+      <label>RACF_TEMPLATE_DSN</label>
+      <abstract>RACF_TEMPLATE_DSN</abstract>
+      <description>Name of supplied dataset containing templates for RACF execs.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="Z_CONFIG_AUTO_GID" visibility="private">
+      <label>Z_CONFIG_AUTO_GID</label>
+      <abstract>Z_CONFIG_AUTO_GID</abstract>
+      <description>Flag indicating whether RACF should assign GIDs automatically.</description>
+      <category>Specified in properties file</category>
+      <boolean/>
+  </variable>
+
+  <variable name="Z_CONFIG_AUTO_UID" visibility="private">
+      <label>Z_CONFIG_AUTO_UID</label>
+      <abstract>Z_CONFIG_AUTO_UID</abstract>
+      <description>Flag indicating whether RACF should assign GIDs automatically.</description>
+      <category>Specified in properties file</category>
+      <boolean/>
+  </variable>
+
+  <variable name="STARTING_GID" visibility="private">
+      <label>STARTING_GID</label>
+      <abstract>STARTING_GID</abstract>
+      <description>This is the first in a range of uids that will be referenced in the app server profile creation.</description>
+      <category>Specified in properties file</category>
+      <integer/>
+  </variable>
+
+  <variable name="STARTING_UID" visibility="private">
+      <label>STARTING_UID</label>
+      <abstract>STARTING_UID</abstract>
+      <description>This is the first in a range of uids that will be referenced in the app server profile creation.</description>
+      <category>Specified in properties file</category>
+      <integer/>
+  </variable>
+
+  <variable name="WORK_PATH" visibility="public">
+      <label>WORK_PATH</label>
+      <abstract>WORK_PATH</abstract>
+      <description>Path to contain the files used by zpmt.sh.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="WORKFLOW_PATH" visibility="public">
+      <label>WORKFLOW_PATH</label>
+      <abstract>WORKFLOW_PATH</abstract>
+      <description>Path containing createRACF.sh</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="RACF_GROUP" visibility="public">
+      <label>RACF_GROUP</label>
+      <abstract>RACF_GROUP</abstract>
+      <description>RACF group to own the admin user profile.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="RACF_USER" visibility="public">
+      <label>RACF_USER</label>
+      <abstract>RACF_USER</abstract>
+      <description>RACF user that will be associated with the provision and deprovision workflows.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <!--++++++++++++++++++++++-->
+  <!--   Provision Steps    -->
+  <!--++++++++++++++++++++++-->
+
+  <step name="createRACFExecs">
+      <title>Create RACF Execs</title>
+      <description>Create RACF Execs</description>
+      <instructions substitution="false">Create RACF Execs</instructions>
+      <weight>1</weight>
+      <autoEnable>true</autoEnable>
+      <template>
+          <fileTemplate substitution="true">
+              createRACF.sh
+          </fileTemplate>
+          <submitAs>shell-JCL</submitAs>
+      </template>
+  </step>
+
+</workflow>
+

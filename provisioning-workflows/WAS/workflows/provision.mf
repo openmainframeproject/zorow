@@ -1,0 +1,4 @@
+workflow-definition-file: ./provision.xml
+workflow-variable-input-file: ../properties/server_group_variables.properties
+action-definition-file: ./actions.xml
+documentation-file: ./wastaas_readme.pdf 

@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+                   
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- WASt Provisioning : Build a jython script to create a JDBC Type 4    -->
+    <!-- provider and datasource and invoke wsadmin to run the script.        -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>WASt_DB2_Type4</workflowID>
+      <workflowDescription>Create a DB2 Type 4 JDBC provider and data source.</workflowDescription>
+      <workflowVersion>1.0</workflowVersion>
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>zosWAS</productID>
+          <productName>WAS for z/OS</productName>
+		  <productVersion>WAS 8557</productVersion>
+		  <softwareType>WASt</softwareType>
+      </Provisioning>
+  </workflowInfo>
+ 
+  <!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+  <!--     Include WAS variables used by the following steps -->
+  <!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+  <!--+++++++++++++++++++++++++++++++++++++++++-->
+  <!--     Variables provided by requester     -->
+  <!--+++++++++++++++++++++++++++++++++++++++++-->
+
+    <variable name="SERVER_ID_NUM" visibility="public">
+      <label>Server ID Number</label>
+      <abstract>Three digit number identifying server instance (including leading zeroes)</abstract>
+      <description>Three digit number identifying the provisioned server. This number is embedded in the 
+	               server job name. For example, for server XX001, 001 is the Server ID Number.</description>
+      <category>User provided parameters</category>
+      <string>
+          <regularExpression>[A-Z0-9]{3,3}</regularExpression>
+      </string>
+    </variable>
+
+    <variable name="SERVER_GROUP_PREFIX" visibility="public">
+      <label>SERVER_GROUP_PREFIX</label>
+      <abstract>Two character prefix for all servers in group</abstract>
+      <description>First two characters of the server job name (and cell name, user name, group name, ...)</description>
+      <category>Specified in properties file</category>
+      <string/>
+    </variable>
+	
+   <variable name="CONFIG_ROOT" visibility="public">
+      <label>CONFIG_ROOT</label>
+      <abstract>Directory to contain server profiles</abstract>
+      <description>Each app server profile will be created in its own file system. This directory will contain mount points for each of those file systems.</description>
+      <category>Specified in properties file</category>
+      <string/>
+   </variable>
+
+    <variable name="WORK_PATH" visibility="public">
+      <label>WORK_PATH</label>
+      <abstract>WORK_PATH</abstract>
+      <description>Path to contain the wsadmin script</description>
+      <category>Specified in properties file</category>
+      <string/>
+    </variable>
+
+  <variable name="UID0_USER" visibility="public">
+      <label>UID0_USER</label>
+      <abstract>UID0_USER</abstract>
+      <description>UID0_USER - Specifies id to be associated with workflow steps that run zpmt.sh and the batch jobs it creates. </description>
+      <category>SAF User IDs</category>
+	  <string>
+      <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters. -->
+      <validationType>USERID</validationType>
+      </string>
+  </variable>
+
+    <variable name="UID0_APPROVER" visibility="public">
+      <label>UID0_APPROVER</label>
+      <abstract>UID0_APPROVER</abstract>
+      <description>UID0_APPROVER - Specifies id to approve workflow steps that run zpmt.sh and the batch jobs it creates. </description>
+      <category>SAF User IDs</category>
+	  <string>
+      <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters. -->
+      <validationType>USERID</validationType>
+      </string>
+  </variable>
+
+  <!-- DB2 bind feature variables -->
+	
+	<variable name="DB2_REGISTRY_NAME" visibility="public">
+		<label>DB2_REGISTRY_NAME</label>
+		<abstract>Registry name</abstract>
+        <description>Registry name of DB2 provision to bind to</description>
+		<category>String Variables</category>
+		<string/>
+	</variable>
+	
+	<variable name="DB2_REGISTRY_ID" visibility="public">
+		<label>DB2_REGISTRY_ID</label>
+		<abstract>Registry id</abstract>
+        <description>Registry id of DB2 provision to bind to</description>
+		<category>REST</category>
+		<string/>
+	</variable>
+	
+	<variable name="DB2_LOCATION" visibility="public">
+		<label>DB2_LOCATION</label>
+		<abstract>DB2 location</abstract>
+        <description>Location of DB2 provision to bind to</description>
+		<category>REST</category>
+		<string/>
+	</variable>
+	
+	<variable name="DB2_JDBC_DRIVER_PATH" visibility="public">
+		<label>DB2_JDBC_DRIVER_PATH</label>
+		<abstract>DB2 JDBC driver path</abstract>
+        <description>Path to the JDBC driver of DB2 provision to bind to</description>
+		<category>REST</category>
+		<string/>
+	</variable>
+	
+	<variable name="DB2_HLQ" visibility="public">
+		<label>DB2_HLQ</label>
+		<abstract>DB2 HLQ</abstract>
+        <description>The high level qualifier of the DB2 SDSNLOAD and SDSNLOD2 datasets</description>
+		<category>REST</category>
+		<string/>
+	</variable>
+	
+	<variable name="DB2_USER_ID" visibility="public">
+		<label>DB2_USER_ID</label>
+		<abstract>DB2 Userid</abstract>
+        <description>User id to be used for authentication to DB2</description>
+		<category>REST</category>
+		<string/>
+	</variable>
+	
+	<variable name="DB2_PASSWORD" visibility="private">
+		<label>DB2_PASSWORD</label>
+		<abstract>DB2 Password</abstract>
+        <description>Password to be used for authentication to DB2</description>
+		<category>REST</category>
+		<string/>
+	</variable>
+	
+	<variable name="DB2_HOST_NAME" visibility="public">
+		<label>DB2_HOST_NAME</label>
+		<abstract>DB2 server host name</abstract>
+        <description>Hostname of server where DB2 is located. This is used for type 4 connections.</description>
+		<category>REST</category>
+		<string/>
+	</variable>
+	
+	<variable name="DB2_PORT_NUMBER" visibility="public">
+		<label>DB2 DDF port number</label>
+		<abstract>DDF port number on DB2 server</abstract>
+        <description>DDF TCPPORT</description>
+		<category>REST</category>
+		<string/>
+	</variable>
+	
+ 
+	<atCreate name="DB2_REGISTRY_NAME" required="true" prompt="true"/>
+	
+    <!--+++++++++++++++++++++++++++++++++++++-->
+    <!--   DB2 JDBC type 4 provider setup    -->
+    <!--+++++++++++++++++++++++++++++++++++++-->
+
+    <step name="promptForID">
+        <title>Provide Server ID Number</title>
+        <description>Provide Server ID Number </description>
+        <variableValue name="SERVER_ID_NUM" required="true"/>
+        <variableValue name="DB2_REGISTRY_NAME" required="true"/>
+        <instructions substitution="false">
+		Each provisioned WASt app server is identified by a unique
+		3 digit number. This number is used to make up the job name, cell 
+		name, and many other names related to the app server. This number 
+		must be provided to identify the app server on which the JDBC
+		provider will be defined. In addition, the associated DB2 subsystem 
+		must already be defined in the z/OSMF registry. The DB2 registry 
+		name must be specified. Click FINISH to perform this step and create
+		the JDBC provider and data source.
+        </instructions>
+        <weight>5</weight>
+        <autoEnable>true</autoEnable>
+    </step>
+    
+    
+    <step name="db2_getObjectID">
+		<title>Get DB2 object id</title>
+		<description>
+			Invoke RESTful API to determine the object id of the registry entry.
+		</description>
+		
+		<instructions substitution="false">
+			Click Finish to perform the request to get the registry entry object id.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+		<autoEnable>true</autoEnable>
+		<rest>
+			<httpMethod>GET</httpMethod>
+			<uriPath>/zosmf/provisioning/rest/1.0/scr/</uriPath>
+			<queryParameters substitution="true">external-name=${instance-DB2_REGISTRY_NAME}</queryParameters>
+			<expectedStatusCode>200</expectedStatusCode>
+			<propertyMapping mapTo="DB2_REGISTRY_ID">["scr-list"][0]["object-id"]</propertyMapping> 
+		</rest>
+	</step>
+	
+	<step name="db2_getVariables">
+		<title>Get necessary DB2 data</title>
+		<description>
+			Invoke RESTful API to fetch the variables in the registry entry.
+		</description>
+		
+		<instructions substitution="false">
+			Click Finish to perform the request to get the registry entry variable values.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+		<autoEnable>true</autoEnable>
+		<rest>
+			<httpMethod>GET</httpMethod>
+			<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${instance-DB2_REGISTRY_ID}/key-value-variables/</uriPath>			
+			<expectedStatusCode>200</expectedStatusCode>
+			<propertyMapping mapTo="DB2_LOCATION">["variables"]["location"]</propertyMapping>	
+            <propertyMapping mapTo="DB2_JDBC_DRIVER_PATH">["variables"]["jdbcDriverPath"]</propertyMapping>	
+            <propertyMapping mapTo="DB2_HLQ">["variables"]["HLQ"]</propertyMapping>	
+            <propertyMapping mapTo="DB2_USER_ID">["variables"]["userName"]</propertyMapping>	
+            <propertyMapping mapTo="DB2_PASSWORD">["variables"]["password"]</propertyMapping>	
+            <propertyMapping mapTo="DB2_HOST_NAME">["variables"]["hostName"]</propertyMapping>	
+            <propertyMapping mapTo="DB2_PORT_NUMBER">["variables"]["portNumber"]</propertyMapping>	
+		</rest>
+	</step>	
+   
+  <step name="createWsadminCommands">
+      <title>Build the wsadmin commands to create JDBC provider and data source</title>
+      <description>Use template to create wsadmin command file</description>
+      <instructions substitution="false">This step runs automatically to create the wsadmin file from a template.</instructions>
+      <weight>1</weight>
+      <autoEnable>true</autoEnable>
+      <template>
+          <fileTemplate substitution="true" >
+              createDB2Type4.template
+          </fileTemplate>
+          <saveAsUnixFile substitution="true">${instance-WORK_PATH}/${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}.createDB2Type4.jython</saveAsUnixFile>
+      </template>
+  </step>
+
+  <step name="runWsadmin">
+      <title>Run wsadmin.sh to create the type 4 JDBC provider</title>
+      <description>Run wsadmin.sh to create the type 4 JDBC provider</description>
+	  <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser> 
+	  <approver substitution="true">$!{instance-UID0_APPROVER}</approver> 
+      <instructions substitution="false">This step runs automatically to create the Type 4 JDBC provider</instructions>
+      <weight>1</weight>
+      <autoEnable>true</autoEnable>
+      <template>
+          <inlineTemplate substitution="true">
+            ${instance-CONFIG_ROOT}/${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}/AppServer/profiles/default/bin/wsadmin.sh -conntype none -lang jython -f ${instance-WORK_PATH}/${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}.createDB2Type4.jython 
+          </inlineTemplate>
+          <submitAs>shell-JCL</submitAs>
+      </template>
+  </step>
+
+  <step name="cleanUp">
+      <title>Remove temp files</title>
+      <description>Remove temp files</description>
+	  <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser> 
+	  <approver substitution="true">$!{instance-UID0_APPROVER}</approver> 
+      <instructions substitution="false">This step runs automatically to remove temporary files</instructions>
+      <weight>1</weight>
+      <autoEnable>true</autoEnable>
+      <template>
+          <inlineTemplate substitution="true">
+            rm ${instance-WORK_PATH}/${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}.createDB2Type4.jython 
+          </inlineTemplate>
+          <submitAs>shell-JCL</submitAs>
+      </template>
+  </step>
+
+    
+</workflow>

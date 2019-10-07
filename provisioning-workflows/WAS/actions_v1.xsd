@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	
+	<xs:element name="actionList">
+		<xs:complexType>
+			<xs:sequence>
+				<!-- Action element is not optional. Maximum occurrence is 50 elements. -->
+				<xs:element name="action" type="actionType" minOccurs="1" maxOccurs="50" />
+			</xs:sequence>
+		</xs:complexType>
+		
+		<xs:unique name="uniqueActionName">
+			<xs:selector xpath="action" />
+			<xs:field xpath="@name" />
+		</xs:unique>
+	</xs:element>
+	
+	<xs:complexType name="actionType">
+		<xs:sequence>
+			<!-- List of action types. -->
+			<xs:choice>
+				<xs:element name="command" type="actionCommandType" />
+				<xs:element name="workflow" type="actionWorkflowType">
+					<xs:unique name="uniqueWfVarName">
+						<xs:selector xpath="wfVar" />
+						<xs:field xpath="@name" />
+					</xs:unique>
+				</xs:element>
+				<xs:element name="instructions" type="velocityNonNullString" />
+			</xs:choice>
+		</xs:sequence>
+		<!-- Action name attribute is not optional. -->
+		<xs:attribute name="name" type="actionNameType" use="required" />
+	</xs:complexType>
+	
+	<!-- Elements specific to action type - command -->
+	<xs:complexType name="actionCommandType">
+		<xs:sequence>			
+			<!-- Stores the actual command. Required. -->
+			<xs:element name="commandValue" type="velocityNonNullString" minOccurs="1" maxOccurs="1" />
+			
+			<!-- runAsUser is optional. -->
+			<xs:element name="runAsUser" type="runAsUserType" minOccurs="0" maxOccurs="1" />
+						
+			<!-- Stores the solKey. Optional. -->
+			<xs:element name="solKey" type="velocityNonNullString" minOccurs="0" maxOccurs="1" />
+			
+			<!-- Stores the unsolKey. Optional. -->
+			<xs:element name="unsolKey" type="velocityNonNullString" minOccurs="0" maxOccurs="1" />
+			
+			<!-- Stores the detectTime. Optional.  The units are in seconds. -->
+			<xs:element name="detectTime" type="velocityNonNullString" minOccurs="0" maxOccurs="1" />
+		</xs:sequence>
+	</xs:complexType>
+	
+	<!-- Elements and attributes specific to action type - workflow. -->
+	<xs:complexType name="actionWorkflowType">
+		<xs:sequence>
+			<!-- Action workflow definition file is not optional. -->
+			<xs:element name="wfDefFile" type="filepathNonNull" />
+
+			<!-- Action workflow variable input file. -->
+			<xs:element name="wfVarInFile" type="filepathNull" minOccurs="0" maxOccurs="1" />
+
+			<!-- Action workflow variable(s). Maximum occurrence is 1,500 variables. -->
+			<xs:element name="wfVar" type="varType" minOccurs="0" maxOccurs="1500" />
+		</xs:sequence>
+		<!-- Figure out a way to differentiate z/OS and UNIX -->
+	</xs:complexType>
+	
+	<!--
+		velocityString extends xs:string (via the intermediary bigString) to add a 
+		"substitution=" attribute.  It's important that this type allow a null string.
+	-->
+	<xs:complexType name="velocityString" mixed="true">
+		<xs:simpleContent>
+			<xs:extension base="bigString">
+				<!-- Indicates substitution variables are present. -->
+				<xs:attribute name="substitution" type="actionBooleanType" default="false"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	
+	<!-- 
+		velocityNonNullString extends velocityString to add a restriction, preventing
+		null values, or one that contains only whitespaces.
+	-->
+	<xs:complexType name="velocityNonNullString">
+		<xs:simpleContent>
+			<xs:restriction base="velocityString">
+				<xs:minLength value="1" />
+				<xs:whiteSpace value="collapse" />
+			</xs:restriction>
+		</xs:simpleContent>
+	</xs:complexType>
+	
+	<!--
+		This type provides a substitution option for variables,
+		and prevents a null value.
+	-->
+	<xs:complexType name="runAsUserType">
+		<xs:simpleContent>		
+			<xs:extension base="nonNullString">		    
+				<!-- Indicates substitution variables are present. -->
+				<xs:attribute name= "substitution" type="actionBooleanType" default="false"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	
+	<!--
+		Elements and attributes specific to workflow variables.
+	-->
+	<xs:complexType name="varType">
+		<xs:simpleContent>
+			<xs:extension base="velocityString">
+				<xs:attribute name="name" type="varNameType" use="required"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	
+	<!--
+		This type allows an alphanumeric value, prevents a null value
+		including one that only contains only whitespace,
+		and establishes a maximum of 32 characters.
+	-->
+	<xs:simpleType name="actionNameType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[a-zA-Z][a-zA-Z0-9\-_]*" />
+			<xs:minLength value="1" />
+			<xs:maxLength value="32" />
+			<xs:whiteSpace value="collapse" />
+		</xs:restriction>
+	</xs:simpleType>
+	
+	<!--
+		This type allows a null value, preserves whitespace,
+		and establishes a maximum length of 1,000,000 characters.
+	-->
+	<xs:simpleType name="bigString">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="1000000" />
+		</xs:restriction>
+	</xs:simpleType>
+	
+	<xs:simpleType name="nonNullString">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1" />
+		</xs:restriction>
+	</xs:simpleType>
+	
+	<!-- We define our own boolean type to protect against values of "0" and "1". --> 
+	<xs:simpleType name="actionBooleanType">
+  		<xs:restriction base="xs:string">
+  			<xs:enumeration value="true"/>
+    		<xs:enumeration value="false"/>
+  		</xs:restriction>
+	</xs:simpleType>
+	
+	<!--
+		This type prevents a null value, and establishes a maximum length of
+		1,024 characters.
+	-->
+	<xs:simpleType name="filepathNonNull">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1" />
+			<xs:maxLength value="1024" />
+		</xs:restriction>
+	</xs:simpleType>
+	
+	<!--
+		This type establishes a maximum length of 1,024 characters.
+	-->
+	<xs:simpleType name="filepathNull">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="0" />
+			<xs:maxLength value="1024" />
+		</xs:restriction>
+	</xs:simpleType>
+	
+	<!--
+		Variable name: Simple alphaNumeric national and "_" string type used
+		for variable names. This restriction allows us to specify variable
+		names with their scope as a string with colon delimiter. scope:name.
+		If the ":" could appear as part of the variable name it increases the
+		chance for error.
+	-->
+	<xs:simpleType name="varNameType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[a-zA-Z][a-zA-Z0-9\-_]*" />
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

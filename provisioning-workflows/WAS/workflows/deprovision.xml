@@ -1,0 +1,1648 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+
+<!--
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 	+  cWAS Provisioning: Deprovision a stand alone cWAS app server.                  +
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+<workflowInfo>
+	<workflowID>cWAS_Deprovision</workflowID>
+	<workflowDescription>Deprovision stand alone WAS app server.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+      <Provisioning>
+          <productID>zosWAS</productID>
+          <productName>WAS for z/OS</productName>
+		  <productVersion>WAS 8557</productVersion>
+		  <softwareType>WASt</softwareType>
+      </Provisioning>
+</workflowInfo>
+
+  <!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+  <!--     Include WAS variables used by the following steps -->
+  <!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+  <!--+++++++++++++++++++++++++++++++++++++++++-->
+  <!--     Variables provided by requester    -->
+  <!--+++++++++++++++++++++++++++++++++++++++++-->
+
+  <variable name="SERVER_ID_NUM" visibility="public">
+      <label>Server ID Number</label>
+      <abstract>Three digit number identifying server instance (including leading zeroes)</abstract>
+      <description>Three digit number identifying the server instance to be deprovisioned. This number is embedded in the 
+	               server job name. For example, to deprovision server ZZ001S, specify 001 for the Server ID Number.</description>
+      <category>User provided parameters</category>
+      <string>
+          <regularExpression>[A-Z0-9]{3,3}</regularExpression>
+      </string>
+  </variable>
+
+  <!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+  <!--     Server group variables provided via properties file -->
+  <!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <variable name="CONFIG_ROOT" visibility="public">
+      <label>CONFIG_ROOT</label>
+      <abstract>Directory to contain server profiles</abstract>
+      <description>Each app server profile will be created in its own file system. This directory will contain mount points for each of those file systems.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="USER_HLQ" visibility="public">
+      <label>USER_HLQ</label>
+      <abstract>High level qualifier to be used for ZFS datasets</abstract>
+      <description>A ZFS will be created to contain the profile for each provisioned app server. The ZFS dataset name will begin with this high level qualifier.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SERVER_GROUP_PREFIX" visibility="public">
+      <label>SERVER_GROUP_PREFIX</label>
+      <abstract>Two character prefix for all servers in group</abstract>
+      <description>Two character prefix for all servers in group. This is used to create user names, group names, proc names, and paths.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="CERT_AUTH_LABEL" visibility="public">
+      <label>CERT_AUTH_LABEL</label>
+      <abstract>CERT_AUTH_LABEL</abstract>
+      <description>Label of the Certificate authority to be created.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+	<variable name="CLOUD_NAME" visibility="public">
+		<label>CLOUD_NAME</label>
+		<abstract>Cloud Name</abstract>
+		<description>The name of the cloud definition in the z/OS Communication Server</description>
+		<category>Specified in properties file</category>
+		<string/>
+	</variable>
+
+  <variable name="DOMAIN_NAME" visibility="public">
+      <label>DOMAIN_NAME</label>
+      <abstract>Domain name to be used for provisioned app servers</abstract>
+      <description>The zDaemonIPName parameter within zpmt.sh is set to a fully qualified host name formed by concatenating the SERVER_GROUP_PREFIX, the SERVER_ID_NUM, and this domain name.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+	<variable name="EXEC_DATASET" visibility="public">
+		<label>EXEC_DATASET</label>
+		<abstract>Dataset containing execs required for provisioning</abstract>
+		<description>Dataset containing execs required for provisioning</description>
+		<category>Specified in properties file</category>
+		<string/>
+	</variable>
+
+  <variable name="HOSTNAME" visibility="public">
+      <label>HOSTNAME</label>
+      <abstract>Host name of system where zosmf is running.</abstract>
+      <description>Host name of system where zosmf is running.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="JOB_STATEMENT_1" visibility="private">
+      <label>JOB_STATEMENT_1</label>
+      <abstract>JOB_STATEMENT_1</abstract>
+      <description>First job statement provided to zpmt.sh during profile creation. This is for future use.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="JOB_STATEMENT_2" visibility="private">
+      <label>JOB_STATEMENT_2</label>
+      <abstract>JOB_STATEMENT_2</abstract>
+      <description>Second job statement provided to zpmt.sh during profile creation. This is for future use.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="JOB_STATEMENT_3" visibility="private">
+      <label>JOB_STATEMENT_3</label>
+      <abstract>JOB_STATEMENT_3</abstract>
+      <description>Third job statement provided to zpmt.sh during profile creation. This is for future use.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="JOB_STATEMENT_4" visibility="private">
+      <label>JOB_STATEMENT_4</label>
+      <abstract>JOB_STATEMENT_4</abstract>
+      <description>Fourth job statement provided to zpmt.sh during profile creation. This is for future use.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="PROCLIB" visibility="public">
+      <label>PROCLIB</label>
+      <abstract>PROCLIB</abstract>
+      <description>Name of dataset within JES PROCLIB concatenation that will contain procs used by the app server.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SYSPLEX_NAME" visibility="public">
+      <label>SYSPLEX_NAME</label>
+      <abstract>SYSPLEX_NAME</abstract>
+      <description>Name of the sysplex where zosmf is running</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SYSTEM_NAME" visibility="public">
+      <label>SYSTEM_NAME</label>
+      <abstract>SYSTEM_NAME</abstract>
+      <description>Name of the system where zosmf is running</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="WAS_PATH" visibility="public">
+      <label>WAS_PATH</label>
+      <abstract>WAS_PATH</abstract>
+      <description>Path to WebSphere Application Server product code</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="WORK_PATH" visibility="public">
+      <label>WORK_PATH</label>
+      <abstract>WORK_PATH</abstract>
+      <description>Path to contain the files used by zpmt.sh.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+	<variable name="WORKLOAD_DEPLOYMENT_GROUP" visibility="public">
+	    <label>WORKLOAD_DEPLOYMENT_GROUP</label>
+	    <abstract>Workload deployment group name</abstract>
+	    <description>The name of the workload deployment group in the z/OS Communication Server</description>
+	    <category>Specified in properties file</category>
+	    <string/>
+	</variable>
+
+  <variable name="Z_CONFIG_HFS_VOLUME" visibility="public">
+      <label>Z_CONFIG_HFS_VOLUME</label>
+      <abstract>Z_CONFIG_HFS_VOLUME</abstract>
+      <description>DASD volume where the config zfs will be created</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="Z_CONFIG_HFS_PRIMARY" visibility="private">
+      <label>Z_CONFIG_HFS_PRIMARY</label>
+      <abstract>Z_CONFIG_HFS_PRIMARY</abstract>
+      <description>Initial number of cylinders used for the creation of the app server config file system</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="Z_CONFIG_HFS_SECONDARY" visibility="private">
+      <label>Z_CONFIG_HFS_SECONDARY</label>
+      <abstract>Z_CONFIG_HFS_SECONDARY</abstract>
+      <description>Secondary amount of cylinders to be specified for the app server config file system</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="Z_CONFIG_SPECIFY_SMS" visibility="private">
+      <label>Z_CONFIG_SPECIFY_SMS</label>
+      <abstract>Z_CONFIG_SPECIFY_SMS</abstract>
+      <description>Flag indicating whether SMS parameters need to be specified for the app server config file system</description>
+      <category>Specified in properties file</category>
+      <boolean/>
+  </variable>
+
+  <variable name="Z_CONFIG_DATACLAS" visibility="private">
+      <label>Z_CONFIG_DATACLAS</label>
+      <abstract>Z_CONFIG_DATACLAS</abstract>
+      <description>App server config file system DATACLAS</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="Z_CONFIG_MGMTCLAS" visibility="private">
+      <label>Z_CONFIG_MGMTCLAS</label>
+      <abstract>Z_CONFIG_MGMTCLAS</abstract>
+      <description>App server config file system MGMTCLAS</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="Z_CONFIG_STORCLAS" visibility="private">
+      <label>Z_CONFIG_STORCLAS</label>
+      <abstract>Z_CONFIG_STORCLAS</abstract>
+      <description>App server config file system STORCLAS</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="ZPMT_DATASET_HLQ" visibility="public">
+      <label>ZPMT_DATASET_HLQ</label>
+      <abstract>ZPMT_DATASET_HLQ</abstract>
+      <description>High level qualifier of datasets that will contain jobs and execs used in setting up the app server.</description>
+      <category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+ <variable name="DEFAULT_ADMIN_PW" visibility="private">
+  <label>DEFAULT_ADMIN_PW</label>
+  <abstract>Default admin ID password</abstract>
+        <description>Default admin ID password</description>
+  <category>REST</category>
+  <string/>
+ </variable>
+
+  <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+  <!--     UID/GID variables in server_group_variables.properties -->
+  <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <variable name="STARTING_GID" visibility="private">
+      <label>STARTING_GID</label>
+      <abstract>STARTING_GID</abstract>
+      <description>This is the first in a range of uids that will be referenced in the app server profile creation.</description>
+      <category>Specified in properties file</category>
+      <integer/>
+  </variable>
+
+  <variable name="STARTING_UID" visibility="private">
+      <label>STARTING_UID</label>
+      <abstract>STARTING_UID</abstract>
+      <description>This is the first in a range of uids that will be referenced in the app server profile creation.</description>
+      <category>Specified in properties file</category>
+      <integer/>
+  </variable>
+
+  <variable name="Z_CONFIG_AUTO_GID" visibility="private">
+      <label>Z_CONFIG_AUTO_GID</label>
+      <abstract>Z_CONFIG_AUTO_GID</abstract>
+      <description>Flag indicating whether RACF should assign GIDs automatically.</description>
+      <category>Specified in properties file</category>
+      <boolean/>
+  </variable>
+
+  <variable name="Z_CONFIG_AUTO_UID" visibility="private">
+      <label>Z_CONFIG_AUTO_UID</label>
+      <abstract>Z_CONFIG_AUTO_UID</abstract>
+      <description>Flag indicating whether RACF should assign GIDs automatically.</description>
+      <category>Specified in properties file</category>
+      <boolean/>
+  </variable>
+
+
+  <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+  <!--     Port variables in server_group_variables.properties  -->
+  <!--     and port variables returned from CA                  -->
+  <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+    <variable name="WC_adminhost_RANGE" visibility="public">
+      <label>WC_adminhost_RANGE</label>
+      <abstract>WC_adminhost_RANGE</abstract>
+      <description>WC_adminhost_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="WC_adminhost" visibility="public">
+      <label>WC_adminhost</label>
+      <abstract>WC_adminhost</abstract>
+      <description>WC_adminhost</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="WC_adminhost_ID" visibility="public">
+      <label>WC_adminhost_ID</label>
+      <abstract>WC_adminhost_ID</abstract>
+      <description>WC_adminhost_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="WC_adminhost_secure_RANGE" visibility="public">
+      <label>WC_adminhost_secure_RANGE</label>
+      <abstract>WC_adminhost_secure_RANGE</abstract>
+      <description>WC_adminhost_secure_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="WC_adminhost_secure" visibility="public">
+      <label>WC_adminhost_secure</label>
+      <abstract>WC_adminhost_secure</abstract>
+      <description>WC_adminhost_secure</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="WC_adminhost_secure_ID" visibility="public">
+      <label>WC_adminhost_secure_ID</label>
+      <abstract>WC_adminhost_secure_ID</abstract>
+      <description>WC_adminhost_secure_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="IPC_CONNECTOR_ADDRESS_RANGE" visibility="public">
+      <label>IPC_CONNECTOR_ADDRESS_RANGE</label>
+      <abstract>IPC_CONNECTOR_ADDRESS_RANGE</abstract>
+      <description>IPC_CONNECTOR_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="IPC_CONNECTOR_ADDRESS" visibility="public">
+      <label>IPC_CONNECTOR_ADDRESS</label>
+      <abstract>IPC_CONNECTOR_ADDRESS</abstract>
+      <description>IPC_CONNECTOR_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="IPC_CONNECTOR_ADDRESS_ID" visibility="public">
+      <label>IPC_CONNECTOR_ADDRESS_ID</label>
+      <abstract>IPC_CONNECTOR_ADDRESS_ID</abstract>
+      <description>IPC_CONNECTOR_ADDRESS_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="OVERLAY_TCP_LISTENER_ADDRESS_RANGE" visibility="public">
+      <label>OVERLAY_TCP_LISTENER_ADDRESS_RANGE</label>
+      <abstract>OVERLAY_TCP_LISTENER_ADDRESS_RANGE</abstract>
+      <description>OVERLAY_TCP_LISTENER_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="OVERLAY_TCP_LISTENER_ADDRESS" visibility="public">
+      <label>OVERLAY_TCP_LISTENER_ADDRESS</label>
+      <abstract>OVERLAY_TCP_LISTENER_ADDRESS</abstract>
+      <description>OVERLAY_TCP_LISTENER_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="OVERLAY_TCP_LISTENER_ADDRESS_ID" visibility="public">
+      <label>OVERLAY_TCP_LISTENER_ADDRESS_ID</label>
+      <abstract>OVERLAY_TCP_LISTENER_ADDRESS_ID</abstract>
+      <description>OVERLAY_TCP_LISTENER_ADDRESS_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="OVERLAY_UDP_LISTENER_ADDRESS_RANGE" visibility="public">
+      <label>OVERLAY_UDP_LISTENER_ADDRESS_RANGE</label>
+      <abstract>OVERLAY_UDP_LISTENER_ADDRESS_RANGE</abstract>
+      <description>OVERLAY_UDP_LISTENER_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="OVERLAY_UDP_LISTENER_ADDRESS" visibility="public">
+      <label>OVERLAY_UDP_LISTENER_ADDRESS</label>
+      <abstract>OVERLAY_UDP_LISTENER_ADDRESS</abstract>
+      <description>OVERLAY_UDP_LISTENER_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="OVERLAY_UDP_LISTENER_ADDRESS_ID" visibility="public">
+      <label>OVERLAY_UDP_LISTENER_ADDRESS_ID</label>
+      <abstract>OVERLAY_UDP_LISTENER_ADDRESS_ID</abstract>
+      <description>OVERLAY_UDP_LISTENER_ADDRESS_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="DAEMON_PORT_RANGE" visibility="public">
+      <label>DAEMON_PORT_RANGE</label>
+      <abstract>DAEMON_PORT_RANGE</abstract>
+      <description>DAEMON_PORT_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="DAEMON_PORT" visibility="public">
+      <label>DAEMON_PORT</label>
+      <abstract>DAEMON_PORT</abstract>
+      <description>DAEMON_PORT</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="DAEMON_PORT_ID" visibility="public">
+      <label>DAEMON_PORT_ID</label>
+      <abstract>DAEMON_PORT_ID</abstract>
+      <description>DAEMON_PORT_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="DAEMON_SSL_PORT_RANGE" visibility="public">
+      <label>DAEMON_SSL_PORT_RANGE</label>
+      <abstract>DAEMON_SSL_PORT_RANGE</abstract>
+      <description>DAEMON_SSL_PORT_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="DAEMON_SSL_PORT" visibility="public">
+      <label>DAEMON_SSL_PORT</label>
+      <abstract>DAEMON_SSL_PORT</abstract>
+      <description>DAEMON_SSL_PORT</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="DAEMON_SSL_PORT_ID" visibility="public">
+      <label>DAEMON_SSL_PORT_ID</label>
+      <abstract>DAEMON_SSL_PORT_ID</abstract>
+      <description>DAEMON_SSL_PORT_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="DCS_UNICAST_ADDRESS_RANGE" visibility="public">
+      <label>DCS_UNICAST_ADDRESS_RANGE</label>
+      <abstract>DCS_UNICAST_ADDRESS_RANGE</abstract>
+      <description>DCS_UNICAST_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="DCS_UNICAST_ADDRESS" visibility="public">
+      <label>DCS_UNICAST_ADDRESS</label>
+      <abstract>DCS_UNICAST_ADDRESS</abstract>
+      <description>DCS_UNICAST_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="DCS_UNICAST_ADDRESS_ID" visibility="public">
+      <label>DCS_UNICAST_ADDRESS_ID</label>
+      <abstract>DCS_UNICAST_ADDRESS_ID</abstract>
+      <description>DCS_UNICAST_ADDRESS_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="WC_defaulthost_RANGE" visibility="public">
+      <label>WC_defaulthost_RANGE</label>
+      <abstract>WC_defaulthost_RANGE</abstract>
+      <description>WC_defaulthost_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="WC_defaulthost" visibility="public">
+      <label>WC_defaulthost</label>
+      <abstract>WC_defaulthost</abstract>
+      <description>WC_defaulthost</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="WC_defaulthost_ID" visibility="public">
+      <label>WC_defaulthost_ID</label>
+      <abstract>WC_defaulthost_ID</abstract>
+      <description>WC_defaulthost_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="WC_defaulthost_secure_RANGE" visibility="public">
+      <label>WC_defaulthost_secure_RANGE</label>
+      <abstract>WC_defaulthost_secure_RANGE</abstract>
+      <description>WC_defaulthost_secure_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="WC_defaulthost_secure" visibility="public">
+      <label>WC_defaulthost_secure</label>
+      <abstract>WC_defaulthost_secure</abstract>
+      <description>WC_defaulthost_secure</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="WC_defaulthost_secure_ID" visibility="public">
+      <label>WC_defaulthost_secure_ID</label>
+      <abstract>WC_defaulthost_secure_ID</abstract>
+      <description>WC_defaulthost_secure_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="BOOTSTRAP_ADDRESS_RANGE" visibility="public">
+      <label>BOOTSTRAP_ADDRESS_RANGE</label>
+      <abstract>BOOTSTRAP_ADDRESS_RANGE</abstract>
+      <description>BOOTSTRAP_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="BOOTSTRAP_ADDRESS" visibility="public">
+      <label>BOOTSTRAP_ADDRESS</label>
+      <abstract>BOOTSTRAP_ADDRESS</abstract>
+      <description>BOOTSTRAP_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="BOOTSTRAP_ADDRESS_ID" visibility="public">
+      <label>BOOTSTRAP_ADDRESS_ID</label>
+      <abstract>BOOTSTRAP_ADDRESS_ID</abstract>
+      <description>BOOTSTRAP_ADDRESS_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="ORB_SSL_LISTENER_ADDRESS_RANGE" visibility="public">
+      <label>ORB_SSL_LISTENER_ADDRESS_RANGE</label>
+      <abstract>ORB_SSL_LISTENER_ADDRESS_RANGE</abstract>
+      <description>ORB_SSL_LISTENER_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="ORB_SSL_LISTENER_ADDRESS" visibility="public">
+      <label>ORB_SSL_LISTENER_ADDRESS</label>
+      <abstract>ORB_SSL_LISTENER_ADDRESS</abstract>
+      <description>ORB_SSL_LISTENER_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="ORB_SSL_LISTENER_ADDRESS_ID" visibility="public">
+      <label>ORB_SSL_LISTENER_ADDRESS_ID</label>
+      <abstract>ORB_SSL_LISTENER_ADDRESS_ID</abstract>
+      <description>ORB_SSL_LISTENER_ADDRESS_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIB_MQ_ENDPOINT_ADDRESS_RANGE" visibility="public">
+      <label>SIB_MQ_ENDPOINT_ADDRESS_RANGE</label>
+      <abstract>SIB_MQ_ENDPOINT_ADDRESS_RANGE</abstract>
+      <description>SIB_MQ_ENDPOINT_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SIB_MQ_ENDPOINT_ADDRESS" visibility="public">
+      <label>SIB_MQ_ENDPOINT_ADDRESS</label>
+      <abstract>SIB_MQ_ENDPOINT_ADDRESS</abstract>
+      <description>SIB_MQ_ENDPOINT_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIB_MQ_ENDPOINT_ADDRESS_ID" visibility="public">
+      <label>SIB_MQ_ENDPOINT_ADDRESS_ID</label>
+      <abstract>SIB_MQ_ENDPOINT_ADDRESS_ID</abstract>
+      <description>SIB_MQ_ENDPOINT_ADDRESS_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIB_ENDPOINT_ADDRESS_RANGE" visibility="public">
+      <label>SIB_ENDPOINT_ADDRESS_RANGE</label>
+      <abstract>SIB_ENDPOINT_ADDRESS_RANGE</abstract>
+      <description>SIB_ENDPOINT_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SIB_ENDPOINT_ADDRESS" visibility="public">
+      <label>SIB_ENDPOINT_ADDRESS</label>
+      <abstract>SIB_ENDPOINT_ADDRESS</abstract>
+      <description>SIB_ENDPOINT_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIB_ENDPOINT_ADDRESS_ID" visibility="public">
+      <label>SIB_ENDPOINT_ADDRESS_ID</label>
+      <abstract>SIB_ENDPOINT_ADDRESS_ID</abstract>
+      <description>SIB_ENDPOINT_ADDRESS_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE" visibility="public">
+      <label>SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE</label>
+      <abstract>SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE</abstract>
+      <description>SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SIB_MQ_ENDPOINT_SECURE_ADDRESS" visibility="public">
+      <label>SIB_MQ_ENDPOINT_SECURE_ADDRESS</label>
+      <abstract>SIB_MQ_ENDPOINT_SECURE_ADDRESS</abstract>
+      <description>SIB_MQ_ENDPOINT_SECURE_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID" visibility="public">
+      <label>SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID</label>
+      <abstract>SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID</abstract>
+      <description>SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIB_ENDPOINT_SECURE_ADDRESS_RANGE" visibility="public">
+      <label>SIB_ENDPOINT_SECURE_ADDRESS_RANGE</label>
+      <abstract>SIB_ENDPOINT_SECURE_ADDRESS_RANGE</abstract>
+      <description>SIB_ENDPOINT_SECURE_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SIB_ENDPOINT_SECURE_ADDRESS" visibility="public">
+      <label>SIB_ENDPOINT_SECURE_ADDRESS</label>
+      <abstract>SIB_ENDPOINT_SECURE_ADDRESS</abstract>
+      <description>SIB_ENDPOINT_SECURE_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIB_ENDPOINT_SECURE_ADDRESS_ID" visibility="public">
+      <label>SIB_ENDPOINT_SECURE_ADDRESS_ID</label>
+      <abstract>SIB_ENDPOINT_SECURE_ADDRESS_ID</abstract>
+      <description>SIB_ENDPOINT_SECURE_ADDRESS_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIP_DEFAULTHOST_RANGE" visibility="public">
+      <label>SIP_DEFAULTHOST_RANGE</label>
+      <abstract>SIP_DEFAULTHOST_RANGE</abstract>
+      <description>SIP_DEFAULTHOST_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SIP_DEFAULTHOST" visibility="public">
+      <label>SIP_DEFAULTHOST</label>
+      <abstract>SIP_DEFAULTHOST</abstract>
+      <description>SIP_DEFAULTHOST</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIP_DEFAULTHOST_ID" visibility="public">
+      <label>SIP_DEFAULTHOST_ID</label>
+      <abstract>SIP_DEFAULTHOST_ID</abstract>
+      <description>SIP_DEFAULTHOST_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIP_DEFAULTHOST_SECURE_RANGE" visibility="public">
+      <label>SIP_DEFAULTHOST_SECURE_RANGE</label>
+      <abstract>SIP_DEFAULTHOST_SECURE_RANGE</abstract>
+      <description>SIP_DEFAULTHOST_SECURE_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SIP_DEFAULTHOST_SECURE" visibility="public">
+      <label>SIP_DEFAULTHOST_SECURE</label>
+      <abstract>SIP_DEFAULTHOST_SECURE</abstract>
+      <description>SIP_DEFAULTHOST_SECURE</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SIP_DEFAULTHOST_SECURE_ID" visibility="public">
+      <label>SIP_DEFAULTHOST_SECURE_ID</label>
+      <abstract>SIP_DEFAULTHOST_SECURE_ID</abstract>
+      <description>SIP_DEFAULTHOST_SECURE_ID</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+  <variable name="SOAP_CONNECTOR_ADDRESS_RANGE" visibility="public">
+      <label>SOAP_CONNECTOR_ADDRESS_RANGE</label>
+      <abstract>SOAP_CONNECTOR_ADDRESS_RANGE</abstract>
+      <description>SOAP_CONNECTOR_ADDRESS_RANGE</description>
+    		<category>Specified in properties file</category>
+      <string/>
+  </variable>
+
+  <variable name="SOAP_CONNECTOR_ADDRESS" visibility="public">
+      <label>SOAP_CONNECTOR_ADDRESS</label>
+      <abstract>SOAP_CONNECTOR_ADDRESS</abstract>
+      <description>SOAP_CONNECTOR_ADDRESS</description>
+    		<category>Response from Config Assistant</category>
+      <integer/>
+  </variable>
+
+	<variable name="SOAP_CONNECTOR_ADDRESS_ID" visibility="public">
+		<label>SOAP_CONNECTOR_ADDRESS_ID</label>
+		<abstract>Soap port ID for the app server</abstract>
+        <description>The ID of the allocated Soap port to use during deprovisioning</description>
+		<category>Response from Config Assistant</category>
+		<string/>
+	</variable>	
+
+  <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+  <!--     SAF user variables in server_group_variables.properties  -->
+  <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <variable name="UID0_USER" visibility="public">
+      <label>UID0_USER</label>
+      <abstract>UID0_USER</abstract>
+      <description>UID0_USER - Specifies id to be associated with workflow steps that run zpmt.sh and the batch jobs it creates. </description>
+      <category>SAF User IDs</category>
+	  <string>
+      <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters. -->
+      <validationType>USERID</validationType>
+      </string>
+  </variable>
+
+    <variable name="CONSOLE_USER" visibility="public">
+      <label>CONSOLE_USER</label>
+      <abstract>CONSOLE_USER</abstract>
+      <description>CONSOLE_USER - Specifies user id to be associated with workflow steps that issue z/OS console commands.</description>
+    		<category>SAF User IDs</category>
+	  <string>
+      <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters. -->
+      <validationType>USERID</validationType>
+      </string>
+  </variable>
+
+  <variable name="PWRESET_USER" visibility="public">
+      <label>PWRESET_USER</label>
+      <abstract>PWRESET_USER</abstract>
+      <description>PWRESET_USER - Specifies user id to be associated with workflow step that resets the admin user id password.</description>
+    		<category>SAF User IDs</category>
+	  <string>
+      <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters. -->
+      <validationType>USERID</validationType>
+      </string>
+  </variable>
+
+  <!-- The ability to specify a user id for workflow steps making REST API calls is not yet available. -->
+  <variable name="IP_USER" visibility="public">
+      <label>IP_USER</label>
+      <abstract>IP_USER</abstract>
+      <description>IP_USER - Specifies user id to be associated with workflow steps that request IP address and ports from z/OSMF Configuration Assistant.</description>
+    		<category>SAF User IDs</category>
+	  <string>
+      <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters. -->
+      <validationType>USERID</validationType>
+      </string>
+  </variable>
+
+  <variable name="PROCLIB_USER" visibility="public">
+      <label>PROCLIB_USER</label>
+      <abstract>PROCLIB_USER</abstract>
+      <description>PROCLIB_USER - Specifies user id to be associated with workflow steps that update a dataset in the JES2 proclib concatenation.</description>
+    		<category>SAF User IDs</category>
+      <string/>
+  </variable>
+
+    <variable name="UID0_APPROVER" visibility="public">
+      <label>UID0_APPROVER</label>
+      <abstract>UID0_APPROVER</abstract>
+      <description>UID0_APPROVER - Specifies id to approve workflow steps that run zpmt.sh and the batch jobs it creates. </description>
+      <category>SAF User IDs</category>
+	  <string>
+      <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters. -->
+      <validationType>USERID</validationType>
+      </string>
+  </variable>
+
+    <variable name="CONSOLE_APPROVER" visibility="public">
+      <label>CONSOLE_APPROVER</label>
+      <abstract>CONSOLE_APPROVER</abstract>
+      <description>CONSOLE_APPROVER - Specifies user id to approve workflow steps that issue z/OS console commands.</description>
+    		<category>SAF User IDs</category>
+	  <string>
+      <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters. -->
+      <validationType>USERID</validationType>
+      </string>
+  </variable>
+
+  <variable name="PWRESET_APPROVER" visibility="public">
+      <label>PWRESET_APPROVER</label>
+      <abstract>PWRESET_APPROVER</abstract>
+      <description>PWRESET_APPROVER - Specifies user id to approve workflow step that resets the admin user id password.</description>
+    		<category>SAF User IDs</category>
+	  <string>
+      <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters. -->
+      <validationType>USERID</validationType>
+      </string>
+  </variable>
+
+  <!-- The ability to specify a user id to be used with runAsUser on REST API calls is not yet available. -->
+  <variable name="IP_APPROVER" visibility="public">
+      <label>IP_APPROVER</label>
+      <abstract>IP_APPROVER</abstract>
+      <description>IP_APPROVER - Specifies user id to approve workflow steps that request IP address and ports from z/OSMF Configuration Assistant.</description>
+    		<category>SAF User IDs</category>
+	  <string>
+      <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only) characters, including special characters. -->
+      <validationType>USERID</validationType>
+      </string>
+  </variable>
+
+  <variable name="PROCLIB_APPROVER" visibility="public">
+      <label>PROCLIB_APPROVER</label>
+      <abstract>PROCLIB_APPROVER</abstract>
+      <description>PROCLIB_APPROVER - Specifies user id to approve workflow steps that update a dataset in the JES2 proclib concatenation.</description>
+    		<category>SAF User IDs</category>
+      <string/>
+  </variable>
+
+  <!--++++++++++++++++++++++++++++++++++++++++++++-->
+  <!--     Derived Variables                      -->
+  <!--++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <variable name="ADMIN_UID" visibility="private">
+      <label>ADMIN_UID</label>
+      <abstract>UID of the WAS admin user</abstract>
+      <description>The value of this variable is calculated within the zpmt response file template based on the STARTING_UID and the SERVER_ID_NUM.</description>
+      <category>Calculated</category>
+      <integer/>
+  </variable>
+
+  <variable name="CONFIG_GID" visibility="private">
+      <label>CONFIG_GID</label>
+      <abstract>GID of the configuration group</abstract>
+      <description>The value of this variable is calculated within the zpmt response file template based on the STARTING_GID and the SERVER_ID_NUM.</description>
+      <category>Calculated</category>
+      <string/>
+  </variable>
+
+  <variable name="CONTROL_UID" visibility="private">
+      <label>CONTROL_UID</label>
+      <abstract>UID of the user id for the control region</abstract>
+      <description>The value of this variable is calculated within the zpmt response file template based on the STARTING_UID and the SERVER_ID_NUM.</description>
+      <category>Calculated</category>
+      <string/>
+  </variable>
+
+  <variable name="LOCAL_USER_GID" visibility="private">
+      <label>LOCAL_USER_GID</label>
+      <abstract>GID of the local user group</abstract>
+      <description>The value of this variable is calculated within the zpmt response file template based on the STARTING_GID and the SERVER_ID_NUM.</description>
+      <category>Calculated</category>
+      <string/>
+  </variable>
+
+  <variable name="SERVANT_GID" visibility="private">
+      <label>SERVANT_GID</label>
+      <abstract>GID of the servant user group</abstract>
+      <description>The value of this variable is calculated within the zpmt response file template based on the STARTING_GID and the SERVER_ID_NUM.</description>
+      <category>Calculated</category>
+      <string/>
+  </variable>
+
+  <variable name="SERVANT_UID" visibility="private">
+      <label>SERVANT_UID</label>
+      <abstract>UID of the user id for the servant region</abstract>
+      <description>The value of this variable is calculated within the zpmt response file template based on the STARTING_UID and the SERVER_ID_NUM.</description>
+      <category>Calculated</category>
+      <string/>
+  </variable>
+
+  <variable name="UNAUTH_UID" visibility="private">
+      <label>UNAUTH_UID</label>
+      <abstract>UID of the WAS unauthenticated user</abstract>
+      <description>The value of this variable is calculated within the zpmt response file template based on the STARTING_UID and the SERVER_ID_NUM.</description>
+      <category>Calculated</category>
+      <string/>
+  </variable>
+
+  <variable name="RUNJOBS_KEY" visibility="public">
+      <label>RUNJOBS_KEY</label>
+      <abstract>RUNJOBS_KEY</abstract>
+      <description>Reserved for future use</description>
+      <category>REST</category>
+      <string/>
+  </variable>
+
+	<variable name="IP_ADDRESS" visibility="public">
+		<label>IP_ADDRESS</label>
+		<abstract>IP Address for the app server</abstract>
+        <description>IP Address for the app server</description>
+		<category>Response from Config Assistant</category>
+		<string/>
+	</variable>
+	
+	<variable name="IP_ADDRESS_ID" visibility="private">
+		<label>IP_ADDRESS_ID</label>
+		<abstract>IP Address ID for the app server</abstract>
+        <description>The ID of the allocated IP address to use during deprovisioning</description>
+		<category>Response from Config Assistant</category>
+		<string/>
+	</variable>	
+
+    <!--++++++++++++++++++++++-->
+    <!--   Deprovision Steps  -->
+    <!--++++++++++++++++++++++-->
+
+<step name="promptForID">
+        <title>Provide Server ID Number</title>
+        <description>Provide Server ID Number </description>
+        <variableValue name="SERVER_ID_NUM" required="true"/>
+        <instructions substitution="false">
+        Click FINISH to perform this step and deprovision the specified
+		application server.
+        </instructions>
+        <weight>5</weight>
+        <autoEnable>true</autoEnable>
+</step>
+
+<step name="resetAdminPW">
+        <title>resetAdminPW</title>
+        <description>resetAdminPW</description>
+	    <runAsUser substitution="true">$!{instance-PWRESET_USER}</runAsUser> 
+	    <approver substitution="true">$!{instance-PWRESET_APPROVER}</approver> 
+        <instructions substitution="false">This step runs automatically to reset the password of the WAS admin user id.</instructions>
+        <weight>5</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+          <inlineTemplate substitution="true">/* Rexx */    
+trace commands
+address tso
+"alu ${instance-SERVER_GROUP_PREFIX}AD${instance-SERVER_ID_NUM} password(${instance-DEFAULT_ADMIN_PW})"
+exit
+          </inlineTemplate>
+          <submitAs>TSO-REXX-JCL</submitAs>
+        </template>
+</step>
+
+    <step name="stopAppServer">
+          <title>stopAppServer</title>
+          <description>stopAppServer</description>
+	      <runAsUser substitution="true">$!{instance-CONSOLE_USER}</runAsUser> 
+	      <approver substitution="true">$!{instance-CONSOLE_APPROVER}</approver> 
+          <instructions substitution="false">stopAppServer</instructions>
+          <weight>5</weight>
+          <autoEnable>true</autoEnable>
+          <template>
+              <inlineTemplate substitution="true">//STEP1       EXEC  PGM=IKJEFT1A,DYNAMNBR=20
+//SYSTSPRT    DD    SYSOUT=A
+//SYSTSIN     DD    *
+CONSOLE ACTIVATE
+CONSOLE SYSCMD(C ${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}DM)
+CONSOLE DEACTIVATE
+/*
+              </inlineTemplate>
+              <submitAs>JCL</submitAs>
+          </template>
+    </step>
+
+    <step name="getDeprovisionProperties">
+   		<title>Get properties for deprovisioning</title>
+       	<description>Get properties set during provisioning</description>
+	    <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser> 
+	    <approver substitution="true">$!{instance-UID0_APPROVER}</approver> 
+       	<instructions substitution="false">Read properties from file</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+       	<template>
+       	    <inlineTemplate substitution="true">
+            cat ${instance-CONFIG_ROOT}/${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}/${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}.deprovision
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+       		<output substitution="true" needResolveConflicts="false">${instance-CONFIG_ROOT}/${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}/${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}.deprovision</output>
+       	</template>
+    </step>
+
+    <step name="returnIPAddress">
+  	    <title>Return IP Address</title>
+        <description>Invoke RESTful API to return IP address back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the IP address back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+      <rest>
+      	<httpMethod>POST</httpMethod>
+        <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/ip/actions/release</uriPath>
+        <requestBody substitution="true">
+        	{
+        	  "template-uuid" : "${_workflow-templateID}",
+          	"template-name" : "${_workflow-templateName}",
+          	"tenant-id" : "${_workflow-tenantID}",
+        	  "network-parms" :
+        	  {       
+        	    "ip-id" : "${instance-IP_ADDRESS_ID}"
+            }
+          }    
+        </requestBody>
+        <expectedStatusCode>204</expectedStatusCode>
+      </rest>        	
+    </step>
+
+    <step name="returnSoapPort">
+  	    <title>Return Soap port</title>
+        <description>Invoke RESTful API to return Soap port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the Soap port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>    	
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-SOAP_CONNECTOR_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest> 
+    </step>
+
+    <step name="returnAdminLocalPort">
+  	    <title>Return Admin local port</title>
+        <description>Invoke RESTful API to return Admin local port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the Admin local port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-IPC_CONNECTOR_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest> 
+    </step>
+
+    <step name="returnAdminConsolePort">
+  	    <title>Return Admin Console port</title>
+        <description>Invoke RESTful API to return Admin Console port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the Admin Console port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-WC_adminhost_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest> 
+    </step>
+
+    <step name="returnAdminConsoleSecurePort">
+  	    <title>Return Admin Console secure port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-WC_adminhost_secure_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest> 
+    </step>
+
+    <step name="returnAdminOverlayTCPPort">
+  	    <title>Return Admin Overlay TCP port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-OVERLAY_TCP_LISTENER_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnAdminOverlayUDPPort">
+  	    <title>Return Admin Overlay UDP port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-OVERLAY_UDP_LISTENER_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnDaemonPort">
+  	    <title>Return Daemon port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-DAEMON_PORT_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnDaemonSSLPort">
+  	    <title>Return Daemon SSL port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-DAEMON_SSL_PORT_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnHighAvailManagerPort">
+  	    <title>Return High Avail Manager port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-DCS_UNICAST_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnHTTPTransportPort">
+  	    <title>Return HTTP Transport port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-WC_defaulthost_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnHTTPTransportSSLPort">
+  	    <title>Return HTTP Transport SSL port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-WC_defaulthost_secure_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnORBListenerPort">
+  	    <title>Return ORB Listener port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-BOOTSTRAP_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnORBListenerSSLPort">
+  	    <title>Return ORB Listener SSL port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-ORB_SSL_LISTENER_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnServiceIntegrationMQPort">
+  	    <title>Return Service Integration MQ port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-SIB_MQ_ENDPOINT_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnServiceIntegrationPort">
+  	    <title>Return Service Integration port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-SIB_ENDPOINT_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnServiceIntegrationSecureMQPort">
+  	    <title>Return Service Integration Secure MQ port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnServiceIntegrationSecurePort">
+  	    <title>Return Service Integration Secure port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-SIB_ENDPOINT_SECURE_ADDRESS_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnSessionInitiationPort">
+  	    <title>Return Session Initiation port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-SIP_DEFAULTHOST_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+    <step name="returnSessionInitiationSecurePort">
+  	    <title>Return Session Initiation Secure port</title>
+        <description>Invoke RESTful API to return port back to pool.</description>
+     	<instructions substitution="false">
+    	Execute step to return the port back to z/OS Communications Server.
+       	</instructions>
+       	<weight>10</weight>
+       	<skills>REST</skills>
+       	<autoEnable>true</autoEnable>
+     <rest>
+     	<httpMethod>POST</httpMethod>
+      <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+      <requestBody substitution="true">
+      	{
+      	  "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id" : "${_workflow-tenantID}",
+          "network-parms" :
+          {       
+            "port-id" : "${instance-SIP_DEFAULTHOST_SECURE_ID}"
+          }
+        }    
+      </requestBody>
+      <expectedStatusCode>204</expectedStatusCode>
+     </rest>
+    </step>
+
+  <step name="clearClassCache">
+      <title>Run clearClassCache to delete java shared class cache</title>
+      <description>Run clearClassCache to delete java shared class cache</description>
+	  <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser> 
+	  <approver substitution="true">$!{instance-UID0_APPROVER}</approver> 
+      <instructions substitution="false">This step runs automatically to clear the shared class cache</instructions>
+      <weight>1</weight>
+      <autoEnable>true</autoEnable>
+      <template>
+          <inlineTemplate substitution="true">
+		    echo ${instance-CONFIG_ROOT}/${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}/AppServer/profiles/default/bin/clearClassCache.sh
+		    ${instance-CONFIG_ROOT}/${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}/AppServer/profiles/default/bin/clearClassCache.sh
+			exit 0
+          </inlineTemplate>
+          <submitAs>shell-JCL</submitAs>
+      </template>
+  </step>
+	
+<step name="unmountFileSystem">
+        <title>unmountFileSystem</title>
+        <description>unmountFileSystem</description>
+	    <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser> 
+	    <approver substitution="true">$!{instance-UID0_APPROVER}</approver> 
+        <instructions substitution="false">unmountFileSystem</instructions>
+        <weight>5</weight>
+        <autoEnable>true</autoEnable>
+      <template>
+          <inlineTemplate substitution="true">//STEP1       EXEC  PGM=IKJEFT01,DYNAMNBR=20
+//SYSTSPRT    DD    SYSOUT=A
+//SYSTSIN     DD    *
+ unmount filesystem('${instance-USER_HLQ}.${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}.ZFS') imm
+ unmount filesystem('${instance-USER_HLQ}.${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}.ZFS') force
+/*
+          </inlineTemplate>
+          <submitAs maxRc="12">JCL</submitAs>
+      </template>
+</step>
+
+<step name="deleteFileSystem">
+        <title>deleteFileSystem</title>
+        <description>deleteFileSystem</description>
+	    <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser> 
+	    <approver substitution="true">$!{instance-UID0_APPROVER}</approver> 
+        <instructions substitution="false">deleteFileSystem</instructions>
+        <weight>5</weight>
+        <autoEnable>true</autoEnable>
+      <template>
+          <inlineTemplate substitution="true">//STEP1       EXEC  PGM=IKJEFT1A,DYNAMNBR=20
+//SYSTSPRT    DD    SYSOUT=A
+//SYSTSIN     DD    *
+ delete '${instance-USER_HLQ}.${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}.ZFS' cluster
+/*
+          </inlineTemplate>
+          <submitAs>JCL</submitAs>
+      </template>
+</step>
+
+<step name="deleteProcs">
+        <title>deleteProcs</title>
+        <description>deleteProcs</description>
+	    <runAsUser substitution="true">$!{instance-PROCLIB_USER}</runAsUser> 
+	    <approver substitution="true">$!{instance-PROCLIB_APPROVER}</approver> 
+        <instructions substitution="false">deleteProcs</instructions>
+        <weight>5</weight>
+        <autoEnable>true</autoEnable>
+      <template>
+          <inlineTemplate substitution="true">//STEP1       EXEC  PGM=IDCAMS
+//SYSPRINT    DD    SYSOUT=A
+//SYSIN       DD    *
+ DELETE '${instance-PROCLIB}(${instance-SERVER_GROUP_PREFIX}CA${instance-SERVER_ID_NUM})'
+ DELETE '${instance-PROCLIB}(${instance-SERVER_GROUP_PREFIX}CR${instance-SERVER_ID_NUM})'
+ DELETE '${instance-PROCLIB}(${instance-SERVER_GROUP_PREFIX}DM${instance-SERVER_ID_NUM})'
+ DELETE '${instance-PROCLIB}(${instance-SERVER_GROUP_PREFIX}SR${instance-SERVER_ID_NUM})'
+/*
+          </inlineTemplate>
+          <submitAs>JCL</submitAs>
+      </template>
+</step>
+
+</workflow>
