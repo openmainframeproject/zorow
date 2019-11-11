@@ -1,0 +1,4 @@
+workflow-definition-file:./provision.xml
+workflow-variable-input-file:../properties/workflow_variables.properties
+action-definition-file:./actions.xml
+admin-documentation-file:../Setup_and_Configuration.pdf

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY copyright "Copyright IBM Corp., 2015">
+                    <!ENTITY variables SYSTEM "variable_imports.xml">
+                    ]> 
+                    
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- zLiberty Provisioning : Provision a new user ID, group and server    -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>zLiberty_StopServer_p</workflowID>
+      <workflowDescription>Stop the provisioned Liberty server</workflowDescription>
+      <workflowVersion>1.0</workflowVersion>
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>zosLiberty</productID>
+          <productName>Liberty for z/OS</productName>
+          <productVersion>Version 9</productVersion>
+          <softwareType>WLP</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	
+	
+    <!--++++++++++++++++++++++-->
+    <!--   Stop the Server    -->
+    <!--++++++++++++++++++++++-->  
+    <step name="copyProvisioningScript">
+    <title>Copy Provisioning Script</title>
+	<description>Copy script to temp directory with unique name</description>
+	    
+	    <step name="copyScript">
+		    <title>Copy Script</title>
+	        <description>Copy the wlp-provisioning.sh script</description>
+	        <instructions substitution="false">Copy the wlp-provisioning.sh script to the tmp directory with a name unique to this workflow</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">templates/wlp-provisioning.sh</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh</saveAsUnixFile>
+	        </template>
+        </step>
+        <step name="setScriptPermissions">
+	        <title>Set Script Permissions</title>
+	        <description>Set the permissions of the newly copied script</description>
+	        <instructions substitution="false">Chmod 755 on the newly copied script</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+	           	chmod 755 ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	       	</template>
+	    </step>
+    
+    </step>
+	    
+    <step name="stopServer">
+        <title>Stop the Server</title>
+        <description>Stop any existing Liberty servers for this user</description>
+		
+		<step name="stopServer_USS">
+        	<title>Stop the Server from USS</title>
+        	<description>Submit script to stop any existing Liberty servers for this user</description>
+			<condition>
+         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+         		<description>Only perform check if previous step has completed</description>
+         		<targetStateSet>
+       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+       				<extendStateExpression>
+        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} == "TRUE"]]></expression>
+        				<targetState>Skipped</targetState>
+       				</extendStateExpression>
+      			</targetStateSet>
+     		</condition>
+     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+        	<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<template>
+            	<inlineTemplate substitution="true">
+            	if [ "${instance-WLP_USER}" = $(whoami) ]; then
+            	    ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --stop
+            	else
+            	    su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --stop"
+            	fi
+            	</inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+        	</template>
+    	</step>
+    	
+    	<step name="stopServer_console">
+        	<title>Stop the Server from Console</title>
+        	<description>Issue a stop command for the server. If the command fails, issue a cancel</description>
+	        	
+	        <step name="issue_stop">
+	        	<title>Issue stop command</title>
+	        	<description>Issue a stop command for the server.</description>
+	        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+		        <approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+				<condition>
+	         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+	         		<description>Only perform check if previous step has completed</description>
+	         		<targetStateSet>
+	       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	       				<extendStateExpression>
+	        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+	        				<targetState>Skipped</targetState>
+	       				</extendStateExpression>
+	      			</targetStateSet>
+	     		</condition>
+	     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+	        	<weight>1</weight>
+	        	<autoEnable>true</autoEnable>
+	        	<rest>
+					<httpMethod>PUT</httpMethod>
+					<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+					<requestBody substitution="true">
+	  {
+	    "cmd" : "STOP ${_workflow-softwareServiceInstanceName}",
+	    "unsol-key" : "DUMMY",
+        "unsol-detect-sync" : "Y",
+        "unsol-detect-timeout" : "10",
+        "system" : "${_workflow-systemName}"
+	  }	
+					</requestBody>
+					<expectedStatusCode>200</expectedStatusCode>
+				</rest>
+	    	</step>
+	    	
+	    	<step name="check_status">
+	        	<title>Check Server Status</title>
+	        	<description>Check to see if the server job is still running</description>
+	        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+		        <approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+				<condition>
+	         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+	         		<description>Only perform check if previous step has completed</description>
+	         		<targetStateSet>
+	       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	       				<extendStateExpression>
+	        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+	        				<targetState>Skipped</targetState>
+	       				</extendStateExpression>
+	      			</targetStateSet>
+	     		</condition>
+	     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+	        	<weight>1</weight>
+	        	<autoEnable>true</autoEnable>
+	        	<rest>
+					<httpMethod>PUT</httpMethod>
+					<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+					<requestBody substitution="true">
+	  {
+	    "cmd" : "d a,${_workflow-softwareServiceInstanceName}",
+		"sol-key" : "NOT FOUND",
+		"system" : "${_workflow-systemName}"
+	  }	
+					</requestBody>
+					<expectedStatusCode>200</expectedStatusCode>
+					<propertyMapping mapTo="SERVER_STOP_STATUS">["sol-key-detected"]</propertyMapping>
+				</rest>
+	    	</step>
+	    	
+	    	<step name="issue_cancel">
+	        	<title>Issue Cancel Command</title>
+	        	<description>Cancel the server if it is still running</description>
+	        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+		        <approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+				<condition>
+	         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+	         		<description>Only perform check if previous step has completed</description>
+	         		<targetStateSet>
+	       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	       				<extendStateExpression>
+	        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+	        				<targetState>Skipped</targetState>
+	       				</extendStateExpression>
+	       				<extendStateExpression>
+                            <description>Only execute it SERVER_STOP_STATUS is false</description>
+                            <expression><![CDATA[ ${instance-SERVER_STOP_STATUS} != "false"]]></expression>
+                            <targetState>Skipped</targetState>
+                        </extendStateExpression>
+	      			</targetStateSet>
+	     		</condition>
+	     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+	        	<weight>1</weight>
+	        	<autoEnable>true</autoEnable>
+	        	<rest>
+					<httpMethod>PUT</httpMethod>
+					<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+					<requestBody substitution="true">
+	  {
+	    "cmd" : "C ${_workflow-softwareServiceInstanceName}",
+	    "system" : "${_workflow-systemName}"
+	  }	
+					</requestBody>
+					<expectedStatusCode>200</expectedStatusCode>
+				</rest>
+	    	</step>
+    	</step>
+    </step>
+    
+    <step name="removeTempFiles">
+        <title>Remove Temp Files</title>
+        <description>Remove the temp files created by this workflow</description>
+        <instructions substitution="true">Remove the files copied to ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-*</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+		<template>
+	    	<inlineTemplate substitution="true">
+           	rm ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-*
+           	</inlineTemplate>
+           	<submitAs>shell-JCL</submitAs>
+       	</template>
+    </step>
+</workflow>

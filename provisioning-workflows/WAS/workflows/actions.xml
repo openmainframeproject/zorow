@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<actionList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:noNamespaceSchemaLocation="./actions_v1.xsd">
+  <action name="deprovision">
+		<workflow>
+			<wfDefFile>./deprovision.xml</wfDefFile>
+			<wfVarInFile>../properties/server_group_variables.properties</wfVarInFile>
+			<wfVar name="SERVER_ID_NUM">${SERVER_ID_NUM}</wfVar>
+		</workflow>
+  </action>
+  <action name="startServer">
+    <command>
+      <commandValue>START ${SERVER_GROUP_PREFIX}CR${SERVER_ID_NUM},JOBNAME=${SERVER_GROUP_PREFIX}${SERVER_ID_NUM}S1,ENV=${SERVER_GROUP_PREFIX}${SERVER_ID_NUM}.${SERVER_GROUP_PREFIX}${SERVER_ID_NUM}.${SERVER_GROUP_PREFIX}${SERVER_ID_NUM}S1,REUSASID=YES
+      </commandValue>
+      <runAsUser substitution="true">$!{CONSOLE_USER}</runAsUser>
+      <approver substitution="true">$!{CONSOLE_APPROVER}</approver>
+      <unsolKey>BBOO0247I</unsolKey>
+      <detectTime>120</detectTime>
+    </command>
+  </action>
+  <action name="stopServer">
+    <command>
+      <commandValue>P ${SERVER_GROUP_PREFIX}${SERVER_ID_NUM}DM
+      </commandValue>
+      <runAsUser substitution="true">$!{CONSOLE_USER}</runAsUser>
+      <approver substitution="true">$!{CONSOLE_APPROVER}</approver>
+      <unsolKey>BBOO0008I</unsolKey>
+      <detectTime>120</detectTime>
+    </command>
+  </action>
+  <action name="createType2JDBC">
+		<workflow>
+			<wfDefFile>./createDB2Type2.xml</wfDefFile>
+			<wfVarInFile>../properties/server_group_variables.properties</wfVarInFile>
+			<wfVar name="SERVER_ID_NUM">${SERVER_ID_NUM}</wfVar>
+		</workflow>
+  </action>
+  <action name="createType4JDBC">
+		<workflow>
+			<wfDefFile>./createDB2Type4.xml</wfDefFile>
+			<wfVarInFile>../properties/server_group_variables.properties</wfVarInFile>
+			<wfVar name="SERVER_ID_NUM">${SERVER_ID_NUM}</wfVar>
+		</workflow>
+  </action>
+</actionList>

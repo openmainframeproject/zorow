@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<actionList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:noNamespaceSchemaLocation="./actions_v1.xsd">
+	<action name="stop">
+		<workflow>
+			<wfDefFile>./stopServer.xml</wfDefFile>
+			<wfVarInFile>../properties/workflow_variables.properties</wfVarInFile>
+			<!-- Obtain values for the properties from
+			the registry entry associated with the provisioning
+			workflow. -->
+			<wfVar name="WLP_USER">${WLP_USER}</wfVar>
+			<wfVar name="WLP_USER_DIR">${WLP_USER_DIR}</wfVar>
+			<wfVar name="WLP_INSTALL_DIR">${WLP_INSTALL_DIR}</wfVar>
+			<wfVar name="JAVA_HOME">${JAVA_HOME}</wfVar>
+			<wfVar name="START_SERVER_AS_STARTED_TASK">${START_SERVER_AS_STARTED_TASK}</wfVar>
+			<wfVar name="PROCLIB">${PROCLIB}</wfVar>
+			<wfVar name="CONSOLE_NAME">${CONSOLE_NAME}</wfVar>
+		</workflow>
+	</action>
+	<action name="start">
+		<workflow>
+			<wfDefFile>./startServer.xml</wfDefFile>
+			<wfVarInFile>../properties/workflow_variables.properties</wfVarInFile>
+			<!-- Obtain values for the properties from
+			the registry entry associated with the provisioning
+			workflow. -->
+			<wfVar name="WLP_USER">${WLP_USER}</wfVar>
+			<wfVar name="WLP_USER_DIR">${WLP_USER_DIR}</wfVar>
+			<wfVar name="WLP_INSTALL_DIR">${WLP_INSTALL_DIR}</wfVar>
+			<wfVar name="JAVA_HOME">${JAVA_HOME}</wfVar>
+			<wfVar name="START_SERVER_AS_STARTED_TASK">${START_SERVER_AS_STARTED_TASK}</wfVar>
+			<wfVar name="PROCLIB">${PROCLIB}</wfVar>
+			<wfVar name="CONSOLE_NAME">${CONSOLE_NAME}</wfVar>
+		</workflow>
+	</action>
+	<action name="db2Bind">
+		<workflow>
+			<wfDefFile>./db2Bind.xml</wfDefFile>
+			<wfVarInFile>../properties/workflow_variables.properties</wfVarInFile>
+			<!-- Obtain values for the properties from
+			the registry entry associated with the provisioning
+			workflow. -->
+			<wfVar name="WLP_USER">${WLP_USER}</wfVar>
+			<wfVar name="WLP_USER_DIR">${WLP_USER_DIR}</wfVar>
+			<wfVar name="DB2_REGISTRY_NAME">${DB2_REGISTRY_NAME}</wfVar>
+			<wfVar name="WLP_INSTALL_DIR">${WLP_INSTALL_DIR}</wfVar>
+			<wfVar name="JAVA_HOME">${JAVA_HOME}</wfVar>
+			<wfVar name="PROCLIB">${PROCLIB}</wfVar>
+			<wfVar name="START_SERVER_AS_STARTED_TASK">${START_SERVER_AS_STARTED_TASK}</wfVar>
+		    <wfVar name="DB2_CONNECTION_TYPE">${DB2_CONNECTION_TYPE}</wfVar>
+		    <wfVar name="CONSOLE_NAME">${CONSOLE_NAME}</wfVar>
+		</workflow>
+	</action>
+	<action name="db2Unbind">
+		<workflow>
+			<wfDefFile>./db2Unbind.xml</wfDefFile>
+			<wfVarInFile>../properties/workflow_variables.properties</wfVarInFile>
+			<!-- Obtain values for the properties from
+			the registry entry associated with the provisioning
+			workflow. -->
+			<wfVar name="WLP_USER">${WLP_USER}</wfVar>
+			<wfVar name="WLP_USER_DIR">${WLP_USER_DIR}</wfVar>
+			<wfVar name="DB2_REGISTRY_NAME">${DB2_REGISTRY_NAME}</wfVar>
+			<wfVar name="WLP_INSTALL_DIR">${WLP_INSTALL_DIR}</wfVar>
+			<wfVar name="JAVA_HOME">${JAVA_HOME}</wfVar>
+			<wfVar name="PROCLIB">${PROCLIB}</wfVar>
+			<wfVar name="START_SERVER_AS_STARTED_TASK">${START_SERVER_AS_STARTED_TASK}</wfVar>
+		    <wfVar name="CONSOLE_NAME">${CONSOLE_NAME}</wfVar>
+		</workflow>
+	</action>
+	<action name="checkStatus">
+		<workflow>
+			<wfDefFile>./checkStatus.xml</wfDefFile>
+			<wfVarInFile>../properties/workflow_variables.properties</wfVarInFile>
+			<!-- Obtain values for the properties from
+			the registry entry associated with the provisioning
+			workflow. -->
+			<wfVar name="WLP_INSTALL_DIR">${WLP_INSTALL_DIR}</wfVar>
+			<wfVar name="WLP_USER_DIR">${WLP_USER_DIR}</wfVar>
+			<wfVar name="JAVA_HOME">${JAVA_HOME}</wfVar>
+			<wfVar name="START_SERVER_AS_STARTED_TASK">${START_SERVER_AS_STARTED_TASK}</wfVar>
+			<wfVar name="CONSOLE_NAME">${CONSOLE_NAME}</wfVar>
+			<wfVar name="SERVER_STOPPED">${SERVER_STOPPED}</wfVar>
+		</workflow>
+	</action>
+	<action name="deprovision">
+		<workflow>
+			<wfDefFile>./deprovision.xml</wfDefFile>
+			<wfVarInFile>../properties/workflow_variables.properties</wfVarInFile>
+			<!-- Obtain values for the properties from
+			the registry entry associated with the provisioning
+			workflow. -->
+			<wfVar name="WLP_USER">${WLP_USER}</wfVar>
+			<wfVar name="WLP_USER_DIR">${WLP_USER_DIR}</wfVar>
+			<wfVar name="DB2_REGISTRY_NAME">${DB2_REGISTRY_NAME}</wfVar>
+			<wfVar name="WLP_INSTALL_DIR">${WLP_INSTALL_DIR}</wfVar>
+			<wfVar name="JAVA_HOME">${JAVA_HOME}</wfVar>
+			<wfVar name="WLP_ENABLE_SSL_SAF_CERTIFICATES">${WLP_ENABLE_SSL_SAF_CERTIFICATES}</wfVar>
+			<wfVar name="START_SERVER_AS_STARTED_TASK">${START_SERVER_AS_STARTED_TASK}</wfVar>
+			<wfVar name="PROCLIB">${PROCLIB}</wfVar>
+			<wfVar name="HTTP_PORT_ID">${HTTP_PORT_ID}</wfVar>
+			<wfVar name="HTTPS_PORT_ID">${HTTPS_PORT_ID}</wfVar>
+			<wfVar name="CLASSIFICATION_RULE_ID">${CLASSIFICATION_RULE_ID}</wfVar>
+			<wfVar name="IP_ADDRESS_ID">${IP_ADDRESS_ID}</wfVar>
+			<wfVar name="WLP_CREATE_ZFS">${WLP_CREATE_ZFS}</wfVar>
+			<wfVar name="VOLUME">${VOLUME}</wfVar>
+			<wfVar name="CONSOLE_NAME">${CONSOLE_NAME}</wfVar>
+		</workflow>
+	</action>
+</actionList>

@@ -1,0 +1,1176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY copyright "Copyright IBM Corp., 2015">
+                    <!ENTITY variables SYSTEM "variable_imports.xml">
+                    ]> 
+                    
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- zLiberty Provisioning : Provision a new user ID, group and server    -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>zLiberty_Provision_p</workflowID>
+      <workflowDescription>Provision a Liberty server.</workflowDescription>
+      <workflowVersion>1.0</workflowVersion>
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>zosLiberty</productID>
+          <productName>Liberty for z/OS</productName>
+          <productVersion>Version 9</productVersion>
+          <softwareType>WLP</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	<atCreate name="DB2_REGISTRY_NAME" required="false" prompt="true"/>
+	<atCreate name="DB2_JNDI_NAME" required="false" prompt="true"/>
+	
+	<atCreate name="GROUP_NAME" required="false" prompt="true"/>
+	
+	<atCreate name="START_INSTANCE" required="false"/>
+	<atCreate name="ZOSPT_IMAGE_LOCATION" required="false"/>
+	
+    <!--++++++++++++++++++++++-->
+    <!--   Provision Steps    -->
+    <!--++++++++++++++++++++++-->  
+    <step name="resolveUser">
+    <title>Resolve User</title>
+	<description>Assign WLP_USER to current user if not specified</description>
+	    <step name="getUser">
+	        <title>Get User</title>
+	        <description>Get the current user if WLP_USER is not set</description>
+	        <condition>
+	            <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform if WLP_USER has not been set yet</description>
+                <targetStateSet>
+					<description>Set state to Ready if WLP_USER is not set, otherwise, skip.</description>
+					<extendStateExpression>
+						<description>Ready if WLP_USER is null</description>
+						<expression><![CDATA[ ${instance_WLP_USER} == null]]></expression>
+						<targetState>Ready</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Ready if WLP_USER is null string</description>
+						<expression><![CDATA[ ${instance_WLP_USER} == ""]]></expression>
+						<targetState>Ready</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skipped (all other times)</description>
+						<expression><![CDATA[ ${instance_WLP_USER} != null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+	        <instructions substitution="false">Execute step to write WLP_USER to output file</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+                    echo WLP_USER $(whoami) > "${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-user"
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	        </template>
+	    </step>
+	    <step name="setUser">
+	        <title>Set User</title>
+	        <description>Set WLP_USER to current user if not already set</description>
+	        <condition>
+	            <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform if WLP_USER is not set</description>
+                <targetStateSet>
+					<description>Set state to Ready if WLP_USER is not set, otherwise, skip</description>
+					<extendStateExpression>
+						<description>Ready if WLP_USER is null</description>
+						<expression><![CDATA[ ${instance_WLP_USER} == null]]></expression>
+						<targetState>Ready</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Ready if WLP_USER is null string</description>
+						<expression><![CDATA[ ${instance_WLP_USER} == ""]]></expression>
+						<targetState>Ready</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skipped (all other times)</description>
+						<expression><![CDATA[ ${instance_WLP_USER} != null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+	        <instructions substitution="false">Execute step to read output file from previous step</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+	           	cat "${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-user"
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	           	<output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-user</output>
+	       	</template>
+	    </step>
+	    <step name="removeUserOutputFile">
+	        <title>Remove User Output File</title>
+	        <description>Remove the temp file created</description>
+			<condition>
+	            <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform if WLP_USER is not set</description>
+                <targetStateSet>
+					<description>Set state to Ready if previous steps completed</description>
+					<extendStateExpression>
+						<description>Skip if previous step was skipped</description>
+						<expression><![CDATA[ ${setUser.stepState} == "Skipped" ]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Ready if previous step was completed</description>
+						<expression><![CDATA[ ${setUser.stepState} == "Complete" ||  ${setUser.stepState} == "Ready"]]></expression>
+						<targetState>Ready</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+	        <instructions substitution="true">Execute step to remove the output file created</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+		    	if [ -f ${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-user ]; then
+	           	    rm ${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-user
+	           	fi
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	       	</template>
+	    </step>
+	</step>
+	
+	<step name="resolveInstanceDir">
+        <title>Resolve Instance Dir</title>
+	    <description>Resolve the WLP_USER_DIR variable.</description>
+	    
+	    <step name="getInstanceDir">
+	        <title>Get Instance Dir</title>
+	        <description>Get the provision directory to be used for WLP_USER_DIR</description>
+	        <instructions substitution="false">Execute step to get the provision directory to be used for WLP_USER_DIR</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+		    	   if [ ${instance-MOUNT_POINT} != "" ]; then
+		    	        path=$(echo ${instance-MOUNT_POINT} | sed 's@/$@@')
+		    	        echo WLP_USER_DIR $path/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName} > "${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER}"
+		    	   else
+	           	        path=$(echo ~${instance-WLP_USER} | sed 's@/$@@')
+                        echo WLP_USER_DIR $path/wlp-${_workflow-softwareServiceInstanceName} > "${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER}"
+	           	   fi
+		    	    
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	        </template>
+	    </step>
+	    <step name="setInstanceDir">
+	        <title>Set Instance Dir</title>
+	        <description>Set WLP_USER_DIR by reading output file</description>
+	        <instructions substitution="false">Execute step to read output file from previous step</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+	           	cat "${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER}"
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	           	<output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER}</output>
+	       	</template>
+	    </step>
+	    <step name="removeInstanceDirOutputFile">
+	        <title>Remove Instance Dir Output File</title>
+	        <description>Remove the temp output file created</description>
+	        <instructions substitution="true">Execute step to remove the output file created</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+		    	rm ${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER}
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	       	</template>
+	    </step>
+	</step>
+	
+	<step name="resolveJobname">
+    <title>Resolve Jobname</title>
+	<description>Assign JOB_NAME to the unique z/OSMF provided instance name</description>
+	    
+	    <step name="getJobname">
+	        <title>Get Jobname</title>
+	        <description>Write the unique instance name to an output file</description>
+	        <instructions substitution="false">Execute step to write JOB_NAME to output file</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+                    echo JOB_NAME ${_workflow-softwareServiceInstanceName} > "${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER}"
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	        </template>
+	    </step>
+	    <step name="setJobname">
+	        <title>Set Jobname</title>
+	        <description>Set JOB_NAME to z/OSMF provided instance name</description>
+	        <instructions substitution="false">Execute step to read output file from previous step</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+	           	cat "${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER}"
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	           	<output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER}</output>
+	       	</template>
+	    </step>
+	    <step name="removeJobnameOutputFile">
+	        <title>Remove User Output File</title>
+	        <description>Remove the temp file created</description>
+	        <instructions substitution="true">Execute step to remove the output file created</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+		    	if [ -f ${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER} ]; then
+	           	    rm ${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER}
+	           	fi
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	       	</template>
+	    </step>
+	</step>
+    
+    <step name="allocateNetworkResources">
+    <title>Allocate Network Resources</title>
+    <description>Allocate ports for the new server using REST calls to the CA. 
+    			 If DVIPAs are enabled, Liberty default ports 9080 and 9443 will be allocated as shared ports.
+    			 If DVIPAs are not enabled, unique ports will be exclusively allocated.
+                 </description>
+		
+		<step name="allocateHTTPPort">
+	        <title>Allocate HTTP Port</title>
+	        <description>Make a REST call to allocate HTTP port</description>
+			<instructions substitution="false">
+	        Execute step to allocate HTTP port from z/OS Communications Server.
+	        </instructions>
+	        <weight>10</weight>
+	        <skills>REST</skills>
+	        <autoEnable>true</autoEnable>
+			<rest>
+				<httpMethod>POST</httpMethod>
+				<uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/obtain</uriPath>
+				<requestBody substitution="true">
+								 {
+
+  "template-uuid" : "${_workflow-templateID}",
+  "template-name" : "${_workflow-templateName}",
+  "tenant-id" : "${_workflow-tenantID}",
+  "network-parms" :
+        {   
+
+           "name" : "${_workflow-softwareServiceInstanceName}",
+           #if(${instance-WLP_ENABLE_DVIPA} == "TRUE")
+		       "intent":"shared",
+               "port":"9080",
+           #else
+               "intent":"exclusive",
+           #end
+
+           "job-name" : "${_workflow-softwareServiceInstanceName}",        
+           "system-name" : "${_workflow-systemName}"
+        }
+  }	
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="HTTP_PORT">["port"]</propertyMapping>
+				<propertyMapping mapTo="HTTP_PORT_ID">["id"]</propertyMapping>
+			</rest>
+		</step>
+		
+		<step name="allocateHTTPSPort">
+	        <title>Allocate HTTPS Port</title>
+	        <description>Make a REST call to allocate HTTPS port</description>
+			<instructions substitution="false">
+	        Execute step to allocate HTTPS port from z/OS Communications Server.
+	        </instructions>
+	        <weight>10</weight>
+	        <skills>REST</skills>
+	        <autoEnable>true</autoEnable>
+			<rest>
+				<httpMethod>POST</httpMethod>
+				<uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/obtain</uriPath>
+				<requestBody substitution="true">
+				 {
+
+  "template-uuid" : "${_workflow-templateID}",
+  "template-name" : "${_workflow-templateName}",
+  "tenant-id" : "${_workflow-tenantID}",
+  "network-parms" :
+        {   
+
+           "name" : "${_workflow-softwareServiceInstanceName}",
+           #if(${instance-WLP_ENABLE_DVIPA} == "TRUE")
+		       "intent":"shared",
+               "port":"9443",
+           #else
+               "intent":"exclusive",
+           #end
+
+           "job-name" : "${_workflow-softwareServiceInstanceName}",        
+           "system-name" : "${_workflow-systemName}"
+        }
+  } 
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="HTTPS_PORT">["port"]</propertyMapping>
+				<propertyMapping mapTo="HTTPS_PORT_ID">["id"]</propertyMapping>
+			</rest>
+		</step>
+    
+	    <step name="allocateDVIPA">
+	        <title>Allocate DVIPA</title>
+	        <description>Allocate a DVIPA for this server</description>
+	        <condition>
+	            <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Check that previous step has completed</description>
+                <targetStateSet>
+					<description>Set state to Skipped if WLP_ENABLE_DVIPA does not equal TRUE</description>
+					<extendStateExpression>
+						<description>Skip if WLP_ENABLE_DVIPA does not equal TRUE</description>
+						<expression><![CDATA[ ${instance_WLP_ENABLE_DVIPA} != "TRUE"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			<instructions substitution="false">
+	        Execute step to retrieve the IP address from z/OS Communications Server.
+	        </instructions>
+	        <weight>10</weight>
+	        <skills>REST</skills>
+	        <autoEnable>true</autoEnable>
+			<rest>
+				<httpMethod>POST</httpMethod>
+				<uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/ip/actions/obtain</uriPath>
+				<requestBody substitution="true">
+ {
+  "template-uuid":"${_workflow-templateID}",
+  "template-name":"${_workflow-templateName}", 
+  "tenant-id":"${_workflow-tenantID}",  
+  "network-parms" :
+        {
+           "ipaddr":"any4",
+           "system-name":"${_workflow-systemName}"
+        }
+} 	
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="IP_ADDRESS">["ipaddr"]</propertyMapping>
+				<propertyMapping mapTo="IP_ADDRESS_ID">["id"]</propertyMapping>
+			</rest>
+		</step>
+	</step>
+	
+	<step name="allocateWlmResources">
+	<title>Allocate Wlm Resources</title>
+	<description>Add a new wlm classification rule
+	</description>
+	
+		<step name="addWLMClassificationRule">
+		<title>Add WLM Classification Rule</title>
+		<description>Make a REST call to add Classification Rule in WLM Service Definition</description>
+		<condition>
+			<expression><![CDATA[${allocateNetworkResources.stepState}=="Complete"]]></expression>
+			<description>Check that previous step has completed</description>
+			<targetStateSet>
+				<description>Set state to Skipped if DEFINE_WLM_RULE does not equal TRUE</description>
+				<extendStateExpression>
+					<description>Skip if DEFINE_WLM_RULE does not equal TRUE</description>
+					<expression><![CDATA[ ${instance_DEFINE_WLM_RULE} != "TRUE"]]></expression>
+					<targetState>Skipped</targetState>
+				</extendStateExpression>
+			</targetStateSet>
+		</condition>
+		<instructions substitution="false">
+			Execute step to add Classification Rule in WLM service definition.
+		</instructions>
+		<weight>10</weight>
+		<skills>REST</skills>
+		<autoEnable>true</autoEnable>
+		<rest>
+			<httpMethod>POST</httpMethod>
+			<uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/wlm/clrule/actions/add</uriPath>
+			<requestBody substitution="true">
+      {
+        "template-uuid" : "${_workflow-templateID}",
+        "template-name" : "${_workflow-templateName}",
+        "tenant-id" : "${_workflow-tenantID}",
+        "registry-id" : "${_workflow-registryID}",
+        "wlm-parms" :
+        {
+         "qualifier" : "${_workflow-softwareServiceInstanceName}"
+        }
+      }
+			</requestBody>
+			<expectedStatusCode>200</expectedStatusCode>
+			<propertyMapping mapTo="CLASSIFICATION_RULE_ID">["cl-rule-id"]</propertyMapping>
+			<propertyMapping mapTo="REPORT_CLASS_NAME">["report-class-name"]</propertyMapping>
+			<propertyMapping mapTo="SERVICE_CLASS_NAME">["service-class-name"]</propertyMapping>
+		</rest>
+		</step>
+	</step>
+	
+	<step name="allocateDB2Resources">
+	<title>Allocate DB2 Resources</title>
+	<description>Allocate resources from a preset registry for the specified DB2 subsystem</description>
+	
+		<step name="getDB2Registry">
+			<title>Get DB2 Registry</title>
+			<description>
+				Invoke RESTful API to determine the object id of the registry entry.
+			</description>
+
+			<condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the Liberty server is created</description>
+                <targetStateSet>
+					<description>Only bind to DB2 if requested</description>
+					<extendStateExpression>
+						<description>Skip this step if registry name is null</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skip this step if registry name is null string</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			
+			<instructions substitution="true">Submit REST call to execute step</instructions>
+			<weight>10</weight>
+			<skills>SCR</skills>
+			<autoEnable>true</autoEnable>
+			<rest>
+				<httpMethod>GET</httpMethod>
+				<uriPath>/zosmf/provisioning/rest/1.0/scr/</uriPath>
+				<queryParameters substitution="true">external-name=${instance-DB2_REGISTRY_NAME}</queryParameters>
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="DB2_REGISTRY_ID">["scr-list"][0]["object-id"]</propertyMapping> 
+			</rest>
+		</step>
+		
+		<step name="getDB2Info">
+			<title>Get DB2 Info</title>
+			<description>
+				Invoke RESTful API to fetch the variables in the registry entry.
+			</description>
+			
+			<condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the Liberty server is created</description>
+                <targetStateSet>
+					<description>Only bind to DB2 if requested</description>
+					<extendStateExpression>
+						<description>Skip this step if registry name is null</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skip this step if registry name is null string</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			
+			<instructions substitution="true">Submit REST call to execute step</instructions>
+			<weight>10</weight>
+			<skills>SCR</skills>
+			<autoEnable>true</autoEnable>
+			<rest>
+				<httpMethod>GET</httpMethod>
+				<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${instance-DB2_REGISTRY_ID}/key-value-variables/</uriPath>			
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="DB2_LOCATION">["variables"]["location"]</propertyMapping>	
+	            <propertyMapping mapTo="DB2_JDBC_DRIVER">["variables"]["jdbcDriverPath"]</propertyMapping>
+	            <propertyMapping mapTo="DB2_HLQ">["variables"]["HLQ"]</propertyMapping>	
+	            <propertyMapping mapTo="DB2_USERID">["variables"]["userName"]</propertyMapping>	
+	            <propertyMapping mapTo="DB2_PASSWORD">["variables"]["password"]</propertyMapping>
+	            <propertyMapping mapTo="DB2_HOSTNAME">["variables"]["hostName"]</propertyMapping>	
+	            <propertyMapping mapTo="DB2_PORT">["variables"]["portNumber"]</propertyMapping>	
+			</rest>
+		</step>	
+	</step>
+	
+	<step name="copyProvisioningScript">
+    <title>Copy Provisioning Script</title>
+	<description>Copy provisioning script to temp directory with a unique name. This will be called from subsequent steps to perform
+				 various operations to setup the Liberty server. This step is intentionally performed after the steps above so that 
+				 most runtime variables would be set and could be auto-resolved in the script. </description>
+	    
+	    <step name="copyScript">
+		    <title>Copy Script</title>
+	        <description>Copy the wlp-provisioning.sh script</description>
+	        <instructions substitution="true">Click Finish to have the shell script copied</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">templates/wlp-provisioning.sh</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh</saveAsUnixFile>
+	        </template>
+        </step>
+        <step name="setScriptPermissions">
+	        <title>Set Script Permissions</title>
+	        <description>Set the permissions of the newly copied script</description>
+	        <instructions substitution="true">Submit shell script to execute step</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+	           	chmod 755 ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	       	</template>
+	    </step>
+    
+    </step>
+	
+	<step name="createInstanceDirectory">
+	    <title>Create instance directory</title>
+	    <description>Create the directory and file system (if requested) for the server instance</description>
+		
+		<step name="createDir">
+	        <title>Create Directory</title>
+	        <description>Create a new directory for this server instance</description>
+			<instructions substitution="true">Submit shell script to execute step</instructions>
+			<weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+			    mkdir ${instance-WLP_USER_DIR}
+                chmod 700 ${instance-WLP_USER_DIR}
+                if [ "${instance-WLP_USER}" != $(whoami) ]; then
+    				chown ${instance-WLP_USER} ${instance-WLP_USER_DIR}
+				fi
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	        </template>
+	    </step>
+	    
+	    <step name="setGroupPermissions">
+	        <title>Set Group Permissions</title>
+	        <description>Set group permissions on the new directory for this server instance</description>
+	        <condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the directory name is resolved</description>
+                <targetStateSet>
+					<description>Only provide group access if requested</description>
+					<extendStateExpression>
+						<description>Skip this step if group name is null</description>
+						<expression><![CDATA[ ${instance_GROUP_NAME} == null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skip this step if group name is null string</description>
+						<expression><![CDATA[ ${instance_GROUP_NAME} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			<instructions substitution="true">Submit shell script to execute step</instructions>
+			<weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+ 			    chmod 770 ${instance-WLP_USER_DIR}  
+                chown ${instance-WLP_USER}:${instance-GROUP_NAME} ${instance-WLP_USER_DIR} 
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	        </template>
+	    </step>
+	    
+		<step name="createZFS">
+	        <title>Create and Mount ZFS</title>
+	        <description>If requested, create and mount a new ZFS</description>
+	        <runAsUser substitution="true">$!{instance-MOUNT_RUN_AS_ID}</runAsUser>
+	        <approver substitution="true">$!{instance-MOUNT_APPROVAL_ID}</approver>
+			<condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Check if a new ZFS needs to be created</description>
+                <targetStateSet>
+					<description>Check if a new ZFS needs to be created</description>
+					<extendStateExpression>
+						<description>Skip if WLP_CREATE_ZFS does not equal TRUE</description>
+						<expression><![CDATA[ ${instance_WLP_CREATE_ZFS} != "TRUE"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			
+	        <instructions substitution="true">Submit JCL to execute step</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	          <fileTemplate substitution="true">templates/wlp-create-zfs.jcl</fileTemplate>
+	          <submitAs>JCL</submitAs>
+	      	</template>
+	    </step>
+	    
+	    
+	</step>
+	
+    <step name="createLibertyServer">
+        <title>Create a New Liberty Server</title>
+        <description>Submit script to provision a new Liberty server.</description>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+            #Check if we need to su to the user.
+            if [ "${instance-WLP_USER}" = $(whoami) ]; then
+                ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --create
+            else
+                su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --create"
+            fi
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+        </template>
+    </step>
+	
+    <step name="configureLibertyServer">
+        <title>Configure the Liberty Server</title>
+        <description>Configure the new Liberty server.</description>
+        
+        <step name="copyServerConfig">
+		    <title>Copy Server Config</title>
+	        <description>Copy the server.xml file</description>
+	        <instructions substitution="true">Click Finish to copy the config</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">config/server.xml</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/server.xml</saveAsUnixFile>
+	        </template>
+        </step>
+        
+        <step name="copyBootstrapProperties">
+		    <title>Copy Bootstrap Properties</title>
+	        <description>Copy the bootstrap.properties file and auto resolve the variable names</description>
+	        <instructions substitution="true">Click Finish to copy the file</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">config/bootstrap.properties</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/bootstrap.properties</saveAsUnixFile>
+	        </template>
+        </step>
+        
+        <step name="processConfig">
+            <title>Process Config</title>
+            <description>Convert XML and create additional configuration files for the new server</description>
+        	<instructions substitution="true">Submit shell script to execute step</instructions>
+        	<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<template>
+           		<inlineTemplate substitution="true">
+            	if [ "${instance-WLP_USER}" = $(whoami) ]; then
+            	    ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configure 
+            	else
+            	    su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configure"
+            	fi
+            	</inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+        	</template>
+    	</step>
+    </step>
+    
+    <step name="configureSSL">
+		<title>Configure SSL</title>
+		<description>Configure keystore for ssl</description>
+		
+		<step name="createSAFKeyring">
+	        <title>Create SAF Certificate and Keyring</title>
+	        <description>If requested, create a unique SAF certificate and keyring</description>
+	        <runAsUser substitution="true">$!{instance-SECURITY_RUN_AS_ID}</runAsUser>
+	        <approver substitution="true">$!{instance-SECURITY_APPROVAL_ID}</approver>
+			<condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the Liberty server is created</description>
+                <targetStateSet>
+					<description>Only create certificate and keyring if requested</description>
+					<extendStateExpression>
+						<description>Only create certificate and keyring if requested</description>
+						<expression><![CDATA[ ${instance_WLP_ENABLE_SSL_SAF_CERTIFICATES} != "TRUE"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			
+	        <instructions substitution="true">Submit REXX to execute step</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	          <fileTemplate substitution="true">templates/wlp-create-ssl-keyring.rexx</fileTemplate>
+	          <submitAs>TSO-REXX-JCL</submitAs>
+	      	</template>
+		</step>
+		
+		<step name="copySAFKeystoreConfig">
+		    <title>Copy SAF Keystore Config</title>
+	        <description>Copy the keystore_saf.xml template</description>
+	        <condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the Liberty server is created</description>
+                <targetStateSet>
+					<description>Only create certificate and keyring if requested</description>
+					<extendStateExpression>
+						<description>Only create certificate and keyring if requested</description>
+						<expression><![CDATA[ ${instance_WLP_ENABLE_SSL_SAF_CERTIFICATES} != "TRUE"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			<instructions substitution="true">Click Finish to copy the config</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">config/keystore_saf.xml</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/keystore.xml</saveAsUnixFile>
+	        </template>
+        </step>
+		
+	    <step name="copyDefaultKeystoreConfig">
+		    <title>Copy Default Keystore Config</title>
+	        <description>Copy the keystore_default.xml template</description>
+	        <condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the Liberty server is created</description>
+				<targetStateSet>
+					<description>Copy default keystore if SAF option was not selected</description>
+					<extendStateExpression>
+						<description>Skip if previous step was performed</description>
+						<expression><![CDATA[ ${copySAFKeystoreConfig.stepState} == "Skipped" ]]></expression>
+						<targetState>Ready</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skip if previous step was performed</description>
+						<expression><![CDATA[ ${copySAFKeystoreConfig.stepState} == "Complete" ||  ${copySAFKeystoreConfig.stepState} == "Ready"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			<instructions substitution="true">Click Finish to copy the config</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">config/keystore_default.xml</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/keystore.xml</saveAsUnixFile>
+	        </template>
+        </step>
+	        
+		<step name="processKeystoreConfig">
+	        <title>Process Keystore Configuration</title>
+	        <description>Convert keystore configuration XML</description>
+	        <instructions substitution="true">Submit shell script to execute step</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <inlineTemplate substitution="true">
+	            if [ "${instance-WLP_USER}" = $(whoami) ]; then
+	                ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureKeystore
+	            else
+	                su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureKeystore"
+	            fi
+	            </inlineTemplate>
+	            <submitAs>shell-JCL</submitAs>
+	        </template>
+		</step>
+    </step>
+	
+	<step name="configureDB2Bind">
+		<title>Configure DB2 Bind</title>
+		<description>If requested, get DB2 registry data needed to bind to a DB2 data source</description>
+    
+    	<step name="copyDatasourceProperties">
+		    <title>Copy Datasource Properties</title>
+	        <description>Copy the datasource.properties file and auto resolve the variable names</description>
+	        <condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the Liberty server is created</description>
+                <targetStateSet>
+					<description>Only bind to DB2 if requested</description>
+					<extendStateExpression>
+						<description>Skip this step if registry name is null</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skip this step if registry name is null string</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			<instructions substitution="true">Click Finish to copy the file</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">config/datasource.properties</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.properties</saveAsUnixFile>
+	        </template>
+        </step>
+        
+        <step name="copyDB2Type4Config">
+		    <title>Copy DB2 Type 4 Config</title>
+	        <description>Copy the datasource_type4.xml template</description>
+	        <condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the Liberty server is created</description>
+                <targetStateSet>
+					<description>Only bind to DB2 if requested</description>
+					<extendStateExpression>
+						<description>Only bind to DB2 if requested</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == null || ${instance_DB2_CONNECTION_TYPE} != "4"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Only bind to DB2 if requested</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == "" || ${instance_DB2_CONNECTION_TYPE} != "4"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			<instructions substitution="true">Click Finish to copy the config</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">config/datasource_type4.xml</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.xml</saveAsUnixFile>
+	        </template>
+        </step>
+		
+	    <step name="copyDB2Type2Config">
+		    <title>Copy DB2 Type 2 Config</title>
+	        <description>Copy the datasource_type2.xml template</description>
+	        <condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the Liberty server is created</description>
+                <targetStateSet>
+					<description>Only bind to DB2 if requested</description>
+					<extendStateExpression>
+						<description>Skip if previous step was performed</description>
+						<expression><![CDATA[ ${copyDB2Type4Config.stepState} == "Complete" ||  ${copyDB2Type4Config.stepState} == "Ready"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skip this step if registry name is null</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == null ||  ${instance_DB2_REGISTRY_NAME} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			<instructions substitution="true">Click Finish to copy the config</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">config/datasource_type2.xml</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.xml</saveAsUnixFile>
+	        </template>
+        </step>
+        
+        <step name="processDatasourceConfiguration">
+	        <title>Process Datasource Configuration</title>
+	        <description>Convert XML and create additional config files </description>
+			<condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the Liberty server is created</description>
+                <targetStateSet>
+					<description>Only bind to DB2 if requested</description>
+					<extendStateExpression>
+						<description>Skip this step if registry name is null</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skip this step if registry name is null string</description>
+						<expression><![CDATA[ ${instance_DB2_REGISTRY_NAME} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+	        <instructions substitution="true">Submit shell script to execute step</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+            <inlineTemplate substitution="true">
+            if [ "${instance-WLP_USER}" = $(whoami) ]; then
+                ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureDatasource 
+            else
+                su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureDatasource"
+            fi
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+        </template>
+	    </step> 
+		
+    </step>
+ 
+    <step name="configureStartedTask">
+    	<title>Configure Started Task</title>
+    	<description>Configure the server to start as a started task</description>
+	
+	    <step name="configureServerProc">
+	        <title>Configure Server Proc</title>
+	        <description>Configure the proc used to start this server instance</description>
+			<condition>
+            	<expression><![CDATA["1" == "1"]]></expression>
+            	<description>Only perform check if server has been created</description>
+            	<targetStateSet>
+		        	<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+		        	<extendStateExpression>
+			        	<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+			        	<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE" ]]></expression>
+			        	<targetState>Skipped</targetState>
+		        	</extendStateExpression>
+	        	</targetStateSet>
+        	</condition>
+        	<instructions substitution="true">Submit shell script to execute step</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+            if [ "${instance-WLP_USER}" = $(whoami) ]; then
+                ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureServerProc
+            else
+                su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureServerProc"
+            fi
+            	</inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+	       	</template>
+	    </step>
+    	
+    	<step name="createServerProc">                                                                  
+            <title>Create Server Proc</title>                                                           
+            <description>Create the server proc</description>                                               
+       		<runAsUser substitution="true">$!{instance-PROCLIB_RUN_AS_ID}</runAsUser>    
+       		<approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>                    
+            <condition>
+            	<expression><![CDATA["1" == "1"]]></expression>
+            	<description>Only perform check if server has been created</description>
+            	<targetStateSet>
+		        	<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+		        	<extendStateExpression>
+			        	<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+			        	<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE" ]]></expression>
+			        	<targetState>Skipped</targetState>
+		        	</extendStateExpression>
+	        	</targetStateSet>
+        	</condition>
+        	<instructions substitution="true">Submit JCL to execute step</instructions>                       
+            <weight>5</weight>                                                                     
+            <autoEnable>true</autoEnable>                                                          
+            <template>                                                                             
+              <fileTemplate substitution="true">templates/wlp-create-server-proc.jcl</fileTemplate>
+            <submitAs>JCL</submitAs>                                                          
+          </template>                                                                            
+       </step>
+       
+	</step>
+	
+	<step name="configureSAFSecurityProfiles">
+        <title>Configure SAF Security</title>
+        <description>Configure the new Liberty server for z/OS authentication to the angel</description>
+        <runAsUser substitution="true">$!{instance-SECURITY_RUN_AS_ID}</runAsUser>
+        <approver substitution="true">$!{instance-SECURITY_APPROVAL_ID}</approver>
+        <instructions substitution="true">Submit rexx exec to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">templates/wlp-authorized-services-setup.rexx</fileTemplate>
+            <submitAs>TSO-REXX-JCL</submitAs>
+        </template>
+    </step>
+    
+    <step name="installApps">
+	    <title>Install Apps</title>
+        <description>Install default applications if specified</description>  
+        <condition>
+			    <expression><![CDATA["1" == "1"]]></expression>
+			    <description>Only perform when the Liberty server is created</description>
+                <targetStateSet>
+					<description>Only install apps if requested</description>
+					<extendStateExpression>
+						<description>Skip this step if APPS_DIR is null</description>
+						<expression><![CDATA[ ${instance_APPS_DIR} == null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skip this step if APPS_DIR is null string</description>
+						<expression><![CDATA[ ${instance_APPS_DIR} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			
+			<instructions substitution="true">Click Finish to install applications</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <inlineTemplate substitution="true">
+	                mkdir -p ${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/dropins
+                    cp ${instance-APPS_DIR}/* "${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/dropins"
+            	</inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+            </template>
+	    
+	</step>
+	
+	<step name="untarZOSPTImage">
+		<title>Untar ZOSPT Image</title>
+		<description>Untar ZOSPT image (only used when provisioning from ZOSPT)</description>
+		<condition>
+			 <expression><![CDATA["1" == "1"]]></expression>
+		     <description>Should the step be executed based on the ZOSPT_IMAGE_LOCATION setting</description>
+		     <targetStateSet>
+		      	   <description>Only create if ZOSPT_IMAGE_LOCATION is set</description>
+		           <extendStateExpression>
+		            <description>Only create if ZOSPT_IMAGE_LOCATION is set</description>
+		                 <expression><![CDATA[ ${instance-ZOSPT_IMAGE_LOCATION} == undefined || ${instance-ZOSPT_IMAGE_LOCATION} == ""]]></expression>
+		                 <targetState>Skipped</targetState>
+		           </extendStateExpression>
+		     </targetStateSet>
+		</condition>
+		<instructions>Run job</instructions>
+		<weight>1</weight>
+		<autoEnable>true</autoEnable>
+		<template>
+			<inlineTemplate substitution="true">
+                ## Set the unpack directory into which to unpack the tar file 
+                unpackDir=${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}
+                echo "Directory into which the tar file will be unpacked: ${unpackDir}"
+                
+                # Change directory to unpackDir
+                 cd ${unpackDir}
+                 mkdir tmp
+                 cd tmp
+                
+                # Untar the image file into the $unpackDir/tmp directory
+                 pax -rf ${instance-ZOSPT_IMAGE_LOCATION}
+                
+                # Move the contents of rootfs into the unpackDir
+                 cp -R ./rootfs/* ${unpackDir}
+                
+                 # Delete tmp
+                 cd ${unpackDir}
+                 rm -R tmp
+                
+            </inlineTemplate>
+     		<submitAs>shell-JCL</submitAs>
+		</template>
+	</step>
+	
+    <step name="startServer">
+        <title>Start the Server</title>
+        <description>Start the server</description>
+        
+        <step name="startServer_USS">
+        	<title>Start the Server from USS</title>
+        	<description>Submit script to start the server</description>
+        	<condition>
+         		<expression><![CDATA["1" == "1"]]></expression>
+         		<description>Only perform check if previous step has completed</description>
+         		<targetStateSet>
+       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+       				<extendStateExpression>
+        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} == "TRUE"]]></expression>
+        				<targetState>Skipped</targetState>
+       				</extendStateExpression>
+       				<extendStateExpression>
+				      	<description>Skip if START_INSTANCE == FALSE</description>
+			            <expression><![CDATA[ ${instance_START_INSTANCE} == "FALSE" || ${instance_START_INSTANCE} == "false"]]></expression>
+				      	<targetState>Skipped</targetState>
+				    </extendStateExpression>
+      			</targetStateSet>
+     		</condition>
+     		<instructions substitution="true">Submit shell script to execute step</instructions>
+     		<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<template>
+            	<inlineTemplate substitution="true">
+            if [ "${instance-WLP_USER}" = $(whoami) ]; then
+                ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --start
+            else
+                su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --start"
+            fi
+            	</inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+        	</template>
+        </step>
+        
+        <step name="startServer_console">
+        	<title>Start the server from Console</title>
+        	<description>Start the server from the console</description>
+        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+        	<approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+			<condition>
+         		<expression><![CDATA["1" == "1"]]></expression>
+         		<description>Only perform check if previous step has completed</description>
+         		<targetStateSet>
+       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+       				<extendStateExpression>
+        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+        				<targetState>Skipped</targetState>
+       				</extendStateExpression>
+       				<extendStateExpression>
+				      	<description>Skip if START_INSTANCE == FALSE</description>
+			            <expression><![CDATA[ ${instance_START_INSTANCE} == "FALSE" || ${instance_START_INSTANCE} == "false"]]></expression>
+				      	<targetState>Skipped</targetState>
+				    </extendStateExpression>
+      			</targetStateSet>
+     		</condition>
+     		<instructions substitution="true">Submit JCL to execute step</instructions>
+     		<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<rest>
+				<httpMethod>PUT</httpMethod>
+				<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+				<requestBody substitution="true">
+  {
+    "cmd" : "START ${_workflow-softwareServiceInstanceName},PARMS='${_workflow-softwareServiceInstanceName}'",
+    "unsol-key" : "CWWKF0011I: The server ${_workflow-softwareServiceInstanceName}",
+    "unsol-detect-sync" : "Y",
+    "unsol-detect-timeout" : "120",
+    "system" : "${_workflow-systemName}"
+  }	
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+			</rest>
+    	</step>
+    </step>
+    
+    <step name="removeTempFiles">
+        <title>Remove Temp Files</title>
+        <description>Remove the temp files created by this workflow</description>
+        <instructions substitution="true">Remove the files copied to ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-*</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+		<template>
+	    	<inlineTemplate substitution="true">
+           	rm ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}*
+           	</inlineTemplate>
+           	<submitAs>shell-JCL</submitAs>
+       	</template>
+    </step>
+</workflow>
