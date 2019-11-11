@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <workflowInfo>
+        <workflowID>New Local Page Dataset</workflowID>
+        <workflowDescription>Allocate a new Local Page Dataset with an option to add it dynamically to the system</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM CIC Brno - Czech Republic</vendor>
+        <Configuration>
+            <productID>zOS</productID>
+            <productName>zOS</productName>
+            <productVersion>Version 1</productVersion>
+        </Configuration>
+    </workflowInfo>
+    <variable name="pageName">
+        <label>Page DSN</label>
+        <abstract>New Local Page dataset to be allocated</abstract>
+        <description>New Local Page Dataset to be allocated. To get your naming convention you can use D ASM MVS command.</description>
+        <category>zOS</category>
+        <string>
+            <validationType>DSNAME</validationType>
+            <default>LOCAL.PAGE.#1</default>
+        </string>
+    </variable>
+    <variable name="volume">
+        <label>VOLSER</label>
+        <abstract>Volume Name</abstract>
+        <description>Volume Serial Name where the new Local Page Dataset is allocated</description>
+        <category>zOS</category>
+        <string>
+            <validationType>VOLSER</validationType>
+            <default>VOLXXX</default>
+        </string>
+    </variable>
+    <variable name="volSpace">
+        <label>Volume type</label>
+        <abstract>Select volume type for allocation</abstract>
+        <description>You can select volume type to allocate new page set. Maximum space allowed for the volume is used.</description>
+        <category>zOS</category>
+        <string>
+            <choice>3390-3</choice>
+            <choice>3390-9</choice>
+            <default>3390-9</default>
+        </string>
+    </variable>
+    <variable name="usrSpace">
+        <label>User Space</label>
+        <abstract>User given space in Cylinders (optional)</abstract>
+        <description>If you specify space allocation here, the volume type above is ignored.</description>
+        <category>zOS</category>
+        <string>
+            <validationType>ALPHANUM</validationType>
+        </string>
+    </variable>
+    <variable name="add">
+        <label>Add dynamically</label>
+        <abstract>Add new Page Space dynamically to the system</abstract>
+        <description>Decides if you want to add newly allocated Local Page Space to the system.</description>
+        <category>zOS</category>
+        <string>
+            <choice>YES</choice>
+            <choice>NO</choice>
+            <default>YES</default>
+        </string>
+    </variable>
+    <step name="submitJCL" optional="false">
+        <title>Allocate/add new Local Page Dataset</title>
+        <description>
+    &lt;h1&gt;
+                &lt;b&gt;Allocate new Local Page Dataset&lt;/b&gt;
+            &lt;/h1&gt;
+    &lt;h2&gt;
+                &lt;b&gt;The new Page Space can be dynamically added to the system&lt;/b&gt;
+            &lt;/h2&gt;
+    The Workflow is used to allocate a new Local Page Dataset on a specified volume.&lt;br&gt;&lt;/br&gt;
+    You need to provide, Local Page Dataset name, space in Cylinders. (or select a volume type)&lt;br&gt;&lt;/br&gt;
+    In case no user space is selected, the space is allocated as a maximum allowed for the volume type.&lt;br&gt;&lt;/br&gt;
+    &lt;br&gt;&lt;/br&gt;
+    When the Workflow completes, check the output in DD called RESULT.
+    &lt;br&gt;&lt;/br&gt;
+    &lt;br&gt;&lt;/br&gt;
+    In case of questions please send an email to miroslav_kubik@cz.ibm.com
+    </description>
+        <variableValue name="pageName" required="true"/>
+        <variableValue name="volume" required="true"/>
+        <variableValue name="volSpace" required="true"/>
+        <variableValue name="add" required="true"/>
+        <variableValue name="usrSpace" required="false"/>
+        <instructions substitution="false">Do not forget to fill in all variables!</instructions>
+        <weight>1</weight>
+        <skills>MVS</skills>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">//REXXDATA  EXEC  PGM=IEBUPDTE,PARM=NEW
+//SYSPRINT  DD DUMMY
+//SYSUT2    DD DISP=(,PASS),UNIT=3390,SPACE=(TRK,(10,1,1)),
+//             RECFM=FB,LRECL=80,BLKSIZE=0,DSORG=PO
+//SYSIN     DD *
+./ ADD NAME=PAGE
+ /* REXX */
+
+ pageName = '${instance-pageName}'
+ volume   = '${instance-volume}'
+ volSpace = '${instance-volSpace}'
+ usrSpace = '${instance-usrSpace}'
+ add      = '${instance-add}'
+
+ Select
+
+   When usrSpace &lt;&gt; '' then usrSpace = usrSpace
+   When volSpace  =  '3390-9' then usrSpace = 10017
+   When volSpace  =  '3390-3' then usrSpace = 3339
+   Otherwise
+    nop
+ End
+
+ queue '  DEFINE PAGESPACE -'
+ queue '         ( FILE(VOLSER) NAME('pageName') -'
+ queue '           CYLINDERS('usrSpace') VOLUME('volume'))'
+
+ "EXECIO" queued() "DISKW ASM (FINIS"
+
+ Exit
+//REXXEX   EXEC PGM=IKJEFT01
+//SYSPRINT DD SYSOUT=*
+//SYSPROC  DD DSN=*.REXXDATA.SYSUT2,DISP=(OLD,DELETE)
+//SYSTSPRT  DD SYSOUT=*
+//ASM       DD DISP=(,PASS),UNIT=3390,SPACE=(TRK,(10,1)),
+//             RECFM=FB,LRECL=80,BLKSIZE=0,DSORG=PS
+//SYSTSIN  DD *
+ %PAGE
+//ALC     EXEC PGM=IDCAMS,REGION=512K
+//SYSPRINT DD  SYSOUT=*
+//VOLSER   DD  UNIT=3390,VOL=SER=${instance-volume},DISP=OLD
+//SYSIN    DD  DISP=OLD,DSN=*.REXXEX.ASM,VOL=REF=*.REXXEX.ASM
+//IFOK      IF  (RC = 0) THEN
+//REXXDCMD  EXEC  PGM=IEBUPDTE,PARM=NEW
+//SYSPRINT  DD DUMMY
+//SYSUT2    DD DISP=(,PASS),UNIT=3390,SPACE=(TRK,(10,1,1)),
+//             RECFM=FB,LRECL=80,BLKSIZE=0,DSORG=PO
+//SYSIN     DD *
+./ ADD NAME=CMD
+ /* REXX */
+
+ add = '${instance-add}'
+ if add = 'YES' then do
+  queue Substr("${instance-pageName} allocated",1,100)
+  queue Substr("Adding to system...",1,100)
+  call issueCmd 'PA PAGE=${instance-pageName}'
+  queue Substr("Listing active Local Page Datasets",1,100)
+  call issueCmd 'D ASM'
+
+  queue Substr("New Local Page Dataset added - done",1,100)
+ end
+ else do
+  queue "${instance-pageName} allocated on ${instance-volume}"
+ end
+ "EXECIO" queued() "DISKW RESULT (FINIS"
+ 'DELSTACK'
+
+ Exit
+
+ issueCmd:
+
+  parse arg cmd
+  'CONSOLE NAME('SYSVAR(SYSUID)'@) ACTIVATE'
+  'CONSOLE SYSCMD('cmd')'
+  msgs = GETMSG('line.','SOL',,,10)
+  do i=1 to line.0
+   queue line.i
+  end i
+  'CONSOLE DEACTIVATE'
+
+  return
+//REXXEX   EXEC PGM=IKJEFT01
+//SYSPRINT DD SYSOUT=*
+//SYSPROC  DD DSN=*.REXXDCMD.SYSUT2,DISP=(OLD,DELETE)
+//SYSTSPRT  DD SYSOUT=*
+//RESULT   DD SYSOUT=*
+//SYSTSIN  DD *
+ %CMD
+//IFOKEND   ENDIF
+
+       	</inlineTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+</workflow>
