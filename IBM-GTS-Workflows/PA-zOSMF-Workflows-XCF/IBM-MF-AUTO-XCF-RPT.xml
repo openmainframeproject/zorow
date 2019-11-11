@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-XCF-RPT</workflowID>
+        <workflowDescription>IBM-MF-AUTO-XCF-RPT</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="arm-rpt" scope="instance" visibility="private">
+        <label>Report on ARM ?</label>
+        <abstract>Select this option to create an Automatic Restart Manager report</abstract>
+        <description>If this option is selected an ARM report will be generated.</description>
+        <category>ARM</category>
+        <boolean>
+            <default>true</default>
+        </boolean>
+    </variable>
+    <variable name="arm-dsn" scope="instance" visibility="private">
+        <label>ARM Couple Dataset</label>
+        <abstract>Please enter an alternate ARM CDS name (optional)</abstract>
+        <description>If a DSN is not provided, the system will report on the active CDS</description>
+        <category>ARM</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="arm-vol" scope="instance" visibility="private">
+        <label>ARM Couple Dataset Volser</label>
+        <abstract>Please enter the Volser for the alternate ARM CDS name (optional, only used if ARM DSN is populated)</abstract>
+        <description>This is an optional field that holds the volume for the alternate dataset</description>
+        <category>ARM</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <variable name="cfrm-rpt" scope="instance" visibility="private">
+        <label>Report on CFRM ?</label>
+        <abstract>Select this option to create a Coupling Facility Resource Manager report</abstract>
+        <description>If this option is selected an CFRM report will be generated.</description>
+        <category>CFRM</category>
+        <boolean>
+            <default>true</default>
+        </boolean>
+    </variable>
+    <variable name="cfrm-dsn" scope="instance" visibility="private">
+        <label>CFRM Couple Dataset</label>
+        <abstract>Please enter an alternate CFRM CDS name (optional)</abstract>
+        <description>This is an optional field that holds an alternate cds name.</description>
+        <category>CFRM</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="cfrm-vol" scope="instance" visibility="private">
+        <label>CFRM Couple Dataset Volser</label>
+        <abstract>Please enter the Volser for the alternate CFRM CDS name (optional)</abstract>
+        <description>This is an optional field that holds the volume for the alternate dataset</description>
+        <category>CFRM</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <variable name="logr-rpt" scope="instance" visibility="private">
+        <label>Report on LOGR ?</label>
+        <abstract>Select this option to create a Logger report</abstract>
+        <description>If this option is selected an LOGR report will be generated.</description>
+        <category>LOGR</category>
+        <boolean>
+            <default>true</default>
+        </boolean>
+    </variable>
+    <variable name="logr-dsn" scope="instance" visibility="private">
+        <label>LORG Couple Dataset</label>
+        <abstract>Please enter an alternate LOGR CDS name (optional)</abstract>
+        <description>This is an optional field that holds an alternate cds name.</description>
+        <category>LOGR</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="logr-vol" scope="instance" visibility="private">
+        <label>LOGR Couple Dataset Volser</label>
+        <abstract>Please enter the Volser for the alternate LOGR CDS name (optional)</abstract>
+        <description>This is an optional field that holds the volume for the alternate dataset</description>
+        <category>LOGR</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <variable name="sfm-rpt" scope="instance" visibility="private">
+        <label>Report on SFM ?</label>
+        <abstract>Select this option to create a Sysplex Failure Manager eport</abstract>
+        <description>If this option is selected an SFM report will be generated.</description>
+        <category>SFM</category>
+        <boolean>
+            <default>true</default>
+        </boolean>
+    </variable>
+    <variable name="sfm-dsn" scope="instance" visibility="private">
+        <label>SFM Couple Dataset</label>
+        <abstract>Please enter an alternate SFM CDS name (optional)</abstract>
+        <description>This is an optional field that holds an alternate cds name.</description>
+        <category>SFM</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="sfm-vol" scope="instance" visibility="private">
+        <label>SFM Couple Dataset Volser</label>
+        <abstract>Please enter the Volser for the alternate SFM CDS name (optional)</abstract>
+        <description>This is an optional field that holds the volume for the alternate dataset</description>
+        <category>SFM</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <atCreate name="arm-rpt" scope="instance" required="true" prompt="true"/>
+    <atCreate name="arm-dsn" scope="instance" required="false" prompt="true"/>
+    <atCreate name="arm-vol" scope="instance" required="false" prompt="true"/>
+    <atCreate name="cfrm-rpt" scope="instance" required="true" prompt="true"/>
+    <atCreate name="cfrm-dsn" scope="instance" required="false" prompt="true"/>
+    <atCreate name="cfrm-vol" scope="instance" required="false" prompt="true"/>
+    <atCreate name="logr-rpt" scope="instance" required="true" prompt="true"/>
+    <atCreate name="logr-dsn" scope="instance" required="false" prompt="true"/>
+    <atCreate name="logr-vol" scope="instance" required="false" prompt="true"/>
+    <atCreate name="sfm-rpt" scope="instance" required="true" prompt="true"/>
+    <atCreate name="sfm-dsn" scope="instance" required="false" prompt="true"/>
+    <atCreate name="sfm-vol" scope="instance" required="false" prompt="true"/>
+    <step name="XCF-POL-RPT" optional="false">
+        <title>Sysplex Policy Report</title>
+        <description>&lt;h3&gt;This step will report on your current sysplex policies&lt;/h3&gt;
+&lt;h6&gt;A policy Report will be generated for your sysplex&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+This Workflow does not require input values, If you want to point to &lt;br&gt; 
+use specific CDS datasets you will need to fill out the CDS and Vol fields &lt;br&gt;
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</description>
+        <variableValue name="arm-rpt" scope="instance" noPromptIfSet="false" required="true"/>
+        <variableValue name="arm-dsn" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="arm-vol" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="cfrm-rpt" scope="instance" noPromptIfSet="false" required="true"/>
+        <variableValue name="cfrm-dsn" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="cfrm-vol" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="logr-rpt" scope="instance" noPromptIfSet="false" required="true"/>
+        <variableValue name="logr-dsn" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="logr-vol" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="sfm-rpt" scope="instance" noPromptIfSet="false" required="true"/>
+        <variableValue name="sfm-dsn" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="sfm-vol" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">&lt;h3&gt;This step will report on your current sysplex policies&lt;/h3&gt;
+&lt;h6&gt;A policy Report will be generated for your sysplex&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+This workflow can generate reports for the following policies: &lt;br&gt;
+&lt;ul&gt;
+   &lt;li&gt; ARM  - Automatic Restart Manager&lt;/li&gt;
+   &lt;li&gt; CFRM - Coupling Facility Resource Manager&lt;/li&gt;
+   &lt;li&gt; LOGR - System Logger&lt;/li&gt;
+   &lt;li&gt; SFM  - Sysplex Failure Management&lt;/li&gt;
+&lt;/ul&gt;
+This Workflow does not require input values, If you want to point to &lt;br&gt; 
+use specific CDS datasets you will need to fill out the CDS and Vol fields &lt;br&gt;
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">#if (${arm-rpt})
+//ARMMREPT EXEC PGM=IXCMIAPU
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DATA TYPE(ARM) REPORT(YES)
+#if (${arm-dsn} != "") 
+  DSN(${arm-dsn}) VOLSER(${arm-vol}) 
+#end 
+#end
+#if (${cfrm-rpt})
+//CFRMREPT EXEC PGM=IXCMIAPU
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DATA TYPE(CFRM) REPORT(YES)
+#if (${cfrm-dsn} != "") 
+  DSN(${cfrm-dsn}) VOLSER(${cfrm-vol}) 
+#end 
+#end
+#if (${logr-rpt})
+//LOGRREPT EXEC PGM=IXCMIAPU
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DATA TYPE(LOGR) REPORT(YES)
+#if (${logr-dsn} != "") 
+  DSN(${logr-dsn}) VOLSER(${logr-vol}) 
+#end 
+#end
+#if (${sfm-rpt})
+//SFMMREPT EXEC PGM=IXCMIAPU
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DATA TYPE(SFM) REPORT(YES)
+#if (${sfm-dsn} != "") 
+  DSN(${sfm-dsn}) VOLSER(${sfm-vol}) 
+#end 
+#end
+/*</inlineTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+</workflow>

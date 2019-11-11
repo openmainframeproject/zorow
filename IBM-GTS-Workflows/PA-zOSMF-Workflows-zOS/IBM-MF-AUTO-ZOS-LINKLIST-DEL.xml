@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-ZOS-LNKLST-DEL</workflowID>
+        <workflowDescription>IBM-MF-AUTO-LNKLST-DEL</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="tdsn" scope="instance" visibility="private">
+        <label>Dataset to be removed</label>
+        <abstract>This dataset will be removed from the Linklist</abstract>
+        <description>The dataset provided will be removed from linklist</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="tlink" scope="instance" visibility="private">
+        <label>Target Linklist Name</label>
+        <abstract>Name for the new Linklist</abstract>
+        <description>Enter the name for the new linklist</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>ALPHANUM</validationType>
+            <choice>LNKLST01</choice>
+            <choice>LNKLST02</choice>
+            <choice>LNKLSTT1</choice>
+            <choice>LNKLSTT2</choice>
+            <default>LNKLST01</default>
+        </string>
+    </variable>
+    <atCreate name="tlink" scope="instance" required="true" prompt="true"/>
+    <atCreate name="tdsn" scope="instance" required="true" prompt="true"/>
+    <step name="Linklist-Remove" optional="false">
+        <title>Remove Dataset From Linklist</title>
+        <description>&lt;h3&gt;Remove a Dataset from Linklist&lt;/h3&gt;
+Use this workflow to add a dataset to your Linklist Concatenation.
+
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</description>
+        <variableValue name="tdsn" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="tlink" scope="instance" noPromptIfSet="true" required="true"/>
+        <instructions substitution="false">&lt;h3&gt;Add Dataset to Linklist&lt;/h3&gt;
+Use this workflow to add a dataset to your Linklist Concatenation.
+&lt;br&gt;
+This workflow requires:
+&lt;ul&gt;
+  &lt;li&gt;Target Dataset Name&lt;/li&gt;
+  &lt;li&gt;Target Linklist Name&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">/*REXX*/
+tdsn='${tdsn}'
+tlink='${tlink}'
+/*----------------------------------------------------------------
+ - Display Current Linklist
+ - Define new linklist
+ - Exit if target linklist is eq current
+----------------------------------------------------------------*/
+call syscmd "d prog,lnklst"
+clink=word(line.2,3)
+if clink &lt;&gt; tlink then
+   call syscmd "setprog lnklst,define,name="||tlink||",copyfrom="||clink
+else do
+   say " !! Could not define "||tlink||" !!"
+   exit 8
+end
+/*----------------------------------------------------------------
+ - Add Dataset to the New Linklist
+ - Exit if Define Failed
+----------------------------------------------------------------*/
+if word(line.1,1) = 'CSV500I' then do
+   call syscmd "setprog lnklst,delete,name="||tlink||",dsname="||tdsn
+end
+else do
+   say " !! Could not add Dataset "||tdsn||" !!"
+   call syscmd "setprog lnklst,undefine,name="||tlink
+   exit 8
+end
+/*----------------------------------------------------------------
+ - Activate the New Linklist
+ - Exit if Add Dataset Failed
+----------------------------------------------------------------*/
+if word(line.1,1) = 'CSV501I' then do
+      call syscmd "setprog lnklst,activate,name="||tlink
+end
+else do
+   say " !! Could not Activate Linklist "||tlink||" !!"
+   call syscmd "setprog lnklst,undefine,name="||tlink
+   exit 8
+end
+/*----------------------------------------------------------------
+ - Update all Jobs using Linklist
+ - Exit if Activate Failed
+----------------------------------------------------------------*/
+if word(line.1,1) = 'CSV500I' then do
+   call syscmd "setprog lnklst,update,job=*"
+end
+else do
+   say " !! Could not Update Job=* !!"
+   exit 8
+end
+
+say "WKFLNK01 - Completed Successful"
+
+exit
+
+syscmd:
+/*----------------------------------------------------------------
+ - Issue an MVS System Command
+----------------------------------------------------------------*/
+  parse arg cmd
+  x=msg('off')
+  'CONSOLE DEACTIVATE'
+  x=msg('off')
+  'CONSOLE NAME('SYSVAR(SYSUID)||'@) ACTIVATE'
+  'CONSOLE SYSCMD('cmd')'
+  msgs = GETMSG('line.','SOL',,,10)
+  'CONSOLE DEACTIVATE'
+  return
+</inlineTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+</workflow>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-ZOS-IPLTEXT</workflowID>
+        <workflowDescription>IBM-MF-AUTO-IPLTEXT</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="iplt-vol" scope="instance" visibility="private">
+        <label>Volser</label>
+        <abstract>Please enter the device serial</abstract>
+        <description>DASD Volume</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+            <default>SYSRES</default>
+        </string>
+    </variable>
+    <atCreate name="iplt-vol" scope="instance" required="true" prompt="true"/>
+    <step name="IPLTEXT" optional="false">
+        <title>Write IPL Text</title>
+        <description>&lt;h3&gt;This step will write IPLTEXT to the selected Volser&lt;/h3&gt;
+&lt;h6&gt;Please follow through the wizard to have the IPL text written&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</description>
+        <variableValue name="iplt-vol" scope="instance" noPromptIfSet="true" required="true"/>
+        <instructions substitution="false">&lt;h3&gt;This step will write IPLTEXT to the selected Volser&lt;/h3&gt;
+&lt;h6&gt;Please follow through the wizard to have the IPL text written&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <skills>z/OS Base</skills>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">//IPLTEXT  EXEC PGM=ICKDSF 
+//IPLTEXT  DD   DSN=SYS1.SAMPLIB(IEAIPL00),DISP=SHR
+//VOLUME   DD   UNIT=SYSDA,DISP=SHR,VOL=SER=${iplt-vol}
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  REFORMAT DDNAME(VOLUME) IPLDD(IPLTEXT) PURGE NOVERIFY IPLTXTEXIST
+/*</inlineTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+</workflow>

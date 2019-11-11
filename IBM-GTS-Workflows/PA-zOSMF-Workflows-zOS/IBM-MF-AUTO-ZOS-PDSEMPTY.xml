@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-ZOS-PDSEMPTY</workflowID>
+        <workflowDescription>IBM-MF-AUTO-ZOS-PDSEMPTY</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="dsn" scope="instance" visibility="public">
+        <label>Enter Dataset Name</label>
+        <abstract>Dataset to be emptied</abstract>
+        <description>The dataset empty operation will delete ALL members of a PDS, use with caution.</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <atCreate name="dsn" scope="instance" required="true" prompt="true"/>
+    <step name="PDS-Empty" optional="false">
+        <title>Delete all members from a given PDS</title>
+        <description>&lt;h3&gt;PDS Empty&lt;/h3&gt;
+&lt;h6&gt;This step will deleta all members from a given PDS&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+Please use extreme caution before running this workflow.
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</description>
+        <variableValue name="dsn" scope="instance" noPromptIfSet="true" required="true"/>
+        <instructions substitution="false">&lt;h3&gt;Enter the name of the PDS to be emptied and follow the wizard&lt;h3&gt;
+&lt;h6&gt;This step will deleta all members from a given PDS&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+&lt;b&gt;Please use extreme caution before running this workflow.&lt;/b&gt;
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo @LinkedIn&lt;/a&gt;
+
+
+&lt;h3&gt;PDS Empty&lt;/h3&gt;
+&lt;h6&gt;This step will deleta all members from a given PDS&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+Please use extreme caution before running this workflow.
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">//PDSEMPTY EXEC PGM=IDCAMS,REGION=4M
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+ DELETE ${dsn}(*)
+/*</inlineTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+</workflow>

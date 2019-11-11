@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="system">IBM-MF-AUTO-ZFS-DEFINE</workflowID>
+        <workflowDescription>IBM-MF-AUTO-ZFS-DEFINE</workflowDescription>
+        <workflowVersion>1.1</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="zfs-dsn" scope="instance" visibility="public">
+        <label>Please enter the Dataset Name for the new ZFS</label>
+        <abstract>This will be used as input for a new ZFS dataset</abstract>
+        <description>This will be used as input for a new ZFS dataset</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+            <default>USERID.TEST.ZFS</default>
+        </string>
+    </variable>
+    <variable name="zfs-sms-dc" scope="instance" visibility="public">
+        <label>Data Class</label>
+        <abstract>If coded, the syntax for this parameter is DATACLAS(DC_NAME)</abstract>
+        <description>If coded, the syntax for this parameter is DATACLAS(DC_NAME)</description>
+        <category>SMS</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>^DATACLAS\(\w*?\)</regularExpression>
+        </string>
+    </variable>
+    <variable name="zfs-sms-mc" scope="instance" visibility="public">
+        <label>Management Class</label>
+        <abstract>If coded, the syntax for this parameter is MGMTCLAS(MC_NAME)</abstract>
+        <description>If coded, the syntax for this parameter is MGMTCLAS(MC_NAME)</description>
+        <category>SMS</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>^MGMTCLAS\(\w*?\)</regularExpression>
+        </string>
+    </variable>
+    <variable name="zfs-sms-sc" scope="instance" visibility="public">
+        <label>Storage Class</label>
+        <abstract>If coded, the syntax for this parameter is STORCLAS(SC_NAME)</abstract>
+        <description>If coded, the syntax for this parameter is STORCLAS(SC_NAME)</description>
+        <category>SMS</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>^STORCLAS\(\w*?\)</regularExpression>
+        </string>
+    </variable>
+    <variable name="zfs-pri" scope="instance" visibility="private">
+        <label>Primary Allocation</label>
+        <abstract>Primary Allocation</abstract>
+        <description>Primary Allocation</description>
+        <category>General</category>
+        <integer>
+            <minValue>1</minValue>
+        </integer>
+    </variable>
+    <variable name="zfs-sec" scope="instance" visibility="private">
+        <label>Secondary Allocation</label>
+        <abstract>Secondary Allocation</abstract>
+        <description>Secondary Allocation</description>
+        <category>General</category>
+        <integer/>
+    </variable>
+    <variable name="zfs-alc-unit" scope="instance" visibility="public">
+        <label>Allocation Unit</label>
+        <abstract>Allocation Unit</abstract>
+        <description>Allocation Unit</description>
+        <category>General</category>
+        <string valueMustBeChoice="true" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>20</maxLength>
+            <choice>CYL</choice>
+            <choice>MB</choice>
+            <choice>TRK</choice>
+            <default>MB</default>
+        </string>
+    </variable>
+    <variable name="zfs-vol" scope="instance" visibility="private">
+        <label>Volume</label>
+        <abstract>If coded, the syntax for this parameter is VOLUMES(VOLSER)</abstract>
+        <description>If coded, the syntax for this parameter is VOLUMES(VOLSER)</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>^VOLUMES\(\w*?\)</regularExpression>
+        </string>
+    </variable>
+    <atCreate name="zfs-sec" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zfs-alc-unit" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zfs-pri" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zfs-dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zfs-sms-dc" scope="instance" required="false" prompt="true"/>
+    <atCreate name="zfs-sms-mc" scope="instance" required="false" prompt="true"/>
+    <atCreate name="zfs-sms-sc" scope="instance" required="false" prompt="true"/>
+    <atCreate name="zfs-vol" scope="instance" required="false" prompt="true"/>
+    <step name="Define-ZFS" optional="false">
+        <title>Define New ZFS</title>
+        <description>&lt;h3&gt;Define a new ZFS Filesystem&lt;/h3&gt;
+&lt;h6&gt;This step uses the IDCAMS Access Method Services APIs to define the new ZFS&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo @LinkedIn&lt;/a&gt;</description>
+        <variableValue name="zfs-dsn" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zfs-sms-dc" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="zfs-sms-mc" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="zfs-sms-sc" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="zfs-alc-unit" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="zfs-pri" scope="instance" noPromptIfSet="false" required="true"/>
+        <variableValue name="zfs-sec" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="zfs-vol" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">&lt;h3&gt;Please follow through the wizard to create a new ZFS dataset&lt;/h3&gt;&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">//DEFINE  EXEC PGM=IDCAMS                                    
+//SYSPRINT DD SYSOUT=*                                       
+//SYSUDUMP DD SYSOUT=*                                       
+//AMSDUMP DD SYSOUT=*                                        
+//SYSIN DD *                                                 
+  DEFINE CLUSTER (NAME($zfs-dsn)  -        
+  LINEAR $zfs-alc-unit($zfs-pri $zfs-sec) -
+#if($zfs-sms-dc != "")
+  $zfs-sms-dc -
+#end
+#if($zfs-sms-sc != "")
+  $zfs-sms-sc -
+#end
+#if($zfs-sms-mc != "")
+  $zfs-sms-mc -
+#end
+#if($zfs-vol != "")
+  $zfs-vol -
+#end
+  SHAREOPTIONS(2)) 
+/*                                                           
+//FORMAT  EXEC PGM=IOEAGFMT,                                 
+// PARM=('-aggregate $zfs-dsn -compat')   
+//SYSPRINT DD SYSOUT=*                                       
+/*           </inlineTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+</workflow>

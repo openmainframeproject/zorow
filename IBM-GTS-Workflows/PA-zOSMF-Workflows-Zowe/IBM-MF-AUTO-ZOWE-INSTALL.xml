@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-ZOWE-INSTALL</workflowID>
+        <workflowDescription>IBM-MF-AUTO-ZOWE-INSTALL</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="zowe-ver" scope="instance" visibility="public">
+        <label>What version do you want to install ?</label>
+        <abstract>Plesae use the v.r.i format for example 1.5.0 (default)</abstract>
+        <description>Please use the v.r.0 format for example 1.6.0 (default)</description>
+        <category>Zowe</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>[0-9].[0-9].[0-9]</regularExpression>
+            <errorMessage>Please enter value in the format X.X.X where X is 0-9</errorMessage>
+            <choice>1.5.0</choice>
+            <default>1.6.0</default>
+        </string>
+    </variable>
+    <variable name="zowe-dl-dir" scope="instance" visibility="public">
+        <label>Zowe Download Directory</label>
+        <abstract>Please enter Zowe Download Directory</abstract>
+        <description>This directory is where zowe pax files will be downloaded.</description>
+        <category>Zowe</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>50</maxLength>
+            <default>/tmp/zoweinst</default>
+        </string>
+    </variable>
+    <variable name="rootDir" scope="instance" visibility="public">
+        <label>Zowe Target Path</label>
+        <abstract>Zowe target path location</abstract>
+        <description>Zowe target path location, a version specific directory will be created.</description>
+        <category>Install</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>100</maxLength>
+            <default>/var/zowe</default>
+        </string>
+    </variable>
+    <variable name="prefix" scope="instance" visibility="private">
+        <label>Zowe Prefix</label>
+        <abstract>Defines a prefix for Zowe address space STC name assosiated with USS processe</abstract>
+        <description>Defines a prefix for Zowe address space STC name assosiated with USS processe</description>
+        <category>Install</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+            <default>ZOWE</default>
+        </string>
+    </variable>
+    <variable name="zosmfUserid" scope="instance" visibility="private">
+        <label>z/OSMF UserID</label>
+        <abstract>UserID for your z/OSMF Server</abstract>
+        <description>This is the userID on your STARTED profile for z/OSMF</description>
+        <category>z/OSMF</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+            <default>IZUSVR</default>
+        </string>
+    </variable>
+    <variable name="zosmfAdminGroup" scope="instance" visibility="private">
+        <label>z/OSMF Admin Group</label>
+        <abstract>Group name for z/OSMF Admins</abstract>
+        <description>This is the Group name for your z/OSMF ADMIN group</description>
+        <category>z/OSMF</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+            <default>IZUADMIN</default>
+        </string>
+    </variable>
+    <variable name="catalogPort" scope="instance" visibility="private">
+        <label>Mediation Layer API Catalog Port</label>
+        <abstract>Port to be used by Zowe Mediation Layer</abstract>
+        <description>Port to be used by Zowe Mediation Layer</description>
+        <category>Mediation Layer</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>7552</default>
+        </integer>
+    </variable>
+    <variable name="discoveryPort" scope="instance" visibility="private">
+        <label>Mediation Layer Discovery Port</label>
+        <abstract>Port to be used by Mediation Layer Discovery</abstract>
+        <description>TCP/IP Port for ML Discovery Service</description>
+        <category>Mediation Layer</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>7553</default>
+        </integer>
+    </variable>
+    <variable name="gatewayPort" scope="instance" visibility="private">
+        <label>Mediation Layer Gatewayy Port</label>
+        <abstract>Port to be used by Mediation Layer Gateway</abstract>
+        <description>TCP/IP Port for ML GW</description>
+        <category>Mediation Layer</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>7554</default>
+        </integer>
+    </variable>
+    <variable name="externalCertificate" scope="instance" visibility="private">
+        <label>External Certificate</label>
+        <abstract>Path for the external Certificate</abstract>
+        <description>The value needs to point to a keystore in PKCS12 format that contains the certificate with its private key. The file needs to be transferred as a binary to the z/OS system. Currently only the PKCS12 keystore with the password set to password are supported.</description>
+        <category>Mediation Layer</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </string>
+    </variable>
+    <variable name="externalCertificateAlias" scope="instance" visibility="private">
+        <label>External Certificate Alias</label>
+        <abstract>Alias of the server certificate in the keystore.</abstract>
+        <description>Alias of the certificate</description>
+        <category>Mediation Layer</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </string>
+    </variable>
+    <variable name="externalCertificateAuthorities" scope="instance" visibility="private">
+        <label>Certificate Authorities</label>
+        <abstract>Path to the certificate Authority public Certificates</abstract>
+        <description>You can add additional certificate authorities separated by spaces. This can be used for certificate authorities that have signed the certificates of the services that you want to access via the API Mediation Layer.</description>
+        <category>Mediation Layer</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </string>
+    </variable>
+    <variable name="verifyCertificatesOfServices" scope="instance" visibility="private">
+        <label>Verify Certificate</label>
+        <abstract>Use certificate verification ?</abstract>
+        <description>If you choose no, Certificates will not be checked</description>
+        <category>Mediation Layer</category>
+        <boolean>
+            <default>false</default>
+        </boolean>
+    </variable>
+    <variable name="enableSso" scope="instance" visibility="private">
+        <label>Enable SSO</label>
+        <abstract>Enable Single Sign On</abstract>
+        <description>Enable Single Sign On</description>
+        <category>Mediation Layer</category>
+        <boolean>
+            <default>false</default>
+        </boolean>
+    </variable>
+    <variable name="zosmfKeyring" scope="instance" visibility="private">
+        <label>z/OSMF Keyring in SAF</label>
+        <abstract>Name for the z/OSMF SAF defined keyring</abstract>
+        <description>This is the keyring for z/OSMF</description>
+        <category>Mediation Layer</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+            <default>IZUKeyring.IZUDFLT</default>
+        </string>
+    </variable>
+    <variable name="jobsAPIPort" scope="instance" visibility="private">
+        <label>Zowe Jobs API Port</label>
+        <abstract>Zowe will use this TCP port for its Jobs API</abstract>
+        <description>This is your Zowe Jobs API port</description>
+        <category>z/OS Services</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>8545</default>
+        </integer>
+    </variable>
+    <variable name="mvsAPIPort" scope="instance" visibility="private">
+        <label>Zowe MVS Services API Port</label>
+        <abstract>Zowe will use this TCP port for its MVS Services API</abstract>
+        <description>This port is used by MVS Services</description>
+        <category>z/OS Services</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>8547</default>
+        </integer>
+    </variable>
+    <variable name="jobsExplorerPort" scope="instance" visibility="private">
+        <label>Zowe Jobs Explorer Port</label>
+        <abstract>Port to be used by the Jobs Webapp</abstract>
+        <description>Jobs Explorer Port</description>
+        <category>Zowe Desktop Apps</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>8546</default>
+        </integer>
+    </variable>
+    <variable name="mvsExplorerPort" scope="instance" visibility="private">
+        <label>Zowe MVS Explorer Port</label>
+        <abstract>Port to be used by the MVS Webapp</abstract>
+        <description>MVS Explorer Port</description>
+        <category>Zowe Desktop Apps</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>8548</default>
+        </integer>
+    </variable>
+    <variable name="ussExplorerPort" scope="instance" visibility="private">
+        <label>Zowe USS Explorer Port</label>
+        <abstract>Port to be used by the USS Webapp</abstract>
+        <description>USS Explorer Port</description>
+        <category>Zowe Desktop Apps</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>8550</default>
+        </integer>
+    </variable>
+    <variable name="httpsPort" scope="instance" visibility="private">
+        <label>Port for the ZLUX Server</label>
+        <abstract>Port for the main zLUX webpage</abstract>
+        <description>Port for the main zLUX webpage</description>
+        <category>zLUX</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>8544</default>
+        </integer>
+    </variable>
+    <variable name="zssPort" scope="instance" visibility="private">
+        <label>Port for the Zowe Angel</label>
+        <abstract>Port for the zowe zSS Security</abstract>
+        <description>Port for the zowe zSS Security</description>
+        <category>zLUX</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>8542</default>
+        </integer>
+    </variable>
+    <variable name="sshPort" scope="instance" visibility="private">
+        <label>Default port for the SSH terminal APP</label>
+        <abstract>Default port for the SSH terminal APP</abstract>
+        <description>Default port for the SSH terminal APP</description>
+        <category>Terminals</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>22</default>
+        </integer>
+    </variable>
+    <variable name="telnetPort" scope="instance" visibility="private">
+        <label>Default port for the 3270 terminal APP</label>
+        <abstract>Default port for the 3270 terminal APP</abstract>
+        <description>Default port for the 3270 terminal APP</description>
+        <category>Terminals</category>
+        <integer>
+            <minValue>0</minValue>
+            <maxValue>99999</maxValue>
+            <default>23</default>
+        </integer>
+    </variable>
+    <variable name="dsName" scope="instance" visibility="private">
+        <label>Zowe Procedure Library</label>
+        <abstract>DSN for the Target Proclib</abstract>
+        <description>Data set name of the Proclib where the Zowe proclib members will be created.</description>
+        <category>Proclib</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+            <default>auto</default>
+        </string>
+    </variable>
+    <variable name="memberName" scope="instance" visibility="private">
+        <label>Zowe Started Task Procedure</label>
+        <abstract>Name for the Zowe started task procedure.</abstract>
+        <description>Member name to be created for the startup proc where the Zowe proclib members will be created.</description>
+        <category>Proclib</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSMEMBERNAME</validationType>
+            <default>ZOWESVR</default>
+        </string>
+    </variable>
+    <variable name="apfproclib" scope="instance" visibility="private">
+        <label>Zowe Procedure Library</label>
+        <abstract>DSN for the Target Proclib</abstract>
+        <description>Data set name of the Proclib where the Zowe proclib members will be created.</description>
+        <category>APF Server</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+            <default>SYS1.PROCLIB</default>
+        </string>
+    </variable>
+    <variable name="apfparmlib" scope="instance" visibility="private">
+        <label>Zowe Parameter Library</label>
+        <abstract>DSN For the target parameter library</abstract>
+        <description>Data set name of the Parmlib where the Zowe configuration members will be created.</description>
+        <category>APF Server</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+            <default>SYS1.PARMLIB</default>
+        </string>
+    </variable>
+    <variable name="apfloadlib" scope="instance" visibility="private">
+        <label>Zowe Load Library</label>
+        <abstract>DSN For the target load library</abstract>
+        <description>Data set name of the APF Authorized library that will hold the Load modules for Zowe.</description>
+        <category>APF Server</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+            <default>ZOWE.LOADLIB</default>
+        </string>
+    </variable>
+    <variable name="apfzoweUser" scope="instance" visibility="private">
+        <label>Zowe APF Started Task User</label>
+        <abstract>User Name for Zowe APF Started Task (not Unix UID)</abstract>
+        <description>User Name for Zowe APF Started Task (not Unix UID)</description>
+        <category>APF Server</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>USERID</validationType>
+            <default>IZUSVR</default>
+        </string>
+    </variable>
+    <variable name="apftssFacilityOwner" scope="instance" visibility="private">
+        <label>TSS Facility Owner</label>
+        <abstract>TSS Facility Owner (Required for TSS. 'auto' supplies the running user)</abstract>
+        <description>TSS Facility Owner (Required for TSS. 'auto' supplies the running user)</description>
+        <category>APF Server</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>ALPHA</validationType>
+            <default>auto</default>
+        </string>
+    </variable>
+    <variable name="apfstcUser" scope="instance" visibility="private">
+        <label>Zowe Started Task User</label>
+        <abstract>User Name for Zowe Started Task (not Unix UID)</abstract>
+        <description>User Name for Zowe Started Task (not Unix UID)</description>
+        <category>APF Server</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+            <default>IZUSVR</default>
+        </string>
+    </variable>
+    <variable name="apfstcUserUid" scope="instance" visibility="private">
+        <label>Zowe Started Task UID</label>
+        <abstract>UNIX UserID for Zowe Started Task</abstract>
+        <description>UNIX UserID for Zowe Started Task (Numeric UID)
+This is not required if you populated the STC name.</description>
+        <category>APF Server</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>UNIXID</validationType>
+        </string>
+    </variable>
+    <variable name="apfstcGroup" scope="instance" visibility="private">
+        <label>Zowe Started Task Group</label>
+        <abstract>Group Name for Zowe Started Task (not Unix GID)</abstract>
+        <description>Default Group Name for Zowe Started Task (not Unix GID)</description>
+        <category>APF Server</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>GROUP</validationType>
+            <default>IZUADMIN</default>
+        </string>
+    </variable>
+    <variable name="instance" scope="instance" visibility="public">
+        <label>What Zowe Instance this is ?</label>
+        <abstract>Please enter Zowe instance number.</abstract>
+        <description>Instance number for Zowe.</description>
+        <category>Zowe</category>
+        <integer>
+            <minValue>1</minValue>
+            <maxValue>100</maxValue>
+            <default>1</default>
+        </integer>
+    </variable>
+    <variable name="userDir" scope="instance" visibility="public">
+        <label>Zowe User Directory</label>
+        <abstract>Zowe Configuration Directory</abstract>
+        <description>Zowe config path location</description>
+        <category>Install</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>100</maxLength>
+            <default>/var/zowe</default>
+        </string>
+    </variable>
+    <variable name="zssCrossMemoryServerName" scope="instance" visibility="private">
+        <label>Cross Memory Server Name</label>
+        <abstract>zSS Server Name</abstract>
+        <description>zss CrossMemory Server Name</description>
+        <category>zLUX</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>15</maxLength>
+            <choice>ZWESIS_STD</choice>
+        </string>
+    </variable>
+    <atCreate name="zowe-dl-dir" scope="instance" required="true" prompt="true"/>
+    <atCreate name="discoveryPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="gatewayPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zosmfKeyring" scope="instance" required="true" prompt="true"/>
+    <atCreate name="mvsExplorerPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="ussExplorerPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="httpsPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zssPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="sshPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="telnetPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="prefix" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zosmfUserid" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zosmfAdminGroup" scope="instance" required="true" prompt="true"/>
+    <atCreate name="verifyCertificatesOfServices" scope="instance" required="true" prompt="true"/>
+    <atCreate name="enableSso" scope="instance" required="true" prompt="true"/>
+    <atCreate name="jobsExplorerPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="apfloadlib" scope="instance" required="true" prompt="true"/>
+    <atCreate name="apfparmlib" scope="instance" required="true" prompt="true"/>
+    <atCreate name="apfproclib" scope="instance" required="true" prompt="true"/>
+    <atCreate name="apfstcGroup" scope="instance" required="true" prompt="true"/>
+    <atCreate name="apfstcUser" scope="instance" required="true" prompt="true"/>
+    <atCreate name="apfstcUserUid" scope="instance" required="false" prompt="true"/>
+    <atCreate name="apftssFacilityOwner" scope="instance" required="true" prompt="true"/>
+    <atCreate name="apfzoweUser" scope="instance" required="true" prompt="true"/>
+    <atCreate name="catalogPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="jobsAPIPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="mvsAPIPort" scope="instance" required="true" prompt="true"/>
+    <atCreate name="memberName" scope="instance" required="true" prompt="true"/>
+    <atCreate name="rootDir" scope="instance" required="true" prompt="true"/>
+    <atCreate name="userDir" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zssCrossMemoryServerName" scope="instance" required="true" prompt="true"/>
+    <atCreate name="instance" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zowe-ver" scope="instance" required="true" prompt="true"/>
+    <atCreate name="dsName" scope="instance" required="true" prompt="true"/>
+    <step name="DownloadZowe" optional="false">
+        <title>This step will download the desired Zowe release and unpax it.</title>
+        <description>This step will take you through downloading the chosen release of Zowe.
+Beware that the selected target directory for the installation
+is the value you will choose + the zowe version, so 
+for example if you selected /var/zowe and the zowe version
+is 1.5 the installation will take place into the /var/zowe/1.5
+directory and if that directory has contents, contents will
+be wiped.
+You need to run this workflow as a superuser.</description>
+        <variableValue name="zowe-dl-dir" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zowe-ver" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="rootDir" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">This is a wizard like interface that can be used to install Zowe.</instructions>
+        <weight>1</weight>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">set -x;
+export dld=$zowe-dl-dir;
+export ver=$zowe-ver;
+export fn=zowe-$ver.pax;
+echo "mkdir -p $dld" | su;
+echo "chown ${_workflow-workflowOwner} $dld" | su;
+echo "chown ${_workflow-workflowOwner} $rootDir" | su;
+echo "chmod 755 $dld" | su;
+cd $dld;
+echo "Downloading $fn";
+curl -k -o $dld/$fn https://projectgiza.org/builds/stable/$ver/$fn ;
+echo "Unpaxing $fn";
+pax -ppx -rf $dld/$fn ;
+echo 'done';
+</inlineTemplate>
+            <submitAs maxRc="0">shell-JCL</submitAs>
+        </template>
+    </step>
+    <step name="BuildCongigYaml" optional="false">
+        <title>Build the installation yaml file</title>
+        <description>This step will generate the yaml file
+for the installation based on the 
+user input.</description>
+        <prereqStep name="DownloadZowe"/>
+        <variableValue name="rootDir" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="prefix" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="catalogPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="discoveryPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="enableSso" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="externalCertificate" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="externalCertificateAlias" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="externalCertificateAuthorities" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="gatewayPort" scope="instance" noPromptIfSet="false" required="true"/>
+        <variableValue name="verifyCertificatesOfServices" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zosmfKeyring" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="dsName" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="memberName" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="sshPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="telnetPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zowe-dl-dir" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zowe-ver" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="jobsExplorerPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="mvsExplorerPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="ussExplorerPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="jobsAPIPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="mvsAPIPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zosmfAdminGroup" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zosmfUserid" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="httpsPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zssPort" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="apfproclib" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="apfloadlib" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="apfparmlib" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="apfstcGroup" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="apfstcUser" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="apfstcUserUid" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="apftssFacilityOwner" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="apfzoweUser" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="instance" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="userDir" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="zssCrossMemoryServerName" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">Generated instruction text for step: INSTALL
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <skills>Shell Script</skills>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>true</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">set -x;
+echo "------------------------------------------" ;
+echo "Building the Yaml file for Zowe Install   " ;
+echo "------------------------------------------" ;
+yamlz="${zowe-dl-dir}/zowe-${zowe-ver}/install/zowe-install.yaml" ;
+yamla="${zowe-dl-dir}/zowe-${zowe-ver}/install/zowe-install-apf-server.yaml" ;
+cp $yamlz $yamlz.original ;
+cp $yamla $yamla.original ;
+echo "# ===================================" &gt;  $yamlz ;
+echo "# zowe install configuration         " &gt;&gt; $yamlz ;
+echo "# ===================================" &gt;&gt; $yamlz ;
+echo "install:                             " &gt;&gt; $yamlz ;
+echo "  rootDir=${rootDir}/${zowe-ver}     " &gt;&gt; $yamlz ;
+echo "  userDir=${userDir}/data            " &gt;&gt; $yamlz ;
+echo "  prefix=${prefix}                   " &gt;&gt; $yamlz ;
+echo "  instance=${instance}               " &gt;&gt; $yamlz ;
+echo "                                     " &gt;&gt; $yamlz ;
+echo "zosmf:                               " &gt;&gt; $yamlz ;
+echo "  zosmfUserid=${zosmfUserid}         " &gt;&gt; $yamlz ; 
+echo "  zosmfAdminGroup=${zosmfAdminGroup} " &gt;&gt; $yamlz ;
+echo "                                     " &gt;&gt; $yamlz ; 
+echo "api-mediation:                       " &gt;&gt; $yamlz ; 
+echo "  catalogPort=${catalogPort}         " &gt;&gt; $yamlz ;
+echo "  discoveryPort=${discoveryPort}                                   " &gt;&gt; $yamlz ;
+echo "  gatewayPort=${gatewayPort}                                       " &gt;&gt; $yamlz ;
+echo "  externalCertificate=${externalCertificate}                       " &gt;&gt; $yamlz ;
+echo "  externalCertificateAlias=${externalCertificateAlias}             " &gt;&gt; $yamlz ;
+echo "  externalCertificateAuthorities=${externalCertificateAuthorities} " &gt;&gt; $yamlz ;
+echo "  verifyCertificatesOfServices=${verifyCertificatesOfServices}     " &gt;&gt; $yamlz ;
+echo "  enableSso=${enableSso}               " &gt;&gt; $yamlz ;
+echo "  zosmfKeyring=${zosmfKeyring}         " &gt;&gt; $yamlz ;
+echo "                                       " &gt;&gt; $yamlz ;
+echo "zos-services:                          " &gt;&gt; $yamlz ; 
+echo "  jobsAPIPort=${jobsAPIPort}           " &gt;&gt; $yamlz ;
+echo "  mvsAPIPort=${mvsAPIPort}             " &gt;&gt; $yamlz ;
+echo "                                       " &gt;&gt; $yamlz ;
+echo "zowe-desktop-apps:                     " &gt;&gt; $yamlz ; 
+echo "  jobsExplorerPort=${jobsExplorerPort} " &gt;&gt; $yamlz ;
+echo "  mvsExplorerPort=${mvsExplorerPort}   " &gt;&gt; $yamlz ;
+echo "  ussExplorerPort=${ussExplorerPort}   " &gt;&gt; $yamlz ;
+echo "                                       " &gt;&gt; $yamlz ;
+echo "zlux-server:                           " &gt;&gt; $yamlz ;
+echo "  httpsPort=${httpsPort}               " &gt;&gt; $yamlz ;
+echo "  zssPort=${zssPort}                   " &gt;&gt; $yamlz ;
+echo "  zssCrossMemoryServerName=${zssCrossMemoryServerName}  " &gt;&gt; $yamlz ;
+echo "                                       " &gt;&gt; $yamlz ;
+echo "terminals:                             " &gt;&gt; $yamlz ;
+echo "  sshPort=${sshPort}                   " &gt;&gt; $yamlz ;
+echo "  telnetPort=${telnetPort}             " &gt;&gt; $yamlz ;
+echo "                                       " &gt;&gt; $yamlz ;
+echo "zowe-server-proclib:                   " &gt;&gt; $yamlz ;
+echo "  dsName=${dsName}                     " &gt;&gt; $yamlz ; 
+echo "  memberName=${memberName}             " &gt;&gt; $yamlz ;
+echo "                                       " &gt;&gt; $yamlz ;
+echo "# Do not delete this last line         " &gt;&gt; $yamlz ;
+echo "------------------------------------------";
+echo "Done  ";
+echo "------------------------------------------";
+echo "------------------------------------------" ;
+echo "Building the Yaml file for Zowe APF Server" ;
+echo "------------------------------------------" ;
+echo "# =====================================   " &gt;  $yamla ;
+echo "# Zowe APF server install configuration   " &gt;&gt; $yamla ;
+echo "# =====================================   " &gt;&gt; $yamla ;
+echo "install:                                  " &gt;&gt; $yamla ;
+echo "  proclib=${apfproclib}                   " &gt;&gt; $yamla ;
+echo "  parmlib=${apfparmlib}                   " &gt;&gt; $yamla ;
+echo "  loadlib=${apfloadlib}                   " &gt;&gt; $yamla ;
+echo "                                          " &gt;&gt; $yamla ;
+echo "users:                                    " &gt;&gt; $yamla ;
+echo "  zoweUser=${apfzoweUser}                 " &gt;&gt; $yamla ;
+echo "  tssFacilityOwner=${apftssFacilityOwner} " &gt;&gt; $yamla ; 
+echo "  stcUser=${apfstcUser}                   " &gt;&gt; $yamla ; 
+echo "  stcUserUid=${apfstcUserUid}             " &gt;&gt; $yamla ; 
+echo "  stcGroup=${apfstcGroup}                 " &gt;&gt; $yamla ;
+echo "                                          " &gt;&gt; $yamla ;
+echo "# Do not delete this last line            " &gt;&gt; $yamla ;
+echo "------------------------------------------";
+echo "Done  ";
+echo "------------------------------------------";
+cat $yamlz;
+cat $yamla;
+
+</inlineTemplate>
+            <submitAs maxRc="0">shell-JCL</submitAs>
+            <maxLrecl>300</maxLrecl>
+        </template>
+    </step>
+    <step name="CheckPreReqs" optional="false">
+        <title>Check Pre Reqs</title>
+        <description>Run the pre-req checks script</description>
+        <prereqStep name="BuildCongigYaml"/>
+        <variableValue name="zowe-dl-dir" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zowe-ver" scope="instance" noPromptIfSet="true" required="true"/>
+        <instructions substitution="false">This step will run the Check Pre Reqs Script and will flag if settings are not appropriate.</instructions>
+        <weight>1</weight>
+        <skills>Shell</skills>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">export INSTALL_DIR=${zowe-dl-dir}/zowe-${zowe-ver}/install
+${zowe-dl-dir}/zowe-${zowe-ver}/install/zowe-check-prereqs.sh</inlineTemplate>
+            <submitAs maxRc="0">shell-JCL</submitAs>
+            <maxLrecl>300</maxLrecl>
+        </template>
+    </step>
+    <step name="RunInstallScript" optional="false">
+        <title>Run Install Script</title>
+        <description/>
+        <prereqStep name="CheckPreReqs"/>
+        <instructions substitution="false">This step will run the install script for Zowe.</instructions>
+        <weight>1</weight>
+        <skills>Shell</skills>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">export INSTALL_DIR=${zowe-dl-dir}/zowe-${zowe-ver}/install
+echo "rm -Rf ${rootDir}/${zowe-ver}" | su ;
+echo "rm -Rf ~/.zowe_profile" | su ; 
+echo "${zowe-dl-dir}/zowe-${zowe-ver}/install/zowe-install.sh" | su ;
+echo "${zowe-dl-dir}/zowe-${zowe-ver}/install/zowe-install-apf-server.sh" | su ;
+echo "chown -R ${zosmfUserid}:${zosmfAdminGroup} $rootDir" | su ;
+echo "Installation Complete, please examine the logs and Start Zowe" ;</inlineTemplate>
+            <submitAs maxRc="0">shell-JCL</submitAs>
+            <maxLrecl>300</maxLrecl>
+        </template>
+    </step>
+</workflow>
