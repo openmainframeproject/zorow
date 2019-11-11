@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-REXX-VARS</workflowID>
+        <workflowDescription>IBM-MF-AUTO-REXX-VARS</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="var1" scope="instance" visibility="public">
+        <label>var1</label>
+        <abstract>var1</abstract>
+        <description>var1</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>20</maxLength>
+            <default>unchanged</default>
+        </string>
+    </variable>
+    <variable name="var2" scope="instance" visibility="public">
+        <label>var1</label>
+        <abstract>var1</abstract>
+        <description>var1</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>20</maxLength>
+            <default>unchanged</default>
+        </string>
+    </variable>
+    <variable name="var3" scope="instance" visibility="public">
+        <label>var1</label>
+        <abstract>var1</abstract>
+        <description>var1</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>20</maxLength>
+            <default>unchanged</default>
+        </string>
+    </variable>
+    <step name="Display-and-Update" optional="false">
+        <title>Display and update variables</title>
+        <description>&lt;h3&gt;This step shows the contents of the unchanged variables and then updates the values
+and pass the variables back to the workflow (properties file $_output function) &lt;/h3&gt;
+&lt;h6&gt;I had so much touble to make this work due to lack of documentation that I think
+it is worth sharing.&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</description>
+        <variableValue name="var2" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="var1" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="var3" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">&lt;h3&gt;This step shows the contents of the unchanged variables and then updates the values
+and pass the variables back to the workflow (properties file $_output function) &lt;/h3&gt;
+&lt;h6&gt;I had so much touble to make this work due to lack of documentation that I think
+it is worth sharing.&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">/*REXX*/
+say ${var1}
+say ${var2}
+say ${var3}
+
+out.1 = 'var1 changed1'
+out.2 = 'var2 changed2'
+out.3 = 'var3 changed3'
+out.0 = 3
+
+address syscall "writefile $_output 755 out."
+
+say "SUCCESS"
+exit</inlineTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <output needResolveConflicts="false" sysoutDD="false" loadOutputFileArrayValue="true" substitution="false">/tmp/rexxvars.txt</output>
+        </template>
+    </step>
+    <step name="Display-new-values" optional="false">
+        <title>Display New Values</title>
+        <description>&lt;h3&gt;This step shows the contents of the variables updated in the last step via REXX&lt;/h3&gt;
+&lt;h6&gt;I had so much touble to make this work due to lack of documentation that I think&lt;/h6&gt;
+it is worth sharing.&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</description>
+        <prereqStep name="Display-and-Update"/>
+        <variableValue name="var2" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="var1" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="var3" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">&lt;h3&gt;This step shows the contents of the variables updated in the last step via REXX&lt;/h3&gt;
+&lt;h6&gt;I had so much touble to make this work due to lack of documentation that I think&lt;/h6&gt;
+it is worth sharing.&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">/*REXX*/
+say ${var1}
+say ${var2}
+say ${var3}
+
+say "SUCCESS"
+exit</inlineTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+        </template>
+    </step>
+</workflow>
