@@ -23,29 +23,32 @@
     </variable>
     <variable name="zfs-sms-dc" scope="instance" visibility="public">
         <label>Data Class</label>
-        <abstract>If coded, the syntax for this parameter is DATACLAS(DC_NAME)</abstract>
-        <description>If coded, the syntax for this parameter is DATACLAS(DC_NAME)</description>
+        <abstract>The target SMS Dataclass</abstract>
+        <description>A data class is a collection of allocation and space attributes that the system uses when creating a data set. If SMS is active, a data class can be assigned to any data set. For non-SMS-managed DASD data sets, the system uses the allocation attribute values of the data class, but it does not save the data class name. If you alter a data class definition, SMS applies the changes to all new data sets and certain existing data sets that use the data class.</description>
         <category>SMS</category>
         <string valueMustBeChoice="false" multiLine="false">
-            <regularExpression>^DATACLAS\(\w*?\)</regularExpression>
+            <minLength>1</minLength>
+            <maxLength>8</maxLength>
         </string>
     </variable>
     <variable name="zfs-sms-mc" scope="instance" visibility="public">
         <label>Management Class</label>
-        <abstract>If coded, the syntax for this parameter is MGMTCLAS(MC_NAME)</abstract>
-        <description>If coded, the syntax for this parameter is MGMTCLAS(MC_NAME)</description>
+        <abstract>Target SMS Management class</abstract>
+        <description>A management class is a collection of management attributes that the storage administrator defines. For data sets, these attributes control retention, migration, backup, and release of allocated but unused space. For OAM objects, the attributes control retention, backup, and class transition. You can also use management classes to define how your aggregate groups should be managed. DFSMShsm acts on many management class attributes.</description>
         <category>SMS</category>
         <string valueMustBeChoice="false" multiLine="false">
-            <regularExpression>^MGMTCLAS\(\w*?\)</regularExpression>
+            <minLength>1</minLength>
+            <maxLength>8</maxLength>
         </string>
     </variable>
     <variable name="zfs-sms-sc" scope="instance" visibility="public">
         <label>Storage Class</label>
-        <abstract>If coded, the syntax for this parameter is STORCLAS(SC_NAME)</abstract>
-        <description>If coded, the syntax for this parameter is STORCLAS(SC_NAME)</description>
+        <abstract>Target SMS Storage Class</abstract>
+        <description>A storage class is a collection of performance goals and device availability requirements that the storage administrator defines. Storage class is a required part of an SMS-managed environment. A storage class provides the criteria that SMS uses in determining an appropriate location to place a data set or object. SMS uses the storage class to select a device according to the following criteria: device performance, the amount of space available on the volume, and how available a data set or object can be on that device.</description>
         <category>SMS</category>
         <string valueMustBeChoice="false" multiLine="false">
-            <regularExpression>^STORCLAS\(\w*?\)</regularExpression>
+            <minLength>1</minLength>
+            <maxLength>8</maxLength>
         </string>
     </variable>
     <variable name="zfs-pri" scope="instance" visibility="private">
@@ -80,21 +83,21 @@
     </variable>
     <variable name="zfs-vol" scope="instance" visibility="private">
         <label>Volume</label>
-        <abstract>If coded, the syntax for this parameter is VOLUMES(VOLSER)</abstract>
-        <description>If coded, the syntax for this parameter is VOLUMES(VOLSER)</description>
+        <abstract>The volser for the disk</abstract>
+        <description>The volume serial for the target disk</description>
         <category>General</category>
         <string valueMustBeChoice="false" multiLine="false">
-            <regularExpression>^VOLUMES\(\w*?\)</regularExpression>
+            <validationType>VOLSER</validationType>
         </string>
     </variable>
     <atCreate name="zfs-sec" scope="instance" required="true" prompt="true"/>
     <atCreate name="zfs-alc-unit" scope="instance" required="true" prompt="true"/>
     <atCreate name="zfs-pri" scope="instance" required="true" prompt="true"/>
     <atCreate name="zfs-dsn" scope="instance" required="true" prompt="true"/>
-    <atCreate name="zfs-sms-dc" scope="instance" required="false" prompt="true"/>
-    <atCreate name="zfs-sms-mc" scope="instance" required="false" prompt="true"/>
-    <atCreate name="zfs-sms-sc" scope="instance" required="false" prompt="true"/>
     <atCreate name="zfs-vol" scope="instance" required="false" prompt="true"/>
+    <atCreate name="zfs-sms-sc" scope="instance" required="false" prompt="true"/>
+    <atCreate name="zfs-sms-mc" scope="instance" required="false" prompt="true"/>
+    <atCreate name="zfs-sms-dc" scope="instance" required="false" prompt="true"/>
     <step name="Define-ZFS" optional="false">
         <title>Define New ZFS</title>
         <description>&lt;h3&gt;Define a new ZFS Filesystem&lt;/h3&gt;
@@ -126,19 +129,15 @@ If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
 //SYSIN DD *                                                 
   DEFINE CLUSTER (NAME($zfs-dsn)  -        
   LINEAR $zfs-alc-unit($zfs-pri $zfs-sec) -
-#if($zfs-sms-dc != "")
-  $zfs-sms-dc -
+#if($zfs-sms-dc != "")  DATACLAS($zfs-sms-dc) -
 #end
-#if($zfs-sms-sc != "")
-  $zfs-sms-sc -
+#if($zfs-sms-sc != "")  STORCLAS($zfs-sms-sc) -
 #end
-#if($zfs-sms-mc != "")
-  $zfs-sms-mc -
+#if($zfs-sms-mc != "")  MGMTCLAS($zfs-sms-mc) -
 #end
-#if($zfs-vol != "")
-  $zfs-vol -
+#if($zfs-vol != "")  VOLUMES($zfs-vol) -
 #end
-  SHAREOPTIONS(2)) 
+  SHAREOPTIONS(2))
 /*                                                           
 //FORMAT  EXEC PGM=IOEAGFMT,                                 
 // PARM=('-aggregate $zfs-dsn -compat')   
