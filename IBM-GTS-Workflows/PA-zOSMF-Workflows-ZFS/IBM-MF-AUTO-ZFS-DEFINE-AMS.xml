@@ -7,7 +7,7 @@
     <workflowInfo>
         <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-ZFS-DEFINE-AMS</workflowID>
         <workflowDescription>IBM-MF-AUTO-ZFS-DEFINE-AMS</workflowDescription>
-        <workflowVersion>1.1</workflowVersion>
+        <workflowVersion>1.2</workflowVersion>
         <vendor>IBM-MF-AUTO</vendor>
         <General/>
     </workflowInfo>
@@ -87,6 +87,42 @@
             <regularExpression>^VOLUMES\(\w*?\)</regularExpression>
         </string>
     </variable>
+    <variable name="ams-host" scope="instance" visibility="private">
+        <label>Host</label>
+        <abstract>z/OSMF host</abstract>
+        <description>Target z/OSMF Host</description>
+        <category>z/OSMF</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>255</maxLength>
+        </string>
+    </variable>
+    <variable name="ams-port" scope="instance" visibility="private">
+        <label>Port</label>
+        <abstract>z/OSMF port</abstract>
+        <description>Target z/OSMF Port number</description>
+        <category>z/OSMF</category>
+        <decimal decimalPlaces="1"/>
+    </variable>
+    <variable name="ams-user" scope="instance" visibility="private">
+        <label>User</label>
+        <abstract>z/OSMF User</abstract>
+        <description>Target z/OSMF User Name</description>
+        <category>z/OSMF</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>USERID</validationType>
+        </string>
+    </variable>
+    <variable name="ams-pass" scope="instance" visibility="private">
+        <label>Password</label>
+        <abstract>z/OSMF Password</abstract>
+        <description>Target user z/OSMF Password</description>
+        <category>z/OSMF</category>
+        <password>
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </password>
+    </variable>
     <atCreate name="zfs-sec" scope="instance" required="true" prompt="true"/>
     <atCreate name="zfs-alc-unit" scope="instance" required="true" prompt="true"/>
     <atCreate name="zfs-pri" scope="instance" required="true" prompt="true"/>
@@ -95,6 +131,10 @@
     <atCreate name="zfs-sms-mc" scope="instance" required="false" prompt="true"/>
     <atCreate name="zfs-sms-sc" scope="instance" required="false" prompt="true"/>
     <atCreate name="zfs-dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="ams-pass" scope="instance" required="true" prompt="true"/>
+    <atCreate name="ams-port" scope="instance" required="true" prompt="true"/>
+    <atCreate name="ams-user" scope="instance" required="true" prompt="true"/>
+    <atCreate name="ams-host" scope="instance" required="true" prompt="true"/>
     <step name="Define-ZFS" optional="false">
         <title>Define New ZFS</title>
         <description>&lt;h3&gt;Define a new ZFS Filesystem&lt;/h3&gt;
@@ -111,6 +151,10 @@ If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
         <variableValue name="zfs-pri" scope="instance" noPromptIfSet="true" required="true"/>
         <variableValue name="zfs-sec" scope="instance" noPromptIfSet="true" required="true"/>
         <variableValue name="zfs-vol" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="ams-user" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="ams-port" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="ams-pass" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="ams-host" scope="instance" noPromptIfSet="true" required="true"/>
         <instructions substitution="false">&lt;h3&gt;Please follow through the wizard to create a new ZFS dataset&lt;/h3&gt;&lt;br&gt;&lt;br&gt;
 If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
 &lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
@@ -121,8 +165,8 @@ If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
         <rest>
             <httpMethod>PUT</httpMethod>
             <schemeName>https</schemeName>
-            <hostname substitution="false">200.142.195.216</hostname>
-            <port substitution="false">443</port>
+            <hostname substitution="true">${ams-host}</hostname>
+            <port substitution="true">${ams-port}</port>
             <uriPath substitution="false">/zosmf/restfiles/ams</uriPath>
             <requestBody substitution="true">{
   "input":[
@@ -146,8 +190,8 @@ If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
 
 </requestBody>
             <expectedStatusCode>200</expectedStatusCode>
-            <username substitution="false">A089712</username>
-            <password substitution="false">cElDNDJsYXQ=</password>
+            <username substitution="true">${ams-user}</username>
+            <password substitution="true">JHthbXMtcGFzc30=</password>
         </rest>
     </step>
     <step name="Format-ZFS" optional="false">
