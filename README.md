@@ -13,10 +13,10 @@ Learn more about z/OSMF at https://www.ibm.com/support/knowledgecenter/en/SSLTBW
 If you are just getting started with z/OSMF workflows, it's recommended to review the [sample workflows](zOSMF-Samples/README.md) to better understand the capabilities.
 
 ## Installation
-You can install any of these workflows into z/OSMF following the instructions on [creating workflow definitions for z/OS](https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.4.0/com.ibm.zos.v2r4.izua700/izuprog_WorkflowsXML_Intro.htm)
+You can install any of these workflows into z/OSMF following the instructions on [creating workflow definitions for z/OS](https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.4.0/com.ibm.zos.v2r4.izua700/izuprog_WorkflowsXML_Intro.htm). You should also subscribe to the [zorow user email list](https://lists.openmainframeproject.org/g/zorow-user) to discuss usage of zorow as well as discuss this another open source on mainframe topics on the [Open Mainframe Project Community Forums](https://community.openmainframeproject.org/)
 
 ## Contributing
-Anyone can contribute z/OSMF workflow definitions to this repository - learn more at [CONTRIBUTING.md](CONTRIBUTING.md)
+Anyone can contribute z/OSMF workflow definitions to this repository - learn more at [CONTRIBUTING.md](CONTRIBUTING.md). You should also subscribe the the [zorow dev list](https://lists.openmainframeproject.org/g/zorow-dev) to learn more.
 
 ## Governance
 Zorow is a project hosted by the [Open Mainframe Project](https://openmainframeproject.org). This project has established it's own processes for managing day-to-day processes in the project at [GOVERNANCE.md](GOVERNANCE.md).
