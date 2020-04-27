@@ -18,6 +18,15 @@ You can install any of these workflows into z/OSMF following the instructions on
 ## Contributing
 Anyone can contribute z/OSMF workflow definitions to this repository - learn more at [CONTRIBUTING.md](CONTRIBUTING.md). You should also subscribe the the [zorow dev list](https://lists.openmainframeproject.org/g/zorow-dev) to learn more.
 
+## Discussion
+You can connect with the community in a variety of ways...
+
+- [Zorow Discussion Mailing list](https://lists.openmainframeproject.org/g/zorow-discussion)
+- [#zorow channel on Open Mainframe Project Slack](https://slack.openmainframeproject.org)
+- Post a question on [Open Mainframe Project Community Forums](https://community.openmainframeproject.org/)
+
+Zorow TSC meets every other Thursday at 2:00pm US Eastern Time. Subscribe to the [Zorow project calendar](https://lists.openmainframeproject.org/g/zorow-discussion/calendar) for a schedule of all meetings, and look for agendas and meeting notes via the [mailing list](https://lists.openmainframeproject.org/g/zorow-discussion).
+
 ## Governance
 Zorow is a project hosted by the [Open Mainframe Project](https://openmainframeproject.org). This project has established it's own processes for managing day-to-day processes in the project at [GOVERNANCE.md](GOVERNANCE.md).
 
