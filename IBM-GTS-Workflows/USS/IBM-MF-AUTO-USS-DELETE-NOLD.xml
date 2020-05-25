@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow>
+
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+
+    <workflowInfo>
+
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-DELETE-NOLD-USS-FILES</workflowID>
+
+        <workflowDescription>IBM-MF-AUTO-DELETE-NOLD-USS-FILES - Delete N old USS files</workflowDescription>
+
+        <workflowVersion>1.0</workflowVersion>
+
+        <vendor>IBM-MF-AUTO</vendor>
+
+        <General/>
+
+    </workflowInfo>
+
+    <variable name="input-path" scope="instance" visibility="public">
+
+        <label>Please enter the input path</label>
+
+        <abstract>Input path for the "find and delete" script (Don't use wildcards!)</abstract>
+
+        <description>This will be used as input path for the find and delete script. (Don't use wildcards in the path)</description>
+
+        <category>General</category>
+
+        <string valueMustBeChoice="false" multiLine="false">
+
+            <default>~/</default>
+
+        </string>
+
+    </variable>
+
+        <variable name="how-old" scope="instance" visibility="public">
+
+        <label>Please enter the number of days old to be used in script</label>
+
+        <abstract>This will be used as the days old value in the script.</abstract>
+
+        <description>This will be used as the period of time in the script. Files found within this range will be deleted!</description>
+
+        <category>General</category>
+        
+        <integer>
+
+            <minValue>1</minValue>
+
+        </integer>
+
+    </variable>
+
+    <variable name="archive-path" scope="instance" visibility="public">
+
+        <label>Please enter the archive path</label>
+
+        <abstract>This will be used as the archive path for the find script.</abstract>
+
+        <description>If you would like to archive the files before deleting them. Fill this varible with the archive path</description>
+
+        <category>General</category>
+
+        <string valueMustBeChoice="false" multiLine="false">
+
+            <default>N/A</default>
+        </string>
+
+    </variable>
+
+    <variable name="file-name" scope="instance" visibility="public">
+
+        <label>Please enter the file name or extension</label>
+
+        <abstract>This will be used as the name argument for the find script.</abstract>
+
+        <description>If you would like to look for a specific file or extension. Fill this varible with the argument (use wildcards to provide a valid format e.g '*.txt')</description>
+
+        <category>General</category>
+
+        <string valueMustBeChoice="false" multiLine="false">
+
+            <default>*</default>
+
+        </string>
+
+    </variable>
+
+    <atCreate name="input-path" scope="instance" required="true" prompt="true"/>
+    <atCreate name="archive-path" scope="instance" required="false" prompt="true"/>
+    <atCreate name="file-name" scope="instance" required="true" prompt="true"/>
+    <atCreate name="how-old" scope="instance" required="true" prompt="true"/>
+
+    <step name="DELETE-OLD-FILES" optional="false">
+        <title>Find and delete old files</title>
+
+        <description>This bash script will be executed on USS to delete 'n' day old files from an input path</description>
+
+        <variableValue name="input-path" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="archive-path" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="file-name" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="how-old" scope="instance" noPromptIfSet="true" required="true"/>
+
+        <instructions substitution="false">
+        - Be careful and validate the input information before submiting the job (This is a disrruptive command!)
+        - Make sure you have the proper authorization to perform the commands
+        - Make sure the input path is correct (it is not recommended to use wildcards)</instructions>
+
+        <weight>1</weight>
+
+        <autoEnable>false</autoEnable>
+
+        <canMarkAsFailed>false</canMarkAsFailed>
+
+        <template>
+
+            <inlineTemplate substitution="true">#!/bin/bash
+            echo 'Running script to clean up old uss files!'
+            echo 'The input path is: '$input-path
+            echo 'This is the name argument: '$file-name
+            echo 'This is the archive path: '$archive-path
+            echo 'Days old value is: '$how-old
+            if [[ $input-path == *"*"* ]]; then
+              echo "The input path contains wildcards!"
+              exit -1
+            fi
+            if [ -d $archive-path ]; then
+              echo 'These commands will be executed: find $input-path -type f -name "*" -mtime +$how-old -exec mv {} $archive-path \; '
+              echo 'find $input-path -type f -name "*" -mtime +$how-old -exec rm {} \;'  
+              find $input-path -type f -name "*" -mtime +$how-old -exec mv {} $archive-path \;
+              find $input-path -type f -name "*" -mtime +$how-old -exec rm {} \;
+            else
+              echo 'This command will be executed: find $input-path -type f -name "*" -mtime +$how-old -exec rm {} \; '
+              find $input-path -type f -name "*" -mtime +$how-old -exec rm {} \;
+            fi
+            </inlineTemplate>
+
+            <submitAs maxRc="0">shell-JCL</submitAs>
+
+        </template>
+
+    </step>
+</workflow>
+
