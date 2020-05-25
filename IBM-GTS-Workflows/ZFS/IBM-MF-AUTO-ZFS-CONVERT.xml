@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-HFS-ZFS-CONVERT</workflowID>
+        <workflowDescription>IBM-MF-AUTO-ZFS-CONVERT</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="isp-hlq" scope="instance" visibility="private">
+        <label>ISPF(ISP) HLQ</label>
+        <abstract>HLQ for the ISPF target datasets</abstract>
+        <description>Please verify with your z/OS support person what &lt;br&gt;
+the HLQ is. You could also look at your ISPPROF  &lt;br&gt;
+concatenation to have a clue of what the values  &lt;br&gt;
+are . Usually it is ISP or SYS1.</description>
+        <category>Customization</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSQUAL</validationType>
+            <default>ISP</default>
+        </string>
+    </variable>
+    <variable name="isf-hlq" scope="instance" visibility="private">
+        <label>SDSF(ISF) HLQ</label>
+        <abstract>HLQ for the SDSF Target Libraries (usually SYS1 or ISF)</abstract>
+        <description>Please verify with your z/OS support person what &lt;br&gt;
+the HLQ is. You could also look at your ISPPROF  &lt;br&gt;
+concatenation to have a clue of what the values  &lt;br&gt;
+are . Usually it is ISF or SYS1.</description>
+        <category>Customization</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSQUAL</validationType>
+            <default>ISF</default>
+        </string>
+    </variable>
+    <variable name="hfs-dsn" scope="instance" visibility="private">
+        <label>HFS Dataset Name(s)</label>
+        <abstract>&lt;br&gt;Please enter the dataset name that will be converted to ZFS :</abstract>
+        <description>The conversion will result in a new ZFS file   &lt;br&gt;
+defined with the same size of the orifinal     &lt;br&gt;
+HFS file. If you want a ZFS file that is       &lt;br&gt;
+bigger than the original, please pre-allocate  &lt;br&gt;
+the ZFS. You can use the IBM-MF-AUTO-ZFS-DEFINE&lt;br&gt;
+workflow to pre-allocate it.</description>
+        <category>HFS</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>8</minLength>
+            <maxLength>44</maxLength>
+        </string>
+    </variable>
+    <variable name="zos-hlq" scope="instance" visibility="private">
+        <label>ZOS HLQ</label>
+        <abstract>HLQ for z/OS Target Datasets</abstract>
+        <description>Please verify with your z/OS support person what &lt;br&gt;
+the HLQ is. Usually it is SYS1.</description>
+        <category>Customization</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSQUAL</validationType>
+            <default>SYS1</default>
+        </string>
+    </variable>
+    <variable name="zfs-string" scope="instance" visibility="private">
+        <label>String to replaced the string indicated in the HFS String Field</label>
+        <abstract>This string will replace the string indicated in hte hfs-string</abstract>
+        <description>where "from" is a string which if found  in the file system name will be changed to "to" for example,  /hfs/zfs/  will change all HFS to ZFS</description>
+        <category>HFS</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSQUAL</validationType>
+            <default>ZFS</default>
+        </string>
+    </variable>
+    <variable name="hfs-string" scope="instance" visibility="private">
+        <label>HFS String</label>
+        <abstract>This string will be replaced to generate the ZFS file</abstract>
+        <description>where "from" is a string which if found  in the file system name will be changed to "to" for example,  /hfs/zfs/  will change all HFS to ZFS</description>
+        <category>HFS</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSQUAL</validationType>
+            <default>HFS</default>
+        </string>
+    </variable>
+    <variable name="zfs-replace" scope="instance" visibility="private">
+        <label>Use Replace</label>
+        <abstract>Select "Yes" if you want to use string replacing to generate the new ZFS</abstract>
+        <description>Select Yes if you want to use string replacing for the &lt;br&gt;
+new generated ZFS</description>
+        <category>HFS</category>
+        <string valueMustBeChoice="true" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+            <choice>Yes</choice>
+            <choice>No</choice>
+            <default>Yes</default>
+        </string>
+    </variable>
+    <atCreate name="hfs-string" scope="instance" required="true" prompt="true"/>
+    <atCreate name="hfs-dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="isf-hlq" scope="instance" required="true" prompt="true"/>
+    <atCreate name="isp-hlq" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zfs-replace" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zfs-string" scope="instance" required="true" prompt="true"/>
+    <atCreate name="zos-hlq" scope="instance" required="true" prompt="true"/>
+    <step name="Convert" optional="false">
+        <title>This step will walk you through converting an HFS file into ZFS</title>
+        <description>&lt;h3&gt;This workflow can be used to convert HFS filesystems into ZFS&lt;/h3&gt;&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo @LinkedIn&lt;/a&gt;</description>
+        <variableValue name="hfs-dsn" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="isf-hlq" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="isp-hlq" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zos-hlq" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="hfs-string" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zfs-string" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="zfs-replace" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">&lt;h3&gt;This step can be used to convert one or more HFS datasets to ZFS.&lt;/h3&gt;&lt;br&gt;
+
+
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <skills>Unix System Services</skills>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">//ISPBTCH  EXEC PGM=IKJEFT01,
+//             DYNAMNBR=40,TIME=1440
+//STEPLIB  DD DSN=${isp-hlq}.SISPLPA,DISP=SHR,DCB=BLKSIZE=32760
+//         DD DSN=${isp-hlq}.SISPLOAD,DISP=SHR
+//         DD DSN=${zos-hlq}.MIGLIB,DISP=SHR
+//         DD DSN=${zos-hlq}.SCBDHENU,DISP=SHR
+//         DD DSN=${isf-hlq}.SISFLOAD,DISP=SHR
+//SYSTSIN DD *
+  ISPSTART CMD(BPXWH2Z -VC #if(${zfs-replace}=="Yes") /HFS/ZFS/ #end ${hfs-dsn}) 
+//SYSTSPRT DD SYSOUT=*
+//ISPLIST DD SYSOUT=A,DCB=(LRECL=121,BLKSIZE=1210,RECFM=FBA)
+//ISPLOG  DD SYSOUT=A,DCB=(LRECL=125,BLKSIZE=129,RECFM=VA)
+//SYSEXEC DD DSN=${zos-hlq}.SBPXEXEC,DISP=SHR
+//*
+//SYSUADS DD DSN=${zos-hlq}.UADS,DISP=SHR
+//SYSLIB  DD DSN=${zos-hlq}.MACLIB,DISP=SHR
+//SYSHELP DD DSN=${zos-hlq}.HELP,DISP=SHR
+//ISPPLIB DD DSN=${zos-hlq}.SBPXPENU,DISP=SHR
+//        DD DSN=${isp-hlq}.SISPPENU,DISP=SHR
+//ISPMLIB DD DSN=${zos-hlq}.SBPXMENU,DISP=SHR
+//        DD DSN=${isp-hlq}.SISPMENU,DISP=SHR
+//ISPSLIB DD DSN=${isp-hlq}.SISPSENU,DISP=SHR
+//ISPTLIB DD DSN=${zos-hlq}.SBPXTENU,DISP=SHR
+//        DD DSN=${isp-hlq}.SISPTENU,DISP=SHR
+//ISPPROF  DD DISP=NEW,UNIT=SYSDA,SPACE=(CYL,(1,1,5)),
+//         DCB=(RECFM=FB,LRECL=80,BLKSIZE=3120)
+//ISPTABL  DD DISP=NEW,UNIT=SYSDA,SPACE=(CYL,(1,1,5)),
+//         DCB=(RECFM=FB,LRECL=80,BLKSIZE=3120)
+//SDSFMENU DD DSN=${isf-hlq}.SISFPLIB,DISP=SHR</inlineTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+</workflow>
