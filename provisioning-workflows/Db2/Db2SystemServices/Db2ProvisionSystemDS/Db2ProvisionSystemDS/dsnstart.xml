@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+<workflowSettingInfo>
+<variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+</workflowSettingInfo>
+<workflowInfo>
+<workflowID>Db2 START System Command</workflowID>
+<workflowDescription>Normal START of a Db2 system</workflowDescription>
+<workflowVersion>1.0_PH19751</workflowVersion>
+<vendor>IBM</vendor>
+<Provisioning>
+<productID>5740XYR00</productID>
+<productName>Db2 for z/OS</productName>
+<productVersion>C10</productVersion>
+<softwareType>DB2zSys</softwareType>
+</Provisioning>
+</workflowInfo>
+<variable name="CONSNAME" scope="instance">
+<label>CONSNAME</label>
+<abstract>CONSOLE NAME</abstract>
+<description>The CONSNAME variable specifies the name of a z/OS operator's console which is used to START/STOP Db2 systems.</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNEXIT" scope="instance">
+<label>DSNEXIT</label>
+<abstract>EXIT LIBRARY</abstract>
+<description>The value of the EXIT LIBRARY field specifies the name of the library where your DSNZPxxx module, application defaults load module (dsnhdecp), and exit routines are to be placed.</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNLOAD" scope="instance">
+<label>DSNLOAD</label>
+<abstract>LOAD LIBRARY</abstract>
+<description>The DSNLOAD variable specifies the name of the main APF-authorized Db2 load module library.</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNZPARM" scope="instance">
+<label>DSNZPARM</label>
+<abstract>Db2 System PARAMETER MODULE</abstract>
+<description>The DSNZPARM variable specifies the member name of the load module that is to be used for Db2 subsystem parameters.</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="GRPATTNM" scope="instance">
+<label>GRPATTNM</label>
+<abstract>GROUP ATTACH</abstract>
+<description>The value of the GROUP ATTACH field specifies a generic group attachment name. <br/>
+This name is to be used for batch programs, the call attachment facility (CAF), <br/>
+the RRS attachment facility (RRSAF), IMS, CICS Transaction Server for z/OS, and utilities.</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="IRLMSSID" scope="instance">
+<label>IRLMSSID</label>
+<abstract>SUBSYSTEM NAME</abstract>
+<description>The SUBSYSTEM NAME field specifies the z/OS subsystem name for IRLM.</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="MVSSNAME" scope="instance">
+<label>MVSSNAME</label>
+<abstract>SUBSYSTEM NAME</abstract>
+<description>The SUBSYSTEM NAME field specifies the z/OS subsystem name for Db2.</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="MVSSPREF" scope="instance">
+<label>MVSSPREF</label>
+<abstract>COMMAND PREFIX</abstract>
+<description>The COMMAND PREFIX variable specifies the Db2 subsystem command prefix. <br/>
+When the prefix appears at the beginning of a command that is entered at a z/OS operator's console, <br/>
+z/OS passes the command to Db2 for processing. <br/>
+The command prefix is used in the Db2 entry of member IEFSSNxx of SYS1.PARMLIB.</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="PROTADMN" scope="instance">
+<label>PROTADMN</label>
+<abstract>SYSTEM ADMIN 1</abstract>
+<description>The SYSADM subsystem parameter specifies the first of two authorization IDs that are to have installation SYSADM authority.</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<step name="stepJMD" optional="false">
+<title>Dynamically define Db2 and IRLM to z/OS (DSNTIJMD)</title>
+<description>Job DSNTIJMD issues SETSSI commands to dynamically define Db2 and IRLM to z/OS.</description>
+<runAsUser substitution="true">${PROTADMN}</runAsUser>
+<variableValue name="GRPATTNM" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="IRLMSSID" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="MVSSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="MVSSPREF" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTIJMD to dynamically define Db2 and IRLM to z/OS. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntijmd</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepJSA" optional="false">
+<title>Start the Db2 system (DSNTIJSA)</title>
+<description>Job DSNTIJSA issue a normal start for the Db2 system.</description>
+<prereqStep name="stepJMD"/>
+<runAsUser substitution="true">${PROTADMN}</runAsUser>
+<variableValue name="CONSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="DSNEXIT" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="DSNLOAD" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="DSNZPARM" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="MVSSPREF" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTIJSA to start the provisioned Db2 system. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="true" substitution="true">dsntijsa</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+</workflow>

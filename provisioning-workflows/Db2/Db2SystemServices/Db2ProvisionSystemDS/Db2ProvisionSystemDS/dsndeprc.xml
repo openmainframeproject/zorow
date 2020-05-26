@@ -1,0 +1,1188 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+<workflowSettingInfo>
+<variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+</workflowSettingInfo>
+<workflowInfo>
+<workflowID>Db2 Deprovision Data Sharing Cluster</workflowID>
+<workflowDescription>Standard Procedure to deprovision Db2 data sharing cluster</workflowDescription>
+<workflowVersion>1.0_PH19751</workflowVersion>
+<vendor>IBM</vendor>
+<Provisioning>
+<productID>5740XYR00</productID>
+<productName>Db2 for z/OS</productName>
+<productVersion>C10</productVersion>
+<softwareType>DB2zSys</softwareType>
+</Provisioning>
+</workflowInfo>
+<variable name="AGEXECID" scope="instance">
+<label>AGEXECID</label>
+<abstract>PROVISION EXEC ID</abstract>
+<description>
+The default ID for executing steps in a provisioning workflow.
+</description>
+<category>DB2 Provisioning</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="AGFMRIN" scope="instance" visibility="public">
+<label>AGFMRIN</label>
+<abstract>DSG Originating Member Registry Instance Name</abstract>
+<description>
+Registry instance name of the originating member of a data sharing group.
+</description>
+<category>DB2 Provisioning</category>
+<string valueMustBeChoice="false" multiLine="false">
+<minLength>1</minLength>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="AGGROUP" scope="instance" visibility="private">
+<label>AGGROUP</label>
+<abstract>DSG ORIGINATING MEMBER OR NON-DS SUBSYSTEM</abstract>
+<description>Whether this is the originating member of a Db2 data sharing group or a non-data sharing Db2 subsystem. <br/>
+Acceptable values: true | false
+</description>
+<category>Db2 Provisioning</category>
+<boolean/>
+</variable>
+<variable name="AGGVIPID" scope="instance" visibility="private">
+<label>AGGVIPID</label>
+<abstract>ID of group distributed DVIPA</abstract>
+<description>ID associated with the group distributed DVIPA for the DB2 data sharing group being provisioned.</description>
+<category>DB2 Provisioning</category>
+<string valueMustBeChoice="false" multiLine="false">
+<minLength>1</minLength>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="AGICHLQ" scope="instance" visibility="private">
+<label>AGICHLQ</label>
+<abstract>PROVISION IMAGE COPY HLQ</abstract>
+<description>
+The HLQ for image copy data sets during provisioning.
+</description>
+<category>DB2 Provisioning</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="AGMVIPID" scope="instance" visibility="private">
+<label>AGMVIPID</label>
+<abstract>ID of member-specific DVIPA</abstract>
+<description>ID associated with the member-specific DVIPA for the Db2 data sharing group member being provisioned.</description>
+<category>DB2 Provisioning</category>
+<string valueMustBeChoice="false" multiLine="false">
+<minLength>1</minLength>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="AGRESPID" scope="instance" visibility="private">
+<label>AGRESPID</label>
+<abstract>TCP/IP RESYNCH PORT ID for Provisioning RESYNPRT</abstract>
+<description>
+ID associated to the two-phase commit resynchronization TCP/IP port allocated when in provisioning mode.
+</description>
+<category>DB2 Provisioning</category>
+<string valueMustBeChoice="false" multiLine="false">
+<minLength>1</minLength>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="AGTCPPID" scope="instance" visibility="private">
+<label>AGTCPPID</label>
+<abstract>TCP/IP PORT ID for Provisioning TCPPORT</abstract>
+<description>
+ID associated to the DRDA clients and REST services TCP/IP port allocated when in provisioning mode.
+</description>
+<category>DB2 Provisioning</category>
+<string valueMustBeChoice="false" multiLine="false">
+<minLength>1</minLength>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="CONSNAME" scope="instance">
+<label>CONSNAME</label>
+<abstract>CONSOLE NAME</abstract>
+<description>
+The CONSNAME variable specifies the name of a z/OS operator's console which is used to START/STOP Db2 systems.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DBRMLIB" scope="instance">
+<label>DBRMLIB</label>
+<abstract>APPLICATION DBRM</abstract>
+<description>
+The DBRMLIB variable specifies the name of the library that is to be used for Db2 sample application DBRMs.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNCLIST" scope="instance">
+<label>DSNCLIST</label>
+<abstract>CLIST LIBRARY - prefix.SDSNCLST</abstract>
+<description>
+The value of the CLIST LIBRARY - prefix.SDSNCLST variable specifies the name of the library where the CLISTs and REXX execs that are shipped with DB2 are to be placed.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNEXIT" scope="instance">
+<label>DSNEXIT</label>
+<abstract>EXIT LIBRARY</abstract>
+<description>
+The value of the EXIT LIBRARY field specifies the name of the library where your DSNZPxxx module, application defaults load module (dsnhdecp), and exit routines are to be placed.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNHDECP" scope="instance">
+<label>DSNHDECP</label>
+<abstract>APPL DEFAULTS</abstract>
+<description>
+The value of the APPL DEFAULTS field specifies the member name of the load module that is to be used for DB2 application default values.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNLOAD" scope="instance">
+<label>DSNLOAD</label>
+<abstract>LOAD LIBRARY</abstract>
+<description>
+The DSNLOAD variable specifies the name of the main APF-authorized Db2 load module library.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNZPARM" scope="instance">
+<label>DSNZPARM</label>
+<abstract>Db2 System PARAMETER MODULE</abstract>
+<description>
+The DSNZPARM variable specifies the member name of the load module that is to be used for Db2 subsystem parameters.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="GRPATTNM" scope="instance">
+<label>GRPATTNM</label>
+<abstract>GROUP ATTACH</abstract>
+<description>
+The value of the GROUP ATTACH field specifies a generic group attachment name. This name is to be used for batch programs, the call attachment facility (CAF), the RRS attachment facility (RRSAF), IMS, CICS Transaction Server for z/OS, and utilities.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="GRPNAME" scope="instance">
+<label>GRPNAME</label>
+<abstract>GROUP NAME</abstract>
+<description>
+The GRPNAME subsystem parameter identifies the name of a new or existing DB2 data sharing group that is to be used for this subsystem.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="INSDSPRE" scope="instance">
+<label>INSDSPRE</label>
+<abstract>INSTALL DS PREFIX</abstract>
+<description>
+The INSDSPRE variable specifies the prefix for most data sets that are created by most Db2 installation and IVP jobs. This field does not apply to data sets that are created by job DSNTIJIN.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="INSICPRE" scope="instance">
+<label>INSICPRE</label>
+<abstract>INSTALL IC PREFIX</abstract>
+<description>
+The INSTALL IC PREFIX field specifies the prefix for image copy data sets that are created by Db2 installation and IVP jobs.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="IRLMPROC" scope="instance">
+<label>IRLMPROC</label>
+<abstract>PROC NAME</abstract>
+<description>
+The IRLMPROC variable specifies the name of the IRLM procedure that z/OS is to invoke to STOP the Db2 system.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="IRLMSSID" scope="instance">
+<label>IRLMSSID</label>
+<abstract>SUBSYSTEM NAME</abstract>
+<description>
+The SUBSYSTEM NAME field specifies the z/OS subsystem name for IRLM.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="JAVAENV" scope="instance">
+<label>
+JAVAENV
+</label>
+<abstract>
+JAVA ENV DATA SET
+</abstract>
+<description>
+The JAVA ENV DATA SET field specifies the name of the environment (JAVAENV) data set for the Db2-supplied Java WLM Java Environment, DSNWLM_JAVA. This data set is created by job DSNTIJMJ and must not already exist. It is allocated by the JAVAENV DD of DSNWLMJ, the address space startup procedure for DSNWLM_JAVA. DSNWLMJ is created by job DSNTIJMW. It contains the _CEE_ENVFILE environment variable which provides the name and location of the Java environment variable file to be used when the DSNWLM_JAVA environment is started.
+</description>
+<category>
+JAVA
+</category>
+<string>
+<maxLength>44</maxLength>
+</string>
+</variable>
+<variable name="JAVAENVV" scope="instance">
+<label>
+JAVAENVV
+</label>
+<abstract>
+JAVA ENV VAR FILE
+</abstract>
+<description>
+The JAVA ENV VAR FILE field specifies the absolute path and name of the HFS/zFS environment variable file for the Db2-supplied Java WLM environment, DSNWLM_JAVA.  This file is created when you run installation job DSNTIJMJ and must not already exist.  It is referenced in the _CEE_ENVFILE environment variable of the JAVAENV data set specified in the JAVA ENV DATA SET field.
+</description>
+<category>
+JAVA
+</category>
+<string>
+<maxLength>47</maxLength>
+</string>
+</variable>
+<variable name="JVMPROPS" scope="instance">
+<label>
+JVMPROPS
+</label>
+<abstract>
+JVM PROPERTIES FILE
+</abstract>
+<description>
+The JVM PROPERTIES FILE field specifies absolute path and name of the HFS/zFS Java Virtual Machine (JVM) startup options file used by the Db2-supplied Java WLM environment, DSNWLM_JAVA. This file is created when you run installation job DSNTIJMJ and must not already exist. It is referenced by the JVMPROPS variable in the file specified in the JAVA ENV VAR FILE field.
+</description>
+<category>
+JAVA
+</category>
+<string>
+<maxLength>47</maxLength>
+</string>
+</variable>
+<variable name="MVSSNAME" scope="instance">
+<label>MVSSNAME</label>
+<abstract>SUBSYSTEM NAME</abstract>
+<description>
+The SUBSYSTEM NAME field specifies the z/OS subsystem name for Db2.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="MVSSPREF" scope="instance">
+<label>MVSSPREF</label>
+<abstract>COMMAND PREFIX</abstract>
+<description>
+The COMMAND PREFIX variable specifies the Db2 subsystem command prefix. <br/>
+When the prefix appears at the beginning of a command that is entered at a z/OS operator's console, <br/>
+z/OS passes the command to Db2 for processing. <br/>
+The command prefix is used in the Db2 entry of member IEFSSNxx of SYS1.PARMLIB.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="OUTCL" scope="instance">
+<label>OUTCL</label>
+<abstract>CLIST LIBRARY</abstract>
+<description>
+The CLIST LIBRARY field identifies the name of the data set into which job DSNTIJVC is to load all CLISTs.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="PPROCLIB" scope="instance">
+<label>PPROCLIB</label>
+<abstract>PRIVATE SYSTEM PROCEDURES</abstract>
+<description>
+The PRIVATE SYSTEM PROCEDURES field specifies the data set name of the provisioned Db2 system program preparation and utilities invocation JCL procedures.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="PROCLIB" scope="instance">
+<label>PROCLIB</label>
+<abstract>SYSTEM PROCEDURES</abstract>
+<description>
+The value of the SYSTEM PROCEDURES field specifies the data set name of the system procedures library that is to be used by sample and installation jobs.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="PROTADMN" scope="instance">
+<label>PROTADMN</label>
+<abstract>SYSTEM ADMIN 1</abstract>
+<description>
+The SYSADM subsystem parameter specifies the first of two authorization IDs that are to have installation SYSADM authority.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="RUNLIB" scope="instance">
+<label>RUNLIB</label>
+<abstract>APPLICATION LOAD</abstract>
+<description>
+The RUNLIB variable specifies the name of the Db2 sample application load module library.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="SRCLIB" scope="instance">
+<label>SRCLIB</label>
+<abstract>DECLARATION LIBRARY</abstract>
+<description>
+The SRCLIB variable specifies the name of the Db2 declaration library that is to be used for <br/>
+sample application include files.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="VBSDSLOG" scope="instance">
+<label>VBSDSLOG</label>
+<abstract>ICF CATALOG ALIAS FOR BSDS AND ACTIVE LOG DATA SETS</abstract>
+<description>
+The VBSDSLOG variable specifies the high-level qualifier for the BSDS and active log data sets to be used by Db2.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="VCATALOG" scope="instance">
+<label>VCATALOG</label>
+<abstract>ICF CATALOG ALIAS FOR Db2 catalog and directory VSAM data sets</abstract>
+<description>
+The VCATALOG variable specifies the high-level qualifier for Db2 catalog and directory VSAM data sets.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENV" scope="instance">
+<label>WLMENV</label>
+<abstract>WLM ENVIRONMENT</abstract>
+<description>
+The WLMENV subsystem parameter specifies the name of the default WLM_ENVIRONMENT that is to be used for a user-defined function or stored procedure. This environment is used when a value is not specified for the WLM_ENVIRONMENT option on the CREATE FUNCTION or CREATE PROCEDURE statements.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENV1" scope="instance">
+<label>WLMENV1</label>
+<abstract>FOR SERIALIZED ROUTINES</abstract>
+<description>
+The value of the FOR SERIALIZED ROUTINES field identifies the WLM environment that is to be used for Db2-supplied routines that need to run serially. A routine that must run serially cannot share a task control block with another routine.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENVC" scope="instance">
+<label>WLMENVC</label>
+<abstract>FOR THE DB2 CICS ROUTINE</abstract>
+<description>
+The value of the FOR THE DB2 CICS ROUTINE field identifies the WLM environment that is to be used for the Db2 CICS transaction processor routine SYSPROC.DSNACICS.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENVD" scope="instance">
+<label>WLMENVD</label>
+<abstract>FOR UNIFIED DEBUGGER ROUTINES</abstract>
+<description>
+The FOR UNIFIED DEBUGGER ROUTINES field identifies the WLM environment that is to be used for Db2-supplied routines that are for the unified debugger tool.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENVG" scope="instance">
+<label>WLMENVG</label>
+<abstract>FOR MOST DB2 ROUTINES</abstract>
+<description>
+The value of the FOR MOST DB2 ROUTINES field identifies the WLM environment that is to be used for running most Db2-supplied routines.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENVJ" scope="instance">
+<label>WLMENVJ</label>
+<abstract>FOR MOST DB2 JAVA ROUTINES</abstract>
+<description>
+The value of the FOR MOST DB2 JAVA ROUTINES field identifies the WLM environment that is to be used for running most Db2-supplied Java routines.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENVM" scope="instance">
+<label>WLMENVM</label>
+<abstract>FOR DB2 MQSERIES ROUTINES</abstract>
+<description>
+The value of the FOR DB2 MQSERIES ROUTINES field specifies the name of the WLM environment that is to be used for Db2 MQSeries functions.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENVP" scope="instance">
+<label>WLMENVP</label>
+<abstract>FOR ROUTINES IDENTIFIED TO PROGRAM CONTROL</abstract>
+<description>
+The value of the FOR ROUTINES IDENTIFIED TO PROGRAM CONTROL field identifies the WLM environment that is to be used for running Db2-supplied routines that require program control. These routines can be registered to RACF or an equivalent product.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENVR" scope="instance">
+<label>WLMENVR</label>
+<abstract>FOR DB2 REXX ROUTINES</abstract>
+<description>
+The value of the FOR DB2 REXX ROUTINES field identifies the name of the WLM environment that is to be used for Db2-supplied REXX routines.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENVU" scope="instance">
+<label>WLMENVU</label>
+<abstract>FOR DB2 UTILITIES ROUTINES</abstract>
+<description>
+The value of the FOR DB2 UTILITIES ROUTINES field identifies the name of the WLM environment that is to be used for running the DB2-supplied routines for utilities. This WLM environment should be used only by the SYSPROC.DSNUTILS and SYSPROC.DSNUTILU stored procedures.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENVW" scope="instance">
+<label>WLMENVW</label>
+<abstract>FOR DB2 WEB SERVICES ROUTINES</abstract>
+<description>
+The value of the FOR DB2 WEB SERVICES ROUTINES field identifies the WLM environment that is to be used for Db2 web services functions.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="WLMENVX" scope="instance">
+<label>WLMENVX</label>
+<abstract>FOR DB2 XML PROCESSING ROUTINES</abstract>
+<description>
+The value of the FOR DB2 XML PROCESSING ROUTINES field identifies the WLM environment that is to be used for running most Db2-supplied XML processing routines. This applies to the XSR_ADDSCHEMADOC, XSR_REGISTER, and XSR_REMOVE routines.
+</description>
+<category>DB2</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<step name="stepJSC" optional="false">
+<title>Stop Db2 system (DSNTIJSC)</title>
+<description>
+Job DSNTIJSC issues a normal stop for the Db2 system.
+</description>
+<runAsUser substitution="true">${PROTADMN}</runAsUser>
+<variableValue name="CONSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="DSNEXIT" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="DSNLOAD" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="IRLMPROC" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="MVSSPREF" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions>
+Run job DSNTIJSC to stop the provisioned Db2 system. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+or the additional member of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="true" substitution="true">dsntijsc</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDNRP" optional="false">
+<title>Release Db2 DVIPAs and ports back to Network Resource Pool - NRP</title>
+<description>
+This step releases the TCP/IP port of the provisioned Db2 data sharing group <br/>
+and the resynchronization port of a provisioned Db2 member back to the <br/>
+Network Resource Pool. <br/>
+This step also releases the group DVIPA of the provisioned Db2 data sharing group <br/>
+and the member DVIPA of each provisioned Db2 member back to the <br/>
+Network Resource Pool.
+</description>
+<prereqStep name="stepJSC"/>
+<step name="stepDPORTTCP" optional="false">
+<title>Release Db2 TCP/IP port of provisioned Db2 data sharing group (REST API)</title>
+<description>
+This step releases the TCP/IP port of the provisioned Db2 data sharing group <br/>
+that is used for accepting TCP/IP connection requests from remote DRDA clients <br/>
+and REST services. <br/>
+Run this step only when de-provisioning a provisioned Db2 system.
+</description>
+<prereqStep name="stepJSC"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<instructions substitution="false">
+Run this step to release the TCP/IP port of the provisioned <br/>
+Db2 data sharing group back to the Network Resource Pool. <br/>
+This TCP/IP port was acquired during provisioning to accept TCP/IP <br/>
+connection requests from remote DRDA clients and REST services. <br/>
+Run this step only when de-provisioning the originating member <br/>
+or the additional member of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Db2 and Network Administrators</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<rest>
+<httpMethod>POST</httpMethod>
+<uriPath substitution="false">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+<requestBody substitution="true">{
+ "template-uuid" : "${_workflow-templateID}",
+ "template-name" : "${_workflow-templateName}",
+ "tenant-id" : "${_workflow-tenantID}",
+ "registry-uuid" : "${_workflow-parentRegistryID}",
+ "network-parms" :
+ {
+   "port-id" : "${AGTCPPID}"
+  }
+}</requestBody>
+<expectedStatusCode>204</expectedStatusCode>
+</rest>
+</step>
+<step name="stepDPORTRES" optional="false">
+<title>Release Db2 resync port of provisioned Db2 data sharing member (REST API)</title>
+<description>
+This step releases the TCP/IP port of a provisioned Db2 data sharing group member <br/>
+that is used for processing requests for two-phase commit resynchronization.
+</description>
+<prereqStep name="stepDPORTTCP"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<instructions substitution="false">
+Run this step to release the TCP/IP port of a provisioned <br/>
+Db2 data sharing group member back to the Network Resource Pool. <br/>
+This TCP/IP port was acquired during provisioning for two-phase <br/>
+commit resynchronization. <br/>
+Run this step only when de-provisioning the originating member <br/>
+or the additional member of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Db2 and Network Administrators</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<rest>
+<httpMethod>POST</httpMethod>
+<uriPath substitution="false">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+<requestBody substitution="true">{
+ "template-uuid" : "${_workflow-templateID}",
+ "template-name" : "${_workflow-templateName}",
+ "tenant-id" : "${_workflow-tenantID}",
+ "registry-uuid" : "${_workflow-parentRegistryID}",
+ "network-parms" :
+ {
+   "port-id" : "${AGRESPID}"
+  }
+}</requestBody>
+<expectedStatusCode>204</expectedStatusCode>
+</rest>
+</step>
+<step name="stepDDVIPA" optional="false">
+<title>Release DVIPA of provisioned Db2 data sharing group (REST API)</title>
+<description>
+This step releases the group DVIPA of a provisioned Db2 data sharing group.
+</description>
+<prereqStep name="stepDPORTRES"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<instructions substitution="false">
+Run this step to release the group DVIPA of a provisioned Db2 data sharing group <br/>
+back to the Network Resource Pool. <br/>
+Run this step only when de-provisioning the originating member <br/>
+or the additional member of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Db2 and Network Administrators</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<rest>
+<httpMethod>POST</httpMethod>
+<uriPath substitution="false">/zosmf/resource-mgmt/rest/1.0/rdp/network/ip/actions/release</uriPath>
+<requestBody substitution="true">{
+ "template-uuid" : "${_workflow-templateID}",
+ "template-name" : "${_workflow-templateName}",
+ "tenant-id" : "${_workflow-tenantID}",
+ "registry-uuid" : "${_workflow-parentRegistryID}",
+ "network-parms" :
+ {
+   "ip-id" : "${AGGVIPID}"
+  }
+}</requestBody>
+<expectedStatusCode>204</expectedStatusCode>
+</rest>
+</step>
+<step name="stepDMDVIPA" optional="false">
+<title>Release provisioned DSG member-specific DVIPA (REST API)</title>
+<description>
+This step releases a provisioned DSG member-specific DVIPA.
+</description>
+<prereqStep name="stepDDVIPA"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<instructions substitution="false">
+Run this step to release a provisioned DSG member-specific DVIPA  <br/>
+back to the Network Resource Pool. <br/>
+Run this step only when de-provisioning the originating member <br/>
+or the additional member of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Db2 and Network Administrators</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<rest>
+<httpMethod>POST</httpMethod>
+<uriPath substitution="false">/zosmf/resource-mgmt/rest/1.0/rdp/network/ip/actions/release</uriPath>
+<requestBody substitution="true">{
+ "template-uuid" : "${_workflow-templateID}",
+ "template-name" : "${_workflow-templateName}",
+ "tenant-id" : "${_workflow-tenantID}",
+ "registry-uuid" : "${_workflow-parentRegistryID}",
+ "network-parms" :
+ {
+   "ip-id" : "${AGMVIPID}"
+  }
+}</requestBody>
+<expectedStatusCode>204</expectedStatusCode>
+</rest>
+</step>
+</step>
+<step name="stepDJ1" optional="false">
+<title>Delete IVP and non-VSAM install data sets (DSNTDJ1)</title>
+<description>
+Job DSNTDJ1 deletes Db2 non-VSAM data sets. It performs the following steps: <br/>
+a) Deletes non-VSAM data sets created by the IVP jobs <br/>
+b) Deletes non-VSAM data sets created by the install jobs <br/>
+c) Deletes the JAVAENV data set created by the install jobs.
+</description>
+<prereqStep name="stepDNRP"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGFMRIN}!=null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="DBRMLIB" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="INSDSPRE" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="INSICPRE" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="OUTCL" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="PPROCLIB" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="RUNLIB" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="SRCLIB" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJ1 to delete the non-VSAM data sets created by the install and IVP jobs. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="true" substitution="true">dsntdj1</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDJMJ" optional="false">
+<title>Delete environment files for the Db2-supplied Java WLM environment (DSNTDJMJ)</title>
+<description>
+Job DSNTDJMJ deletes the Db2 environment files for the Db2-supplied Java WLM environment.
+</description>
+<prereqStep name="stepDJ1"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGFMRIN}!=null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="JAVAENV" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="JAVAENVV" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="JVMPROPS" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJMJ to delete the Db2 environment files for the Db2-supplied Java WLM environment. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="true" substitution="true">dsntdjmj</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDJIC" optional="false">
+<title>Delete Db2 image copy data sets (DSNTDJIC)</title>
+<description>
+Job DSNTDJIC deletes Db2 image copy data sets.
+</description>
+<prereqStep name="stepDJMJ"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGFMRIN}!=null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="AGICHLQ" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="MVSSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJIC to delete Db2 image copy data sets. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntdjic</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDJIN" optional="false">
+<title>Delete Db2 catalog, directory, BSDS, active and archive log data sets (DSNTDJIN)</title>
+<description>
+Job DSNTDJIN deletes Db2 catalog, directory, BSDS, active and archive log data sets created by the install jobs <br/>
+for the originating member of a data sharing group.
+</description>
+<prereqStep name="stepDJIC"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGFMRIN}!=null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="MVSSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="VBSDSLOG" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="VCATALOG" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJIN to delete Db2 catalog, directory, BSDS, active and archive log data sets created by the install jobs <br/>
+for the originating member of a data sharing group. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="true" substitution="true">dsntdjin</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepXJIN" optional="false">
+<title>Delete Db2 BSDS, active and archive log data sets (DSNTXJIN)</title>
+<description>
+Job DSNTXJIN deletes Db2 BSDS, active and archive log data sets
+created by the install jobs for the additional member of a data sharing group.
+</description>
+<prereqStep name="stepDJIC"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGFMRIN}==null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="MVSSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="VBSDSLOG" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="VCATALOG" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTXJIN to delete Db2 BSDS, active and archive log data sets created by the install jobs <br/>
+for the additional member of a data sharing group. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the additional member <br/>
+of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="true" substitution="true">dsntxjin</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDJMA" optional="false">
+<title>Delete Db2 and Db2-supplied WLM environments start up procs (DSNTDJMA)</title>
+<description>
+Job DSNTDJMA deletes Db2 start up procs and Db2-supplied WLM environments start up procs <br/>
+for the originating member of a data sharing group.
+</description>
+<prereqStep name="stepDJIN"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGFMRIN}!=null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="GRPATTNM" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="MVSSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="PROCLIB" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJMA to delete Db2 start up procs and Db2-supplied WLM environments start up procs <br/>
+for the originating member of a data sharing group. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntdjma</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepXJMA" optional="false">
+<title>Delete Db2 start up procs (DSNTXJMA)</title>
+<description>
+Job DSNTXJMA deletes Db2 start up procs for the additional member of a data sharing group.
+</description>
+<prereqStep name="stepXJIN"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGFMRIN}==null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="MVSSNAME" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="PROCLIB" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTXJMA to delete Db2 start up procs for the additional member of a data sharing group. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the additional member <br/>
+of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntxjma</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDJUZ" optional="false">
+<title>Delete Db2 subsystem parameter module (DSNTDJUZ)</title>
+<description>
+Job DSNTDJUZ deletes the Db2 subsystem parameter module from SDSNEXIT.
+</description>
+<prereqStep name="stepDJMA"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<variableValue name="DSNCLIST" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="DSNEXIT" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="DSNZPARM" scope="instance" noPromptIfSet="false" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJUZ to delete the Db2 subsystem parameter module from SDSNEXIT. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+or the additional member of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntdjuz</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDJUA" optional="false">
+<title>Delete Db2 application defaults module (DSNTDJUA)</title>
+<description>
+Job DSNTDJUA deletes the Db2 application defaults module from SDSNEXIT.
+</description>
+<prereqStep name="stepDJUZ"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGFMRIN}!=null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="DSNCLIST" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="DSNEXIT" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="DSNHDECP" scope="instance" noPromptIfSet="false" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJUA to delete the Db2 application defaults module from SDSNEXIT. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntdjua</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDJRW" optional="false">
+<title>Delete Db2-supplied WLM application environments (DSNTDJRW)</title>
+<description>
+Job DSNTDJRW deletes all Db2-supplied WLM application environments created by DSNTIJRW at provisioning time.
+</description>
+<prereqStep name="stepDJUA"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGFMRIN}!=null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="DSNLOAD" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENV" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENV1" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENVC" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENVD" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENVG" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENVJ" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENVM" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENVP" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENVR" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENVU" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENVW" scope="instance" noPromptIfSet="false" required="false"/>
+<variableValue name="WLMENVX" scope="instance" noPromptIfSet="false" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJRW to delete Db2-supplied WLM application environments. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntdjrw</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDJDA" optional="false">
+<title>Delete aliases defined when provisioning the Db2 system (DSNTDJDA)</title>
+<description>
+Job DSNTDJDA deletes aliases defined when provisioning the Db2 system.
+</description>
+<prereqStep name="stepDJRW"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<variableValue name="INSDSPRE" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJDA to delete the aliases defined when provisioning the Db2 system. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+or the additional member of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="true" substitution="true">dsntdjda</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDJMD" optional="false">
+<title>Delete Db2 and IRLM subsystem definitions from z/OS (DSNTDJMD)</title>
+<description>
+Job DSNTDJMD deletes Db2 and IRLM subsystem definitions from z/OS.
+</description>
+<prereqStep name="stepDJDA"/>
+<runAsUser substitution="true">${PROTADMN}</runAsUser>
+<variableValue name="IRLMSSID" scope="instance" noPromptIfSet="true" required="false"/>
+<variableValue name="MVSSNAME" scope="instance" noPromptIfSet="false" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJMD to delete Db2 and IRLM subsystem definitions from z/OS. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+or the additional member of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntdjmd</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepDJCF" optional="false">
+<title>Delete all Db2 CF structures (DSNTDJCF)</title>
+<description>
+Job DSNTDJCF deletes all Db2 coupling facility structures.
+</description>
+<prereqStep name="stepDJMD"/>
+<runAsUser substitution="true">${PROTADMN}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGFMRIN}!=null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="GRPNAME" scope="instance" noPromptIfSet="true" required="false"/>
+<instructions substitution="false">
+Run job DSNTDJCF to delete all Db2 CF structures. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+Run this job only when de-provisioning the originating member <br/>
+of a provisioned Db2 data sharing group.
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntdjcf</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+</workflow>

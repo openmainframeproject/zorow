@@ -1,0 +1,217 @@
+//*********************************************************************
+//* JOB NAME = DSNTIJMA
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2018 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//* FUNCTION = Adds the address space startup JCL procs for DB2, IRLM,
+//*            and the administrative task scheduler to the system
+//*            proclib.
+//*
+//* PSEUDOCODE =
+//*   DSNTIPM  STEP      Add DB2-related startup procs to SYS1.PROCLIB
+//*
+//* NOTES =
+//*   Please check this job carefully to ensure that the system
+//*   library names are the correct library names for your site.
+//*
+//*   Please locate the address space proc for administrative sched-
+//*   uler and specify the setting of the default execution user ID
+//*   parameter, DFLTUID.
+//*
+//*
+//* CHANGE LOG:
+//*   05/07/2017 Split up DSNTIJMV                               s74993
+//*               - DSNTIJMV: Defines DB2 and IRLM to z/OS
+//*               - DSNTIJMA: Adds the DB2 and IRLM startup procs to
+//*                           the system proclib
+//*               - DSNTIJMP: Adds the DB2 language procs to the
+//*                           system proclib
+//*               - DSNTIJMW: Adds the startup procs for the DB2-
+//*                           supplied WLM environments to the system
+//*                           proclib
+//*               - DSNTIJMJ: Creates the environment files for the
+//*                           DB2-supplied Java WLM environment
+//*********************************************************************
+//*
+//DSNTIPM EXEC PGM=IEBUPDTE,PARM=NEW,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//SYSUT2   DD DISP=SHR,DSN=${PROCLIB}
+//SYSIN    DD DATA
+./  ADD NAME=${MVSSNAME}MSTR
+//*************************************************
+//*        JCL FOR PROCEDURE FOR THE STARTUP
+//*        OF THE DB2 CONTROL ADDRESS SPACE.
+//*
+//*        INSTALLATION MAY CHANGE PROGRAM LIBRARY
+//*        NAMES IN STEPLIB DD STATEMENT TO THE
+//*        LIBRARY IN WHICH DB2 MODULES ARE
+//*        LOADED USING THE PROCEDURE VARIABLE:
+//*            LIB
+//*
+//*************************************************
+//${MVSSNAME}MSTR  PROC LIB='${DSNEXIT}'
+//IEFPROC  EXEC PGM=DSNYASCP,DYNAMNBR=119,REGION=0K,
+//         PARM=('ZPARM(${DSNZPARM}),DECP(${DSNHDECP})',
+//             'GROUP(${GRPNAME}),MEMBER(${MEMBNAME})')
+//STEPLIB  DD DSN=&LIB,DISP=SHR
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//BSDS1    DD DISP=SHR,DSN=${BSDSNAM1}
+//BSDS2    DD DISP=SHR,DSN=${BSDSNAM2}
+./  ADD NAME=${MVSSNAME}DBM1
+//*************************************************
+//*        JCL FOR PROCEDURE FOR THE STARTUP
+//*        OF THE DB2 DATA BASE FACILITY
+//*        ADDRESS SPACE.
+//*       MEMLIM -- AMOUNT OF VIRTUAL STG ABOVE 2G IN ADDRESS SPACE.
+//*
+//*        INSTALLATION MAY CHANGE PROGRAM LIBRARY
+//*        NAMES IN STEPLIB DD STATEMENT TO THE
+//*        LIBRARY IN WHICH DB2 MODULES ARE
+//*        LOADED USING THE PROCEDURE VARIABLE:
+//*            LIB
+//*
+//* NOTICE: IF THE IBM LE RUNTIME (SCEERUN) LIBRARY
+//*         IS NOT INCLUDED IN YOUR SYSTEM LINKLIST,
+//*         YOU NEED TO UNCOMMENT THE STEPLIB DD
+//*         FOR SCEERUN
+//*
+//*************************************************
+//${MVSSNAME}DBM1  PROC LIB='${DSNEXIT}',
+//             MEMLIM=${MEMLIMIT}T
+//IEFPROC  EXEC PGM=DSNYASCP,REGION=0K,
+//             MEMLIMIT=&MEMLIM
+//STEPLIB  DD DSN=&LIB,DISP=SHR
+//*        DD DISP=SHR,DSN=${LERUN}
+//*        DD DISP=SHR,DSN=${LERUN2}
+//         DD DISP=SHR,DSN=${DSNLOAD}
+./  ADD NAME=${MVSSNAME}DIST
+//*************************************************
+//*    JCL PROCEDURE FOR THE STARTUP OF THE
+//*    DISTRIBUTED DATA FACILITY ADDRESS SPACE
+//*
+//*************************************************
+//${MVSSNAME}DIST  PROC RGN=0K,
+//             LIB='${DSNEXIT}'
+//IEFPROC EXEC PGM=DSNYASCP,REGION=&RGN
+//STEPLIB  DD DISP=SHR,DSN=&LIB
+#if (${LERUN} != "")
+//         DD DISP=SHR,DSN=${LERUN}
+#end
+//         DD DISP=SHR,DSN=${DSNLOAD}
+./  ADD NAME=${ADMTPROC}
+//*********************************************************************
+//*        JCL FOR PROCEDURE FOR THE STARTUP OF
+//*        THE DB2 ADMINISTRATIVE SCHEDULER ADDRESS SPACE.
+//*
+//*        INSTALLATION MAY CHANGE PROGRAM LIBRARY
+//*        NAMES IN STEPLIB DD STATEMENT TO THE
+//*        LIBRARY IN WHICH DB2 MODULES ARE
+//*        LOADED USING THE PROCEDURE VARIABLE:
+//*            LIB
+//*
+//*        Before using this proc
+//*        - Locate and review the settings for the following
+//*          parameters:
+//*          - DB2SSID: The name of this DB2 subsystem
+//*          - DFLTUID: The default ID used by Administrative Scheduler
+//*                     to execute its tasks.  Must differ from
+//*                     the ID used to start this address space
+//*          - TRACE  : Whether to activate tracing for the Admin-
+//*                     istrative Scheduler (OFF or ON, default is OFF)
+//*
+//*        Following optional parameters of DSNADMT0 may be added:
+//*          - MAXTHD:  The maximum number of threads that can execute
+//*                     scheduled tasks concurrently. Default is 99
+//*          - ERRFREQ: Interval in minutes between the display of
+//*                     two successive identical error messages to
+//*                     the console. Default is 1
+//*          - STOPONDB2STOP: stops the Administrative Scheduler when
+//*                           DB2 comes down. No value needed
+//*
+//*********************************************************************
+//${ADMTPROC}  PROC LIB='${DSNLOAD}',
+//          DB2SSID=${MVSSNAME},
+//          DFLTUID=DFLTUID,
+//          TRACE=OFF
+//*
+//STARTADM EXEC PGM=DSNADMT0,DYNAMNBR=100,REGION=0K,
+//          PARM=('DB2SSID=&DB2SSID',
+//          ' DFLTUID=&DFLTUID',
+//          ' TRACE=&TRACE')
+//STEPLIB  DD DISP=SHR,DSN=&LIB
+//ADMTDD1  DD DISP=SHR,DSN=${VCATALOG}.TASKLIST
+./  ADD NAME=${IRLMPROC}
+//*************************************************
+//*        JCL FOR PROCEDURE FOR THE STARTUP
+//*        OF THE IRLM 2.2 LOCK MANAGER
+//*        ADDRESS SPACE.
+//*
+//*        THESE PARAMETERS ARE SET FOR DB2. FOR
+//*        GLOBAL SHARING AND OTHER FACILITIES,
+//*        USE THE IMS/VS IRLM PARAMETERS.
+//*
+//*        NOTES FOR IRLM 2.2:
+//*        (1) THE PC (CROSS MEMORY) PARM MUST
+//*            BE SET TO YES.  DO NOT MODIFY THE
+//*            SETTING FOR PC.
+//*        (2) THE MAXCSA (MAXIMUM ECSA SIZE) PARM
+//*            IS IGNORED BUT IS REQUIRED FOR
+//*            COMPATIBILITY.  DO NOT MODIFY THE
+//*            SETTING FOR MAXCSA.
+//*        (3) THE MLMT PARAMETER SPECIFIES THE
+//*            THE AMOUNT OF STORAGE AVAILABLE TO
+//*            IRLM "ABOVE THE BAR", THAT IS THE
+//*            Z/OS MEMLIMIT SETTING FOR THE IRLM
+//*            ADDRESS SPACE.  THE IRLM DEFAULT
+//*            IS 2160M; IRLM USES 2048M IF YOU
+//*            SPECIFY A VALUE OF LESS THAN 2048M
+//*            FOR MLMT.
+//*
+//*************************************************
+//${IRLMPROC} PROC RGN=5000K,
+//             LIB='${DSNIRLM}',
+//             IRLMNM=${IRLMSSID},
+//             IRLMID=${IRLMIDEN},
+//             SCOPE=#getScope("${IRLMDISC}"),
+//             DEADLOK='${IRLMDEDT},${IRLMDEDC}',
+//             MAXCSA=0,
+//             PC=YES,
+//             MAXUSRS=${MAXUSRS},
+//             IRLMGRP=${IRLMGRPN},
+//             LOCKTAB=,
+//             TRACE=${IRLMTRAC},
+//             PGPROT=${IRLMPGPR},
+//             LTE=${IRLMLTE},
+//             MLMT=${IRLMMLMT}M
+//         EXEC PGM=DXRRLM00,DPRTY=(15,15),
+//         PARM=(&IRLMNM,&IRLMID,&SCOPE,&DEADLOK,&MAXCSA,&PC,
+//             &MAXUSRS,&IRLMGRP,&LOCKTAB,&TRACE,&PGPROT,&LTE),
+//         REGION=&RGN,
+//         MEMLIMIT=&MLMT
+//STEPLIB  DD DSN=&LIB,DISP=SHR
+//*
+//* The following DUMP dd card should not be specified unless you
+//* are having IRLM STARTUP problems and are not getting the dump
+//* needed to diagnose the problem.
+//*SYSABEND DD SYSOUT=*
+./  ENDUP
+/*
+## Macro to get the scope of IRLM
+## $disc is the DISCONNECT IRLM parameter
+#macro(getScope $disc)
+#if ($disc == "YES")
+GLOBAL#else
+NODISCON#end#end
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

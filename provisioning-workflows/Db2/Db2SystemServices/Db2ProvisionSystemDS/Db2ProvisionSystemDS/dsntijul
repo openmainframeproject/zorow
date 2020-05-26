@@ -1,0 +1,150 @@
+//*********************************************************************
+//* JOB NAME = DSNTIJUL
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2017 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//* FUNCTION = UPDATE BSDS FOR DDF
+//*
+//* PSEUDOCODE =
+//*   DSNTLOG  STEP  UPDATE PASSWORDS
+//*
+//* Change activity =
+//*   08/07/2017 Split up DSNTIJUZ                     s64075 / PI85767
+//*               - DSNTIJUZ: For DSNZPARM
+//*               - DSNTIJUA: For DSNHDECP
+//*               - DSNTIJUM: For DSNHMCID
+//*               - DSNTIJUL: For BSDS / Change log inventory
+//*   04/09/2018 Define a dedicated ICF catalog and              s76538
+//*              alias for Db2 BSDS and active log data sets
+//*
+//*********************************************************************
+//*
+//*********************************************************************
+//*        CHANGE LOG INVENTORY:
+//*        UPDATE BSDS
+//*********************************************************************
+//DSNTLOG EXEC PGM=DSNJU003,COND=(4,LT)
+//STEPLIB  DD DISP=SHR,DSN=${DSNLOAD}
+//SYSUT1   DD DISP=OLD,DSN=${BSDSNAM1}
+//SYSUT2   DD DISP=OLD,DSN=${BSDSNAM2}
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSIN    DD  *
+#if(${DDLUNAM} != "")
+ DDF    LOCATION=${DDLOC},LUNAME=${DDLUNAM},
+#if(${GENLUNM} != "")
+        GENERIC=${GENLUNM},
+#end
+#if(${DDPASS} != "")
+        PASSWORD=${DDPASS},
+#end
+        RESPORT=#getPort("${RESYNPRT}")${B},
+        PORT=#getPort("${TCPPORT}")${B}
+#if(${SECPORT} != "")
+ DDF    SECPORT=#getPort("${SECPORT}")${B}
+#end
+#end
+#if(${IPNAME} != "")
+ DDF    LOCATION=${DDLOC},IPNAME=${IPNAME},
+        RESPORT=#getPort("${RESYNPRT}")${B},
+        PORT=#getPort("${TCPPORT}")${B},
+        SECPORT=#getPort("${SECPORT}")${B}
+ DDF    GRPIPV4=${DVIPA},
+        IPV4=${MDVIPA}
+#if(${GENLUNM} != "")
+ DDF    GENERIC=${GENLUNM}
+#end
+#end
+#if(${DDLUNAM} == "" && ${IPNAME} == "")
+ DDF    LOCATION=${DDLOC}
+#end
+ DATASHR ENABLE
+*
+* WARNING! DO NOT CHANGE ANY PARAMETERS IN THE GROUP STATEMENT BELOW!
+ GROUP GROUPNAM=${GRPNAME},GROUPMEM=${MEMBNAME},
+       MEMBERID=1
+//*
+## Macro to pad a string with spaces to the right.
+## $str is the string to be padded.
+## $len is the length to which the string will be padded.
+#macro(pbr $var $len)
+#set ($plen = $len - $var.length())
+#set ($b = "                                        ")
+#set ($b = "$b                                      ")
+#if ($plen > 0)$var$b.substring(0,$plen)#else$var#end
+#end
+## Macro to get the UNIT parameter of a DD statement.
+## $device is the device type.
+#macro(getUnit $devtype)
+#if($devtype != "")UNIT=${devtype},#else#end
+#end
+## Macro to get the SYSLIN member used in assemblingDSNZPARM.
+## $dsnzparm is the name of the subsystem parametermodule.
+#macro(getLmm $dsnzparm)
+#set ($len = $dsnzparm.length() - 1)
+#if ($len >= 0)DSNTILM$dsnzparm.substring($len)#end
+#end
+## Macro to get the port number.
+## $port is the input port number in String.
+#macro(getPort $port)
+#set ($zero=0)
+#if($port != "")${port}#else${zero}#end
+#end
+## Macro to wrap trace with parentheses if needed.
+## $trace indicates whether the input to trace classes isa list.
+#macro(getTrace $trace)
+#if ($trace == "YES" || $trace == "NO" || $trace == "*")
+$trace#else($trace)#end
+#end
+## Macro to format a line and ensure continuation char atcolumn 72.
+## $line is the statement to be formatted.
+## $len is the maximum length of a line.
+## $indent is the length of the indentation.
+## $isLastLine indicates if the statement is the last oneof a group of
+## parameters. The last one does not need thecontinuation character.
+## $suffix is the continuation character.
+#macro(formatLine $line $len $indent $isLastLine $suffix)
+#if($line.length() <= $len)
+#if($isLastLine)
+$line.format("%-${len}s", $line)
+#else
+$line.format("%-${len}s", $line)$!{suffix}
+#end
+#else
+#makeIndent("$line", $len, $indent, $isLastLine,"$!{suffix}")
+#end
+#end
+## Macro to handle indentation if JCL statement does notfit in 71 chars
+## $line is the statement to be formatted
+## $len is the maximum length of a line.
+## $indent is the length of the indentation.
+## $isLastLine indicates if the statement is the last oneof a group of
+## parameters. The last one does not need thecontinuation character.
+## $suffix is the continuation character.
+#macro(makeIndent $line $len $indent $isLastLine $suffix)
+$line.substring(0, ${len})$suffix
+#set ($left = $line.substring(${len}))
+#set ($size = $indent + $left.length())
+#set ($left = $left.format("%${size}s", $left))
+#if($left.length() <= $len)
+#if($isLastLine)
+$line.format("%-${len}s", $left)
+#else
+$line.format("%-${len}s", $left)$suffix
+#end
+#else
+#makeIndent("$left", $len, $indent, $isLastLine,"$suffix")
+#end
+#end
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

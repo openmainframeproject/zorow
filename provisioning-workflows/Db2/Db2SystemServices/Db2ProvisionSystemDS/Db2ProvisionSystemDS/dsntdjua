@@ -1,0 +1,40 @@
+//*********************************************************************
+//* JOB NAME = DSNTDJUA
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    LICENSED MATERIALS - PROPERTY OF IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2019 IBM CORP.  ALL RIGHTS RESERVED.
+//*
+//*    STATUS = VERSION 12
+//*
+//* FUNCTION = DELETE DB2 APPLICATION DEFAULTS MODULE FROM SDSNEXIT
+//*
+//* PSEUDOCODE =
+//*   DSNTICDM STEP   CALL DSNTICDM TO DELETE A PDS MEMBER
+//*                   FORMAT IS: %DSNTICDM PDSNAME(MEMNAME)
+//*
+//* NOTES =
+//*   THIS JOB IS EXECUTED DURING DEPROVISIONING ONLY
+//*
+//* CHANGE ACTIVITY =
+//*   11/14/2018 INTRODUCTION                                   E75766
+//*   05/01/2019 DECP NAME FOR PROVISIONED SUBSYSTEMS S85004 / PH12117
+//*********************************************************************
+//*
+//*********************************************************************
+//* DSNTICDM: RUN THE GENERATED CLIST TO DELETE A PDS MEMBER.
+//*           FORMAT IS:
+//*             %DSNTICDM PDSNAME(MEMNAME)
+//*********************************************************************
+//DSNTICDM EXEC PGM=IKJEFT01,DYNAMNBR=20
+//SYSPROC  DD  DISP=SHR,DSN=${DSNCLIST}
+//SYSTSPRT DD  SYSOUT=*
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSOUT   DD  DSN=&&DSLIST,
+//             DISP=(,PASS),
+//             UNIT=SYSDA,SPACE=(TRK,5,RLSE)
+//SYSTSIN  DD  *
+  %DSNTICDM ${DSNEXIT}(${DSNHDECP})

@@ -1,0 +1,327 @@
+//*********************************************************************
+//* JOB NAME = DSNTIJRW
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 2010, 2016 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//* FUNCTION = Define the core DB2 WLM environments, install the
+//*            definitions and activate using the current active
+//*            service policy
+//*
+//* PSEUDOCODE =
+//*   DSNWLMG  STEP      Add DSNWLM_GENERAL WLM environment
+//*   DSNWLMP  STEP      Add DSNWLM_PGM_CONTROL WLM environment
+//*   DSNWLMU  STEP      Add DSNWLM_UTILS WLM environment
+//*   DSNWLM1  STEP      Add DSNWLM_NUMTCB1 WLM environment
+//*   DSNWLMX  STEP      Add DSNWLM_XML WLM environment
+//*   DSNWLMJ  STEP      Add DSNWLM_JAVA WLM environment
+//*   DSNWLMR  STEP      Add DSNWLM_REXX WLM environment
+//*   DSNWLMD  STEP      Add DSNWLM_DEBUGGER WLM environment
+//*   DSNWLMC  STEP      Add DSNWLM_DSNACICS WLM environment
+//*   DSNWLMM  STEP      Add DSNWLM_MQSERIES WLM environment
+//*   DSNWLMW  STEP      Add DSNWLM_WEBSERVICES WLM environment
+//*   DSNWLMA  STEP      Activate service policy
+//*
+//* NOTES =
+//*
+//* If the RACF facility class is active and a profile has been
+//* defined for the MVSADMIN.WLM.POLICY facility class, then the
+//* person submitting this job require UPDATE access. Below are
+//* the access level required when using the DSNTWLMB batch
+//* program:
+//*
+//* ACCESS(READ) for action WLMINFO:
+//*
+//* PERMIT MVSADMIN.WLM.POLICY CLASS(FACILITY) ID(user) ACCESS(READ)
+//*
+//* ACCESS(UPDATE) for action ADD, ADD_ACTIVATE, ACTIVATE:
+//*
+//* PERMIT MVSADMIN.WLM.POLICY CLASS(FACILITY) ID(user) ACCESS(UPDATE)
+//*
+//********************************************************************
+//*
+//* The DSNTWLMB batch program accepts the following parameters:
+//*
+//*   ACTION(action-type)
+//*
+//*   The ACTION parameter identifies the type of action to be
+//*   performed. This is a required parameter and supports the
+//*   following values:
+//*
+//*      ADD: The batch program will install a new WLM application
+//*       environment to an existing WLM service definition without
+//*       activating a service policy. The new WLM application
+//*       environment will be available on the next activation of a
+//*       WLM policy.
+//*
+//*      ADD_ACTIVATE: The batch program will install a new WLM
+//*       application environment to an existing WLM service
+//*       definition and automatically activate a WLM service
+//*       policy to enable the new WLM application environment.
+//*
+//*      REMOVE: The batch program will remove a WLM application
+//*       environment from an existing WLM service definition without
+//*       activating a service policy. The new WLM application
+//*       environment will not be available on the next activation
+//*       of a WLM policy.
+//*
+//*      REMOVE_IF_EXISTS: This action is similar to the action REMOVE.
+//*       The only difference is REMOVE_IF_EXISTS will return a return
+//*       code of 4 (instead of 8) when the WLM application
+//*       environment to be removed does not exist.
+//*
+//*      REMOVE_ACTIVATE: The batch program will remove a WLM
+//*       application environment from an existing WLM service
+//*       definition and automatically activate a WLM service
+//*       policy.
+//*
+//*      REMIFEXISTS_ACTIVATE: This action is similar to the action
+//*       REMOVE_ACTIVATE. The only difference is REMIFEXISTS_ACTIVATE
+//*       will return a return code of 4 (instead of 8) when the
+//*       WLM application environment to be removed does not exist.
+//*
+//*      ACTIVATE: The batch program will activate a WLM service
+//*       policy.
+//*
+//*      WLMINFO: The batch program will query the existing WLM
+//*       service definition and return basic information.
+//*
+//*   POLICY(policy-id)
+//*
+//*   The POLICY parameter identifies the WLM service policy to be
+//*   activated. It can be 1-8 characters long or the word ACTIVE.
+//*   If ACTIVE was specified as the policy ID, then the current
+//*   active service policy is used. This is required if the
+//*   action specified is ADD_ACTIVATE or REMOVE_ACTIVATE or
+//*   REMIFEXISTS_ACTIVATE or ACTIVATE.
+//*
+//* If the action specified is ADD or ADD_ACTIVATE, additional
+//* input is required from SYSIN to provide details on the WLM
+//* application environment to be installed.
+//*
+//*   SYSIN PARAMETERS
+//*
+//*   The additional information required to add a new WLM application
+//*   environment can be entered from the SYSIN DD statement.
+//*   The parameters can be entered on one line (up to 72 characters
+//*   per line) or multiple lines and should be separated by one or
+//*   more spaces. The following parameters are supported under
+//*   SYSIN DD:
+//*
+//*      WLMNAME(name): The defined name for an application
+//*       environment. It can be 1-32 characters long. It cannot begin
+//*       with the letters SYS. This is a required parameter.
+//*
+//*      DESCRIPTION(description): A 32-character area describing the
+//*       application environment. This parameter can be set to an
+//*       empty value. For example:
+//*
+//*         DESCRIPTION()
+//*
+//*      PROCNAME(procedure-name): Defines the JCL procedure that WLM
+//*       uses to start server address spaces for the application
+//*       environment. This is a required parameter.
+//*
+//*      STARTPARM(start-up-parameters): It contains the parameters
+//*       that WLM will use to start the JCL procedure. The parameters
+//*       can be up to 115 characters. If the parameters include the
+//*       subsystem name, the symbol &IWMSSNM can be used to cause
+//*       WLM to substitute the subsystem name instead of typing the
+//*       subsystem name directly. This is useful since multiple
+//*       instances of the subsystem with different names can use
+//*       the application environment. For example:
+//*
+//*         STARTPARM(DB2SSN=&IWMSSNM,APPLENV=WLMENV1,NUMTCB=1)
+//*
+//*       This parameter can be set to an empty value.
+//*
+//*      WLMOPT(WLM_MANAGED|SINGLE_SERVER): It tells WLM to limit the
+//*       number of server address spaces. For example, if a server
+//*       address space requires exclusive use of a resource, only a
+//*       single address space can exist. For DB2 routines, one can
+//*       set a limit of 1 address space per system if required by
+//*       the routine. Note that if there are multiple DB2 subsystems
+//*       on a given system, WLM will create 1 server for each DB2
+//*       subsystem that calls the routines. A limit of 1 address
+//*       space per sysplex does not apply to DB2 routines. This
+//*       parameter can be set to an empty value and will default to
+//*       WLM_MANAGED.
+//*
+//* If the action specified is REMOVE, REMOVE_IF_EXISTS,
+//* REMOVE_ACTIVATE, or REMIFEXISTS_ACTIVATE, additional input is
+//* required from SYSIN to provide details on the WLM application
+//* environment to be removed.
+//*
+//*   SYSIN PARAMETERS
+//*
+//*   The additional information required to remove a WLM application
+//*   environment can be entered from the SYSIN DD statement.
+//*   The following parameter is supported under
+//*   SYSIN DD:
+//*
+//*      WLMNAME(name): The defined name for an application
+//*       environment. It can be 1-32 characters long. This is a
+//*       required parameter.
+//*
+//* CHANGE LOG =
+//*   07/13/2015 Fix typo in prolog                             d178955
+//*   07/22/2015 Add REMOVE, REMOVE_IF_EXISTS,                  pi42007
+//*                  REMOVE_ACTIVATE, and REMIFEXISTS_ACTIVATE
+//*    02/15/2016 Long data set names                           PI42601
+//*
+//*********************************************************************
+//*
+//JOBLIB   DD DISP=SHR,DSN=${DSNEXIT}
+//         DD DISP=SHR,DSN=${DSNLOAD}
+//         DD DISP=SHR,DSN=${LERUN}
+//*********************************************************************
+//*   DSNWLMG: Add ${WLMENVG} WLM environment
+//*********************************************************************
+//DSNWLMG  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVG})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLMG)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENVG}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLMP: Add ${WLMENVP} WLM environment
+//*********************************************************************
+//DSNWLMP  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)',COND=(4,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVP})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLMP)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENVP}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLMU: Add ${WLMENVU} WLM environment
+//*********************************************************************
+//DSNWLMU  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)',COND=(4,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVU})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLMU)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENVU}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLM1: Add ${WLMENV1} WLM environment
+//*********************************************************************
+//DSNWLM1  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)',COND=(4,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENV1})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLM1)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENV1}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLMX: Add ${WLMENVX} WLM environment
+//*********************************************************************
+//DSNWLMX  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)',COND=(4,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVX})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLMX)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENVX}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLMJ: Add ${WLMENVJ} WLM environment
+//*********************************************************************
+//DSNWLMJ  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)',COND=(4,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVJ})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLMJ)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENVJ}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLMR: Add ${WLMENVR} WLM environment
+//*********************************************************************
+//DSNWLMR  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)',COND=(4,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVR})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLMR)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENVR}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLMD: Add ${WLMENVD} WLM environment
+//*********************************************************************
+//DSNWLMD  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)',COND=(4,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVD})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLMD)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENVD}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLMC: Add ${WLMENVC} WLM environment
+//*********************************************************************
+//DSNWLMC  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)',COND=(4,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVC})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLMC)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENVC}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLMM: Add ${WLMENVM} WLM environment
+//*********************************************************************
+//DSNWLMM  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)',COND=(4,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVM})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLMM)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENVM}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLMW: Add ${WLMENVW} WLM environment
+//*********************************************************************
+//DSNWLMW  EXEC PGM=DSNTWLMB,PARM='ACTION(ADD)',COND=(4,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+  WLMNAME(${WLMENVW})
+  DESCRIPTION(DB2-SUPPLIED WLM ENVIRONMENT)
+  PROCNAME(${GRPATTNM}WLMW)
+  STARTPARM(DB2SSN=&IWMSSNM,APPLENV='${WLMENVW}')
+  WLMOPT(WLM_MANAGED)
+/*
+//*********************************************************************
+//*   DSNWLMA: Activate service policy
+//*********************************************************************
+//DSNWLMA  EXEC PGM=DSNTWLMB,COND=(4,LT),
+// PARM='ACTION(ACTIVATE) POLICY(ACTIVE)'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD   *
+/*
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

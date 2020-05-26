@@ -1,0 +1,192 @@
+//*********************************************************************/
+//* JOB NAME = DSNTIJCL                                               */
+//*                                                                   */
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM                        */
+//*                                                                   */
+//*    Licensed Materials - Property of IBM                           */
+//*    5635-DB2                                                       */
+//*    (C) COPYRIGHT 1982, 2006 IBM Corp.  All Rights Reserved.       */
+//*                                                                   */
+//*    STATUS = Version 10                                            */
+//*                                                                   */
+//* FUNCTION = SAMPLE CLI BIND                                        */
+//*                                                                   */
+//* PSEUDOCODE =                                                      */
+//*   BINDCLI  STEP  BIND CLI DEFAULT PACKAGES AND PLAN               */
+//*                                                                   */
+//* DEPENDENCIES =                                                    */
+//*  CLI MUST BE INSTALLED                                            */
+//*                                                                   */
+//*  MEMBER DSNCLIQR CAN ONLY BE BOUND SUCCESSFULLY TO DRDA SERVERS   */
+//*  THAT SUPPORT QUERY RESULT SET SQL (I.E. DESCRIBE PROCEDURE).     */
+//*  CURRENTLY THAT IS DB2 FOR z/OS V9.                               */
+//*                                                                   */
+//* NOTES =                                                           */
+//* BEFORE RUNNING THIS JOB:                                          */
+//* - CHANGE ALL OCCURRENCES OF DSN120 TO THE PREFIX OF YOUR DB2 V10  */
+//*   for z/OS SDSNLOAD AND SDSNDBRM DATA SETS                        */
+//* - CHANGE THE SYSTEM(DSN) STATEMENT TO MATCH YOUR DB2 V10 for z/OS */
+//*   SSID                                                            */
+//*                                                                   */
+//* CLI CAN BE BOUND TO REMOTE SERVERS BY INCLUDING THE LOCATION NAME.*/
+//*                                                                   */
+//* FOR REMOTE SERVERS OTHER THAN DB2 FOR OS/390 AND Z/OS, ALSO ADD   */
+//* THE APPROPRIATE BIND PACKAGE MEMBER STATEMENTS, LISTED BELOW,     */
+//* BASED ON THE SERVER TYPE:                                         */
+//*    BIND PACKAGE (<COMMON SERVER V1 LOCATION NAME>.DSNAOCLI)  -    */
+//*     MEMBER(DSNCLIV1)                                              */
+//*    BIND PACKAGE (<AS400 LOCATION NAME>.DSNAOCLI)             -    */
+//*     MEMBER(DSNCLIAS)                                              */
+//* ALSO INCLUDE ANY ADDED PACKAGE NAMES TO THE PKLIST KEYWORD OF     */
+//* BIND PLAN STATEMENT FOLLOWING THE BIND PACKAGE STATEMENTS.        */
+//*                                                                   */
+//*                                                                   */
+//* USERS ARE REQUIRED TO BIND DSNCLINF INTO A PACKAGE ON DB2 Z/OS    */
+//* SUBSYSTEMS RUNNING WITH V8 NEW FUNCTION MODE OR ABOVE.            */
+//* THIS APPLIES TO THE  LOCAL DB2 FOR Z/OS SUBSYSTEM AS WELL AS ALL  */
+//* REMOTE DB2 FOR Z/OS SUBSYSTEMS:                                   */
+//*    BIND PACKAGE (<DB2 FOR z/OS LOCATION NAME>.DSNAOCLI)      -    */
+//*     MEMBER(DSNCLINF) CURRENTDATA(YES) ENCODING(EBCDIC)            */
+//* ALSO INCLUDE ANY ADDED PACKAGE NAMES TO THE PKLIST KEYWORD OF     */
+//* BIND PLAN STATEMENT FOLLOWING THE BIND PACKAGE STATEMENTS.        */
+//*                                                                   */
+//*                                                                   */
+//* AFTER THE APPLICATION OF PTF UQ87850, THE BINDING OF DSNCLIMS     */
+//* TO A MIXED=NO SUBSYSTEM WILL RESULT IN SQLCODE=-189:              */
+//*    DSNX200I  = BIND SQL ERROR                                     */
+//*               USING SYSADM AUTHORITY                              */
+//*               PLAN=(NOT APPLICABLE)                               */
+//*               DBRM=DSNCLIMS                                       */
+//*               STATEMENT=747                                       */
+//*               SQLCODE=-189                                        */
+//*               SQLSTATE=22522                                      */
+//*               TOKENS=65534                                        */
+//*               CSECT NAME=DSNXOOS2                                 */
+//*               RDS CODE=-840                                       */
+//* BIND WITH SQLERROR(CONTINUE) TO BYPASS THIS ERROR.  HOWEVER       */
+//* IGNORING THIS ERROR MEANS YOU WILL NOT BE ABLE TO FETCH FROM AN   */
+//* ASCII DBCLOB COLUMN USING THE SQLGETDATA() API OR THROUGH LOB     */
+//* LOCATORS UNTIL YOU DEFINE YOUR SUBSYSTEM MIXED=YES WITH VALID     */
+//* MIXED AND GRAPHIC ASCII CCSIDS, FOLLOWED BY A REBIND OF DSNCLIMS. */
+//*                                                                   */
+//* IMPORTANT PERFORMANCE RECOMMENDATION:                             */
+//*                                                                   */
+//*     THE BIND OPTION CURRENTDATA DEFAULTS TO THE VALUE NO FOR      */
+//*     DB2 FOR Z/OS VERSION 10.  IF YOU BIND THE CLI PACKAGES WITH   */
+//*     CURRENTDATA(YES), PLEASE BE AWARE THAT THIS REQUIRES DB2 TO   */
+//*     ACQUIRE PAGE OR ROW LOCKS TO ENSURE DATA CURRENCY FOR         */
+//*     READ-ONLY AND AMBIGUOUS CURSORS WHEN THE ISOLATION LEVEL CS   */
+//*     IS IN EFFECT, AS WELL AS INHIBITING BLOCK FETCHING FOR        */
+//*     DISTRIBUTED, AMBIGUOUS CURSORS.                               */
+//*                                                                   */
+//*     USING CURRENTDATA(NO) WILL REDUCE LOCK CONTENTION AND CPU     */
+//*     UTILIZATION, THEREBY INCREASING APPLICATION CONCURRENCY AND   */
+//*     IMPROVE PERFORMANCE.  IT ALSO ALLOWS BLOCK FETCHING FOR       */
+//*     DISTRIBUTED, AMBIGUOUS CURSORS.                               */
+//*                                                                   */
+//*     TO USE CURRENTDATA(NO) WITH THE ODBC DB2 Z/OS DRIVER, USE THE */
+//*     ISOLATION LEVEL CS AND DO NOT SPECIFY CURRENTDATA(YES) ON THE */
+//*     BIND PACKAGE COMMANDS FOR DBRMS DSNCLICS AND DSNCLINF.  THE   */
+//*     ISOLATION LEVEL FOR THE ODBC DRIVER IS SET BY EITHER THE      */
+//*     TXNISOLATION INITIALIZATION KEYWORD OR THE ATTRIBUTE          */
+//*     SQL_ATTR_TXN_ISOLATION ON THE CONNECTION OR STATEMENT LEVEL.  */
+//*                                                                   */
+//*                                                                   */
+//*********************************************************************/
+//JOBLIB   DD  DISP=SHR,
+//             DSN=${DSNLOAD}
+//BINDCLI  EXEC PGM=IKJEFT01,DYNAMNBR=20
+//DBRMLIB  DD DISP=SHR,
+//             DSN=${DSNDBRM}
+//SYSTSPRT DD  SYSOUT=*
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSTSIN  DD  *
+DSN SYSTEM(${MVSSNAME})
+
+ BIND PACKAGE (DSNAOCLI) MEMBER(DSNCLIC1) -
+    ENCODING(EBCDIC)
+ BIND PACKAGE (DSNAOCLI) MEMBER(DSNCLIC2) -
+    ENCODING(EBCDIC)
+ BIND PACKAGE (DSNAOCLI) MEMBER(DSNCLIF4) -
+    ENCODING(EBCDIC)
+ BIND PACKAGE (DSNAOCLI) MEMBER(DSNCLIMS) -
+    ENCODING(EBCDIC) SQLERROR(CONTINUE)
+ BIND PACKAGE (DSNAOCLI) MEMBER(DSNCLIQR) -
+    ENCODING(EBCDIC)
+ BIND PACKAGE (DSNAOCLI) MEMBER(DSNCLICR) -
+    ENCODING(EBCDIC)
+ BIND PACKAGE (DSNAOCLI) MEMBER(DSNCLINF) -
+    ENCODING(EBCDIC)
+
+ BIND PLAN(DSNACLI)                   -
+  PKLIST(DSNAOCLI.DSNCLIC1            -
+         DSNAOCLI.DSNCLIC2            -
+         DSNAOCLI.DSNCLIF4            -
+         DSNAOCLI.DSNCLIMS            -
+         DSNAOCLI.DSNCLIQR            -
+         DSNAOCLI.DSNCLICR            -
+         DSNAOCLI.DSNCLINF            )
+
+END
+/*
+//*
+//* GRANT AUTHORIZATION ON ODBC PACKAGES
+//*
+//DSNTIJG EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(4,LT)
+//SYSTSPRT DD  SYSOUT=*
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSTSIN  DD  *
+  DSN SYSTEM(${MVSSNAME})
+  RUN PROGRAM(DSNTIAD)  PLAN(DSNTIA12) +
+       LIBRARY('${RUNLIB}')
+  END
+//SYSIN    DD  *
+  SET CURRENT SQLID = '${INSSQLID}';
+  GRANT EXECUTE ON PACKAGE DSNAOCLI.DSNCLIC1
+        TO ${INSGRLST};
+  GRANT EXECUTE ON PACKAGE DSNAOCLI.DSNCLIC2
+        TO ${INSGRLST};
+  GRANT EXECUTE ON PACKAGE DSNAOCLI.DSNCLIF4
+        TO ${INSGRLST};
+  GRANT EXECUTE ON PACKAGE DSNAOCLI.DSNCLIMS
+        TO ${INSGRLST};
+  GRANT EXECUTE ON PACKAGE DSNAOCLI.DSNCLIQR
+        TO ${INSGRLST};
+  GRANT EXECUTE ON PACKAGE DSNAOCLI.DSNCLICR
+        TO ${INSGRLST};
+  GRANT EXECUTE ON PACKAGE DSNAOCLI.DSNCLINF
+        TO ${INSGRLST};
+  GRANT EXECUTE ON PLAN DSNACLI
+        TO ${INSGRLST};
+//*
+//* GENERATE THE ODBC INITIALIZATION PARMS MEMBER
+//*
+//DSNTIPM EXEC PGM=IEBUPDTE,PARM=NEW,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//SYSUT2   DD DISP=SHR,DSN=${PPROCLIB}
+//SYSIN    DD DATA
+./  ADD NAME=DSNAOINI
+; Initialization parameters for ODBC
+;
+; COMMON stanza
+[COMMON]
+MVSDEFAULTSSID=${MVSSNAME}
+;
+; SUBSYSTEM stanza for ${MVSSNAME} subsystem
+[${MVSSNAME}]
+MVSATTACHTYPE=CAF
+PLANNAME=DSNACLI
+;
+; DATA SOURCE stanza for ${DDLOC} data source
+[${DDLOC}]
+AUTOCOMMIT=0
+OPTIMIZEFORNROWS=100
+;
+; DATA SOURCE stanza for other data source
+[OTHERLOC]
+TXNISOLATION=8
+./  ENDUP
+//*

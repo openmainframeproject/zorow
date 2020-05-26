@@ -1,0 +1,288 @@
+//*********************************************************************
+//*  NAME = DSNTEJ2A
+//*
+//*  DESCRIPTIVE NAME = DB2 SAMPLE APPLICATION
+//*                     PHASE 2
+//*                     ASSEMBLER
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2016 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//*  FUNCTION = THIS JCL PERFORMS THE PHASE 2 SETUP FOR THE SAMPLE
+//*             APPLICATIONS.  IT PREPARES AND RUNS THE SAMPLE
+//*             ASSEMBLER BATCH TABLE UNLOAD PROGRAM
+//*
+//*             THIS JOB IS RUN AFTER PHASE 1.
+//*
+//*  NOTICE =
+//*    THIS SAMPLE JOB USES DB2 UTILITIES. SOME UTILITY FUNCTIONS ARE
+//*    ELEMENTS OF SEPARATELY ORDERABLE PRODUCTS.  SUCCESSFUL USE OF
+//*    A PARTICULAR SAMPLE JOB MAY BE DEPENDENT UPON THE OPTIONAL
+//*    PRODUCT BEING LICENSED AND INSTALLED IN YOUR ENVIRONMENT.
+//*
+//*  CHANGE ACTIVITY =
+//*    08/18/2014 Single-phase migration            s21938_inst1 s21938
+//*    02/15/2016 Long data set names                           PI42601
+//*    02/21/2019 Bind DSNTIAUL with REOPT(ALWAYS)              PH08438
+//*
+//*********************************************************************
+//*
+// JCLLIB ORDER=${PPROCLIB}
+//*
+//JOBLIB  DD  DSN=${DSNLOAD},DISP=SHR
+//*
+//* PRECOMPILE, ASSEMBLE, AND LINK EDIT THE UNLOAD PROGRAM
+//*
+//PREPUNL EXEC DSNHASM,MEM=DSNTIAUL,
+//      PARM.PC='HOST(ASM),DECP(${DSNHDECP}),STDSQL(NO),VERSION(AUTO)',
+//         PARM.ASM='RENT,OBJECT,NODECK',
+//         PARM.LKED='RENT,XREF,AMODE=ANY,RMODE=24'
+//PC.DBRMLIB   DD DISP=SHR,
+//         DSN=${DBRMLIB}(DSNTIAUL)
+//PC.SYSLIB    DD DSN=${DSNSAMP},
+//             DISP=SHR
+//PC.SYSIN     DD DISP=SHR,
+//         DSN=${DSNSAMP}(DSNTIAUL)
+//ASM.SYSLIB   DD
+//             DD DSN=${DSNMACS},
+//             DISP=SHR
+//             DD DSN=${DSNSAMP},
+//             DISP=SHR
+//LKED.SYSLMOD DD DISP=SHR,
+//         DSN=${RUNLIB}(DSNTIAUL)
+//LKED.SYSIN   DD *
+  INCLUDE SYSLIB(DSNELI)
+  NAME DSNTIAUL(R)
+//*
+//* BIND THE UNLOAD PROGRAM AND GRANT EXECUTE AUTHORITY
+//*
+//BINDUNL EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(4,LT)
+//DBRMLIB  DD  DSN=${DBRMLIB},
+//             DISP=SHR
+//SYSTSPRT DD  SYSOUT=*
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSTSIN  DD  *
+  DSN SYSTEM(${GRPATTNM})
+  BIND PACKAGE(DSNTIB12) MEM(DSNTIAUL) APPLCOMPAT(V12R1) +
+#if (${IVPPKOWN}!="")
+       OWNER(${IVPPKOWN}) QUALIFIER(DSN81210) +
+#end
+       REOPT(ALWAYS) +
+       CURRENTDATA(NO) ACT(REP) ISO(CS) ENCODING(EBCDIC) +
+       LIB('${DBRMLIB}')
+  BIND PLAN(DSNTIB12) PKLIST(#pf(${DDSTART})DSNTIB12.*) +
+#if (${IVPPKOWN}!="")
+       OWNER(${IVPPKOWN}) QUALIFIER(DSN81210) +
+#end
+       REOPT(ALWAYS) +
+       ACTION(REPLACE) RETAIN +
+       CURRENTDATA(NO) ISO(CS) ENCODING(EBCDIC)
+  RUN PROGRAM(DSNTIAD)  PLAN(DSNTIA12) +
+       LIB('${RUNLIB}')
+  END
+//SYSIN    DD  *
+   SET CURRENT SQLID = '${IVPSQLID}';
+   GRANT EXECUTE ON PLAN DSNTIB12
+     TO ${IVPGRLST};
+//*
+//*        DELETE DATA SETS, DROP TABLES TO ALLOW RERUNS
+//*
+//DELETE  EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(4,LT)
+//SYSTSPRT DD  SYSOUT=*
+//SYSTSIN  DD  *
+  DELETE '${INSDSPRE}.DSN8UNLD.SYSREC00'
+  DELETE '${INSDSPRE}.DSN8UNLD.SYSREC01'
+  DELETE '${INSDSPRE}.DSN8UNLD.SYSPUNCH'
+  DSN SYSTEM(${GRPATTNM})
+  RUN  PROGRAM(DSNTIAD) PLAN(DSNTIA12) PARM('RC0') -
+      LIB('${RUNLIB}')
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSIN    DD  *
+  SET CURRENT SQLID = '${IVPSQLID}';
+  DROP TABLE DSN81210.NEWDEPT ;
+  DROP TABLE DSN81210.NEWPHONE ;
+  DROP DATABASE DSN8D12U  ;
+  DROP STOGROUP DSN8G12U  ;
+  COMMIT;
+//*
+//*        CREATE NEW TABLES
+//*
+//CREATE  EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(4,LT)
+//SYSTSPRT DD  SYSOUT=*
+//SYSTSIN  DD  *
+ DSN SYSTEM(${GRPATTNM})
+ RUN  PROGRAM(DSNTIAD) PLAN(DSNTIA12) -
+      LIB('${RUNLIB}')
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSIN    DD  *
+ SET CURRENT SQLID = '${IVPSQLID}';
+ CREATE STOGROUP DSN8G12U
+        VOLUMES ("*")
+#if (${DATACLS3}=="" && ${MGMTCLS3}=="" && ${STORCLS3}=="")
+         VCAT ${VCATALOG};
+#else
+         VCAT ${VCATALOG}
+#end
+#if (${DATACLS3}!="" && ${MGMTCLS3}=="" && ${STORCLS3}=="")
+         DATACLAS ${DATACLS3};
+#elseif (${DATACLS3}!="")
+         DATACLAS ${DATACLS3}
+#end
+#if (${MGMTCLS3}!="" && ${STORCLS3}=="")
+         MGMTCLAS ${MGMTCLS3};
+#elseif (${MGMTCLS3}!="")
+         MGMTCLAS ${MGMTCLS3}
+#end
+#if (${STORCLS3}!="")
+         STORCLAS ${STORCLS3};
+#end
+
+ CREATE DATABASE DSN8D12U
+        STOGROUP DSN8G12U
+        CCSID EBCDIC;
+
+ CREATE TABLE DSN81210.NEWDEPT
+               (DEPTNO         CHAR(3)        NOT NULL,
+                DEPTNAME       VARCHAR(36)    NOT NULL,
+                MGRNO          CHAR(6)                ,
+                ADMRDEPT       CHAR(3)        NOT NULL,
+                LOCATION       CHAR(16))
+         IN DATABASE DSN8D12U
+         CCSID EBCDIC;
+
+ CREATE TABLE  DSN81210.NEWPHONE
+               (LASTNAME       VARCHAR(15)    NOT NULL,
+                FIRSTNAME      VARCHAR(12)    NOT NULL,
+                MIDDLEINITIAL  CHAR(1)        NOT NULL,
+                PHONENUMBER    CHAR(4)                ,
+                EMPLOYEENUMBER CHAR(6)        NOT NULL,
+                DEPTNUMBER     CHAR(3)        NOT NULL,
+                DEPTNAME       VARCHAR(36)    NOT NULL   )
+         IN DATABASE DSN8D12U
+         CCSID EBCDIC;
+//*
+//*        RUN UNLOAD PROGRAM
+//*
+//UNLOAD  EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(4,LT)
+//SYSTSPRT  DD  SYSOUT=*
+//SYSTSIN   DD  *
+ DSN SYSTEM(${GRPATTNM})
+ RUN  PROGRAM(DSNTIAUL) PLAN(DSNTIB12) PARMS('SQL') -
+      LIB('${RUNLIB}')
+//SYSPRINT  DD SYSOUT=*
+//SYSUDUMP  DD SYSOUT=*
+//SYSREC00  DD DSN=${INSDSPRE}.DSN8UNLD.SYSREC00,
+//             DISP=(,CATLG),
+#if (${VOLSDEVT}!="")
+//             UNIT=${VOLSDEVT},
+#end
+#if (${DATACLS2}!="")
+//             DATACLAS=${DATACLS2},
+#end
+#if (${MGMTCLS2}!="")
+//             MGMTCLAS=${MGMTCLS2},
+#end
+#if (${STORCLS2}!="")
+//             STORCLAS=${STORCLS2},
+#end
+#if (${VOLSDAT2}!="")
+//             VOL=SER=${VOLSDAT2},
+#end
+//             SPACE=(1024,(10,10))
+//SYSREC01  DD DSN=${INSDSPRE}.DSN8UNLD.SYSREC01,
+//             DISP=(,CATLG),
+#if (${VOLSDEVT}!="")
+//             UNIT=${VOLSDEVT},
+#end
+#if (${DATACLS2}!="")
+//             DATACLAS=${DATACLS2},
+#end
+#if (${MGMTCLS2}!="")
+//             MGMTCLAS=${MGMTCLS2},
+#end
+#if (${STORCLS2}!="")
+//             STORCLAS=${STORCLS2},
+#end
+#if (${VOLSDAT2}!="")
+//             VOL=SER=${VOLSDAT2},
+#end
+//             SPACE=(1024,(10,10))
+//SYSPUNCH  DD DSN=${INSDSPRE}.DSN8UNLD.SYSPUNCH,
+//             DISP=(,CATLG),
+#if (${VOLSDEVT}!="")
+//             UNIT=${VOLSDEVT},
+#end
+#if (${DATACLS2}!="")
+//             DATACLAS=${DATACLS2},
+#end
+#if (${MGMTCLS2}!="")
+//             MGMTCLAS=${MGMTCLS2},
+#end
+#if (${STORCLS2}!="")
+//             STORCLAS=${STORCLS2},
+#end
+#if (${VOLSDAT2}!="")
+//             VOL=SER=${VOLSDAT2},
+#end
+//             SPACE=(800,(15,15))
+//SYSIN     DD *
+    SET CURRENT SQLID = '${IVPSQLID}';
+    LOCK TABLE DSN81210.DEPT IN SHARE MODE;
+    SELECT * FROM DSN81210.DEPT;
+    SELECT * FROM DSN81210.VPHONE;
+//*
+//*       EDIT THE OUTPUT FROM THE PROGRAM
+//*
+//EDIT    EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=((4,LT),(4,LE,UNLOAD))
+//SYSTSPRT DD  SYSOUT=*
+//SYSTSIN  DD  *
+ EDIT '${INSDSPRE}.DSN8UNLD.SYSPUNCH' DATA NONUM
+ CHANGE * 30 /DSN81210.DEPT/DSN81210.NEWDEPT/
+ CHANGE * 30 /DSN81210.VPHONE/DSN81210.NEWPHONE/
+ TOP
+ LIST * 999
+ END SAVE
+//*
+//*        RUN LOAD UTILITY TO LOAD TABLES
+//*
+//LOAD    EXEC DSNUPROC,PARM='${MVSSNAME},DSNTEX',
+//        COND=((4,LT),(4,LE,UNLOAD))
+//DSNTRACE DD  SYSOUT=*
+//SORTLIB  DD  DSN=${SORTLIB},DISP=SHR
+//SORTWK01 DD  #unit("${TVOLDEVT}",",")SPACE=(4000,(20,20),,,ROUND)
+//SORTWK02 DD  #unit("${TVOLDEVT}",",")SPACE=(4000,(20,20),,,ROUND)
+//SORTWK03 DD  #unit("${TVOLDEVT}",",")SPACE=(4000,(20,20),,,ROUND)
+//SORTWK04 DD  #unit("${TVOLDEVT}",",")SPACE=(4000,(20,20),,,ROUND)
+//SYSREC00 DD  DSN=${INSDSPRE}.DSN8UNLD.SYSREC00,
+//             DISP=(OLD,KEEP)
+//SYSREC01 DD  DSN=${INSDSPRE}.DSN8UNLD.SYSREC01,
+//             DISP=(OLD,KEEP)
+//SYSUT1   DD  #unit("${TVOLDEVT}",",")SPACE=(4000,(20,20),,,ROUND)
+//SYSIN    DD  DSN=${INSDSPRE}.DSN8UNLD.SYSPUNCH,
+//             DISP=(OLD,KEEP)
+//*
+## Macro to get the UNIT parameter of a DD statement.
+## $device is the device type.
+## $pad is the string to be padded on the right.
+#macro(unit $devtype $pad)
+#if($devtype != "")UNIT=${devtype}${pad}#{else}#{end}
+#end
+## Macro to get the prefix of the packages in PKLIST of DSNExxxx
+## $ddstart is DDF startup option
+## return *. if $ddstart is AUTO or COMMAND
+## otherwise, return blank
+#macro(pf $ddstart)
+#if (($ddstart == "AUTO") || ($ddstart == "COMMAND"))
+*.#else#end#end
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE workflow [<!ENTITY copyright "Copyright IBM Corp., 1982,2019">
+                    <!ENTITY dsnOpEnt SYSTEM "dsnopent.xml">]>
+<workflow>
+<workflowSettingInfo>
+<variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+</workflowSettingInfo>
+<workflowInfo>
+<workflowID>Db2 Enable Optional Features</workflowID>
+<workflowDescription>Db2 Enable Optional Features</workflowDescription>
+<workflowVersion>1.0_PH19751</workflowVersion>
+<vendor>IBM</vendor>
+<Provisioning>
+<productID>5740XYR00</productID>
+<productName>Db2 for z/OS</productName>
+<productVersion>C10</productVersion>
+<softwareType>DB2zSys</softwareType>
+</Provisioning>
+</workflowInfo>
+<variable name="DSNDBRM" scope="instance">
+<label>DSNDBRM</label>
+<abstract>DBRM LIBRARY</abstract>
+<description>
+The value of the DBRM LIBRARY field identifies the name of the library where the DBRMs that are shipped with Db2 are to be placed.
+</description>
+<category>Db2 Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNEXIT" scope="instance">
+<label>DSNEXIT</label>
+<abstract>EXIT LIBRARY</abstract>
+<description>
+The value of the EXIT LIBRARY field specifies the name of the library where your DSNZPxxx module, application defaults load module (dsnhdecp), and exit routines are to be placed.
+</description>
+<category>Db2 Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNLOAD" scope="instance">
+<label>DSNLOAD</label>
+<abstract>LOAD LIBRARY</abstract>
+<description>
+The value of the LOAD LIBRARY field specifies the name of the main APF-authorized Db2 load module library that is to be used by installation and sample jobs.
+</description>
+<category>Db2 Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNLOD2" scope="instance">
+<label>DSNLOD2 </label>
+<abstract>JDBC AND SQLJ DLLS</abstract>
+<description>
+The JDBC AND SQLJ DLLS field specifies the name of the main APF-authorized DLL library for Db2 Java support. This library is used by installation and sample jobs and some of the stored procedures that are provided by Db2.
+</description>
+<category>Db2 Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNMACS" scope="instance">
+<label>DSNMACS</label>
+<abstract>MACRO LIBRARY</abstract>
+<description>
+The value of the MACRO LIBRARY field specifies the name of the macro library that is to be used by installation and sample jobs. This library contains the CICS and IMS attachment facility macros, the initialization parameter macros, and some data-mapping macros that are needed for some applications.
+</description>
+<category>Db2 Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DSNSAMP" scope="instance">
+<label>DSNSAMP</label>
+<abstract>SAMPLE LIBRARY - prefix.SDSNSAMP</abstract>
+<description>
+The value of the SAMPLE LIBRARY - prefix.SDSNSAMP variable specifies the name of the JCL library which is used by sample and installation jobs.
+</description>
+<category>Db2 Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="RUNLIB" scope="instance">
+<label>RUNLIB</label>
+<abstract>APPLICATION LOAD</abstract>
+<description>
+The value of the APPLICATION LOAD field specifies the name of the Db2 sample application load module library.
+</description>
+<category>Db2 Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="AGEXECID" scope="instance">
+<label>AGEXECID</label>
+<abstract>PROVISION EXEC ID</abstract>
+<description>
+The default ID for executing steps in a provisioning workflow.
+</description>
+<category>Db2 Provisioning</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="AGFMRID" scope="instance" visibility="private">
+<label>AGFMRID</label>
+<abstract>DSG Originating Member Registry ID</abstract>
+<description>
+Registry ID of the originating member of a data sharing group.
+</description>
+<category>Db2 Provisioning</category>
+<string valueMustBeChoice="false" multiLine="false">
+<minLength>1</minLength>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="AGFMRIN" scope="instance" visibility="public">
+<label>AGFMRIN</label>
+<abstract>DSG Originating Member Registry Instance Name</abstract>
+<description>
+Registry instance name of the originating member of a data sharing group.
+</description>
+<category>Db2 Provisioning</category>
+<string valueMustBeChoice="false" multiLine="false">
+<minLength>1</minLength>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="AGGROUP" scope="instance" visibility="private">
+<label>AGGROUP</label>
+<abstract>DSG ORIGINATING MEMBER OR NON-DS SUBSYSTEM</abstract>
+<description>
+Whether this is the originating member of a Db2 data sharin group or a non-data sharing Db2 subsystem. <br/>
+Acceptable values: true | false
+</description>
+<category>Db2 Provisioning</category>
+<boolean/>
+</variable>
+<variable name="AGJDBC" scope="instance" visibility="public">
+<label>AGJDBC</label>
+<abstract>ENABLE JDBC</abstract>
+<description>
+Whether to enable JDBC and run verification steps: true | false  -- Default false
+</description>
+<category>Db2 Provisioning</category>
+<boolean>
+<default>false</default>
+</boolean>
+</variable>
+<variable name="AGODBC" scope="instance" visibility="public">
+<label>AGODBC</label>
+<abstract>ENABLE ODBC</abstract>
+<description>
+Whether to enable ODBC and run verification steps: true | false  -- Default false
+</description>
+<category>Db2 Provisioning</category>
+<boolean>
+<default>false</default>
+</boolean>
+</variable>
+<variable name="AGREST" scope="instance" visibility="public">
+<label>AGREST</label>
+<abstract>ENABLE DB2 REST SERVICES</abstract>
+<description>
+Whether to enable Db2 REST services: true | false  -- Default false
+</description>
+<category>Db2 Provisioning</category>
+<boolean>
+<default>false</default>
+</boolean>
+</variable>
+<variable name="ENACJDBC" scope="instance" visibility="private">
+<label>ENACJDBC</label>
+<abstract>JDBC ENABLED IN CURRENT WORKFLOW</abstract>
+<description>
+Whether JDBC is enabled in current workflow: true | false  -- Default false
+</description>
+<category>Db2 Provisioning</category>
+<string valueMustBeChoice="false" multiLine="false">
+<minLength>1</minLength>
+<maxLength>1000000</maxLength>
+<default>false</default>
+</string>
+</variable>
+<variable name="ENACODBC" scope="instance" visibility="private">
+<label>ENACODBC</label>
+<abstract>ODBC ENABLED IN CURRENT WORKFLOW</abstract>
+<description>
+Whether ODBC is enabled in current workflow: true | false  -- Default false
+</description>
+<category>Db2 Provisioning</category>
+<string valueMustBeChoice="false" multiLine="false">
+<minLength>1</minLength>
+<maxLength>1000000</maxLength>
+<default>false</default>
+</string>
+</variable>
+<variable name="ENACREST" scope="instance" visibility="private">
+<label>ENACREST</label>
+<abstract>DB2 REST SERVICES ENABLED IN CURRENT WORKFLOW</abstract>
+<description>
+Whether Db2 REST services is enabled in current workflow: true | false  -- Default false
+</description>
+<category>Db2 Provisioning</category>
+<string valueMustBeChoice="false" multiLine="false">
+<minLength>1</minLength>
+<maxLength>1000000</maxLength>
+<default>false</default>
+</string>
+</variable>
+<variable name="ENAJDBC" scope="instance" visibility="public">
+<label>ENAJDBC</label>
+<abstract>JDBC IS ENABLED</abstract>
+<description>
+Whether JDBC is already enabled: true | false  -- Default false
+</description>
+<category>Db2 Provisioning</category>
+<string/>
+</variable>
+<variable name="ENAODBC" scope="instance" visibility="public">
+<label>ENAODBC</label>
+<abstract>ODBC IS ENABLED</abstract>
+<description>
+Whether ODBC is already enabled: true | false  -- Default false
+</description>
+<category>Db2 Provisioning</category>
+<string/>
+</variable>
+<variable name="ENAREST" scope="instance" visibility="public">
+<label>ENAREST</label>
+<abstract>DB2 REST SERVICES ENABLED</abstract>
+<description>
+Whether Db2 REST services is already enabled: true | false  -- Default false
+</description>
+<category>Db2 Provisioning</category>
+<string/>
+</variable>
+<variable name="PPROCLIB" scope="instance">
+<label>PPROCLIB</label>
+<abstract>PRIVATE SYSTEM PROCEDURES</abstract>
+<description>
+The PRIVATE SYSTEM PROCEDURES field specifies the data set name of the provisioned Db2 system program preparation and utilities invocation JCL procedures.
+</description>
+<category>Db2 Provisioning</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="APCO" scope="instance">
+<label>APCO</label>
+<abstract>APPL COMPAT LEVEL</abstract>
+<description>
+The APPL COMPAT LEVEL field specifies the default release level value of the APPLCOMPAT BIND and REBIND option.
+</description>
+<category>Function Level</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="CLASPATH" scope="instance">
+<label>CLASPATH</label>
+<abstract>Z/OS USS JAVA CLASSES</abstract>
+<description>
+The Z/OS USS JAVA CLASSES field specifies the absolute path of the HFS/zFS directory that contains jar files provided by z/OS Unix System Services (z/OS Unix). Verify that this directory contains the jar files gxljapi.jar (z/OS XML System Services XML schema registration) and IRRRacf.jar (Java interface to the system security product). This directory is provided by z/OS and is referenced by the CLASSPATH variable in the file specified in the JAVA ENV VAR FILE field.
+</description>
+<category>Java</category>
+<string>
+<maxLength>47</maxLength>
+</string>
+</variable>
+<variable name="DB2BASE" scope="instance">
+<label>DB2BASE</label>
+<abstract>DB2 BASE JAVA DIR</abstract>
+<description>
+The DB2 BASE JAVA DIR field specifies the absolute path of the highest-level directory in the set of HFS/zFS directories that contain the Db2 for z/OS-supplied Java classes, native methods (DLLs), and samples. This directory and its subdirectories are typically managed by SMP/E. It is referenced by the DB2_BASE variable in the file specified in the JAVA ENV VAR FILE field.  Within the directory specified here, the subdirectories classes (contains the Db2 base-supplied jar files), lib (contains the Db2 base-supplied DLLs), and samples (contains the Db2 base-supplied sample objects) are used for Db2 configuration.
+</description>
+<category>Java</category>
+<string>
+<maxLength>47</maxLength>
+</string>
+</variable>
+<variable name="JAVAHOME" scope="instance">
+<label>JAVAHOME</label>
+<abstract>Z/OS SDK HOME DIR</abstract>
+<description>
+The Z/OS SDK HOME DIR field specifies the absolute path of the HFS/zFS directory where the z/OS Java Software Development Kit (SDK) resides. This directory is provided by z/OS and is referenced by the JAVA_HOME variable in the file specified in the JAVA ENV VAR FILE field.
+</description>
+<category>Java</category>
+<string>
+<maxLength>47</maxLength>
+</string>
+</variable>
+<variable name="JCCHOME" scope="instance">
+<label>JCCHOME</label>
+<abstract>JDBC/SQLJ ENV VAR DIR</abstract>
+<description>
+The JDBC/SQLJ ENV VAR DIR field specifies the absolute path of the highest-level directory in the set of HFS/zFS directories that contain the classes and other objects for the IBM Data Server Driver for JDBC and SQLJ. This directory and its subdirectories are typically managed by SMP/E. It is referenced by the JCC_HOME variable in the file specified in the JAVA ENV VAR FILE field. Within the directory specified here, the subdirectories bin (contains the runtime objects for the IBM Data Server Driver for JDBC and SQLJ), classes (contains the jar files for the IBM Data Server Driver for JDBC and SQLJ), and lib (contains the DLLs for the IBM Data Server Driver for JDBC and SQLJ) are used for Db2 configuration. This directory set exists only if you have received and applied JDBCC12, the FMID for Db2 12 JDBC/SQLJ.
+</description>
+<category>Java</category>
+<string>
+<maxLength>47</maxLength>
+</string>
+</variable>
+<variable name="JCCSID" scope="instance">
+<label>JCCSID</label>
+<abstract>JDBC/SQLJ INSTALL ID</abstract>
+<description>
+The ID for connecting to Db2 using a secure signon and a RACF PassTicket for authentication.  The ID will be used for binding the IBM Data Server Driver for JDBC and SQLJ and for running an installation verification procedure (IVP) to validate that JDBC and SQLJ are deployed correctly on Db2 after provisioning.
+</description>
+<category>Java</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="CCOMP" scope="instance">
+<label>CCOMP</label>
+<abstract>C/CPP COMPILER LIBRARY</abstract>
+<description>
+The C/CPP COMPILER LIBRARY FIELD specifies the name of the compiler library that is to be used for C/C++ or C/370.
+</description>
+<category>Other Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="CPPAUTCL" scope="instance">
+<label>CPPAUTCL</label>
+<abstract>CPP AUTO CALL LIBRARY</abstract>
+<description>
+The value of the CPP AUTO CALL LIBRARY field specifies the data set name of the C++ auto call library.
+</description>
+<category>Other Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="LELKED" scope="instance">
+<label>LELKED</label>
+<abstract>IBM LE LINK EDIT LIB</abstract>
+<description>
+The IBM LE LINK EDIT LIB field identifies the name of the IBM Language Environment linkage editor library that sample and installation jobs are to use.
+</description>
+<category>Other Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="LEPLMSGL" scope="instance">
+<label>LEPLMSGL</label>
+<abstract>IBM LE PRELINK MSG LIB</abstract>
+<description>
+The IBM LE PRELINK MSG LIB field identifies the data set name for messages that are to be issued by the IBM Language Environment pre-linkage editor (EDCPRLK).
+</description>
+<category>Other Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="LERUN" scope="instance">
+<label>LERUN</label>
+<abstract>IBM LE RUNTIME LIBRARY</abstract>
+<description>
+The IBM LE RUNTIME LIBRARY field identifies the name of the IBM Language Environment dynamic run time library that is to be used by sample and installation jobs.
+</description>
+<category>Other Data Sets and Libraries</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="DDLOC" scope="instance">
+<label>DDLOC</label>
+<abstract>DB2 LOCATION NAME</abstract>
+<description>
+The value of the DB2 LOCATION NAME field specifies the unique name that requesters are to use to connect to this Db2 subsystem. The value of the DB2 LOCATION NAME field must be the same on all members within a Db2 data sharing group.
+</description>
+<category>Others</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="INSGRLST" scope="instance">
+<label>INSGRLST</label>
+<abstract>INSTALL GRANTEE(S)</abstract>
+<description>
+The INSTALL GRANTEE(S) field specifies the authorization IDs that are to be granted access to objects that are created and bound by most installation and sample jobs.
+</description>
+<category>Others</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="INSSQLID" scope="instance">
+<label>INSSQLID</label>
+<abstract>INSTALL SQL ID</abstract>
+<description>
+The INSTALL SQL ID field specifies the CURRENT SQLID setting that is to be used when SQL is processed by most Db2 installation and sample jobs.
+</description>
+<category>Others</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="IPNAME" scope="instance">
+<label>IPNAME</label>
+<abstract>DB2 TCP/IP IPNAME</abstract>
+<description>
+The value of the DB2 TCP/IP IPNAME field identifies and associates an IPNAME value with DDF. When you specify this option, DDF activates only its TCP/IP communications support, regardless of whether or not there is a value for DB2 VTAM LUNAME. Only inbound and outbound DRDA protocol communications over TCP/IP are allowed. Db2 makes no attempt to activate SNA/APPC communications support.
+</description>
+<category>Others</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="TCPPORT" scope="instance">
+<label>TCPPORT</label>
+<abstract>TCP/IP PORT</abstract>
+<description>
+The value of the TCP/IP PORT field determines the TCP/IP port number that is to be used for accepting TCP/IP connection requests from remote DRDA clients and REST services.
+</description>
+<category>Others</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="TVOLDEVT" scope="instance">
+<label>TVOLDEVT</label>
+<abstract>TEMPORARY UNIT NAME</abstract>
+<description>
+The value of the TEMPORARY UNIT NAME field specifies the device type or unit name that is to be used for allocating temporary data sets.
+</description>
+<category>Storage</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="MVSSNAME" scope="instance">
+<label>MVSSNAME</label>
+<abstract>SUBSYSTEM NAME</abstract>
+<description>
+The SUBSYSTEM NAME field specifies the z/OS subsystem name for Db2.
+</description>
+<category>ZPARMS</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<variable name="PROTADMN" scope="instance">
+<label>PROTADMN</label>
+<abstract>SYSTEM ADMIN 1</abstract>
+<description>
+The SYSADM subsystem parameter specifies the first of two authorization IDs that are to have installation SYSADM authority.
+</description>
+<category>ZPARMS</category>
+<string>
+<maxLength>40</maxLength>
+</string>
+</variable>
+<atCreate name="AGREST" scope="instance" required="false" prompt="true"/>
+<atCreate name="AGODBC" scope="instance" required="false" prompt="true"/>
+<atCreate name="AGJDBC" scope="instance" required="false" prompt="true"/>
+&dsnOpEnt;
+</workflow>

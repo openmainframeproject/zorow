@@ -1,0 +1,186 @@
+//*********************************************************************
+//* JOB NAME = DSNTIJUM
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2017 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//* FUNCTION = DSNHMCID UPDATES
+//*
+//* PSEUDOCODE =
+//*   DSNTCIDA STEP  ASSEMBLE DSNHMCID DATA-ONLY LOAD MODULE
+//*   DSNTCIDE STEP  LINK EDIT DSNHMCID LOAD MODULE INTO SDSNEXIT
+//*   DSNTCIDL STEP  LINK EDIT DSNHMCID LOAD MODULE INTO SDSNLOAD
+//*
+//* Change activity =
+//*   08/07/2017 Split up DSNTIJUZ                     s64075 / PI85767
+//*               - DSNTIJUZ: For DSNZPARM
+//*               - DSNTIJUA: For DSNHDECP
+//*               - DSNTIJUM: For DSNHMCID
+//*               - DSNTIJUL: For BSDS / Change log inventory
+//*   06/21/2018 Remove references to ADSNLOAD           PI98672/s77957
+//*   02/03/2020 Avoid GIM40501E in DSNTIMQ              PH20105
+//*
+//*********************************************************************
+//*
+//*********************************************************************
+//* ASSEMBLE DATA-ONLY LOAD MODULE DSNHMCID
+//*********************************************************************
+//DSNTCIDA EXEC PGM=ASMA90,PARM='OBJECT,NODECK',COND=(4,LT)
+#if(${ASMLIB} != "")
+//STEPLIB DD DSN=${ASMLIB},DISP=SHR
+#end
+//SYSLIB   DD  DISP=SHR,
+//             DSN=${DSNMACS}
+//SYSLIN   DD  DSN=&&LOADSET(DSNHMCIA),
+//             DISP=(NEW,PASS),
+//             #getUnit("${TVOLDEVT}")SPACE=(80,(50,50,2)),
+//             DCB=(BLKSIZE=80)
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSUT1   DD  #getUnit("${TVOLDEVT}")SPACE=(800,(50,50),,,ROUND)
+//SYSUT2   DD  #getUnit("${TVOLDEVT}")SPACE=(800,(50,50),,,ROUND)
+//SYSUT3   DD  #getUnit("${TVOLDEVT}")SPACE=(800,(50,50),,,ROUND)
+//SYSIN    DD  *
+#formatLine("    DSNHMCIM   SCCSID=${SCCSID},",
+            71,15,false,"X")
+#formatLine("               MCCSID=${MCCSID},",
+            71,15,false,"X")
+#formatLine("               GCCSID=${GCCSID},",
+            71,15,false,"X")
+#formatLine("               MIXED=${DEFMIXED}",
+            71,15,true,"X")
+     END
+//*
+//*********************************************************************
+//* LINK EDIT DSNHMCID AND PUT MODULE IN SDSNEXIT
+//*********************************************************************
+//DSNTCIDE EXEC PGM=IEWL,PARM='LIST,XREF,RENT',
+//             COND=(4,LT)
+//DSNLOAD  DD  DISP=SHR,
+//         DSN=${DSNEXIT}
+//         DD  DISP=SHR,
+//         DSN=${DSNLOAD}
+//SYSPUNCH DD  DSN=&&LOADSET(DSNHMCIA),DISP=(OLD,PASS)
+//SYSLMOD  DD  DISP=SHR,
+//         DSN=${DSNEXIT}
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSUT1   DD  #getUnit("${TVOLDEVT}")SPACE=(1024,(50,50))
+//SYSLIN   DD  *
+   INCLUDE SYSPUNCH(DSNHMCIA)
+   ORDER   DSNAA
+   INCLUDE DSNLOAD(DSNAA)
+   ENTRY   DSNHMCID
+   MODE    AMODE(24),RMODE(24)
+   NAME    DSNHMCID(R)
+//*
+//*********************************************************************
+//* LINK EDIT DSNHMCID AND PUT MODULE IN SDSNLOAD
+//*   DSNHMCID IS A DATA-ONLY LOAD MODULE REQUIRED FOR MESSAGE TOKEN
+//*   TRANSLATION BY DB2 UTILITIES AND ATTACHES.  IF YOU CANNOT PUT
+//*   DSNHMCID IN SDSNLOAD, YOU NEED TO STEPLIB OR JOBLIB ALL DB2
+//*   APPLICATION JOBS AND TASKS TO SDSNEXIT
+//*********************************************************************
+//DSNTCIDL EXEC PGM=IEWL,PARM='LIST,XREF,RENT',
+//             COND=(4,LT)
+//DSNLOAD  DD  DISP=SHR,
+//         DSN=${DSNEXIT}
+//         DD  DISP=SHR,
+//         DSN=${DSNLOAD}
+//SYSPUNCH DD  DSN=&&LOADSET(DSNHMCIA),DISP=(OLD,DELETE)
+//SYSLMOD  DD  DISP=SHR,
+//         DSN=${DSNLOAD}
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSUT1   DD  #getUnit("${TVOLDEVT}")SPACE=(1024,(50,50))
+//SYSLIN   DD  *
+   INCLUDE SYSPUNCH(DSNHMCIA)
+   ORDER   DSNAA
+   INCLUDE DSNLOAD(DSNAA)
+   ENTRY   DSNHMCID
+   MODE    AMODE(24),RMODE(24)
+   NAME    DSNHMCID(R)
+//*
+## Macro to pad a string with spaces to the right.
+## $str is the string to be padded.
+## $len is the length to which the string will be padded.
+#macro(pbr $var $len)
+#set ($plen = $len - $var.length())
+#set ($b = "                                        ")
+#set ($b = "$b                                      ")
+#if ($plen > 0)$var$b.substring(0,$plen)#else$var#end
+#end
+## Macro to get the UNIT parameter of a DD statement.
+## $device is the device type.
+#macro(getUnit $devtype)
+#if($devtype != "")UNIT=${devtype},#else#end
+#end
+## Macro to get the SYSLIN member used in assemblingDSNZPARM.
+## $dsnzparm is the name of the subsystem parametermodule.
+#macro(getLmm $dsnzparm)
+#set ($len = $dsnzparm.length() - 1)
+#if ($len >= 0)DSNTILM$dsnzparm.substring($len)#end
+#end
+## Macro to get the port number.
+## $port is the input port number in String.
+#macro(getPort $port)
+#set ($zero=0)
+#if($port != "")${port}#else${zero}#end
+#end
+## Macro to wrap trace with parentheses if needed.
+## $trace indicates whether the input to trace classes isa list.
+#macro(getTrace $trace)
+#if ($trace == "YES" || $trace == "NO" || $trace == "*")
+$trace#else($trace)#end
+#end
+## Macro to format a line and ensure continuation char atcolumn 72.
+## $line is the statement to be formatted.
+## $len is the maximum length of a line.
+## $indent is the length of the indentation.
+## $isLastLine indicates if the statement is the last oneof a group of
+## parameters. The last one does not need thecontinuation character.
+## $suffix is the continuation character.
+#macro(formatLine $line $len $indent $isLastLine $suffix)
+#if($line.length() <= $len)
+#if($isLastLine)
+$line.format("%-${len}s", $line)
+#else
+$line.format("%-${len}s", $line)$!{suffix}
+#end
+#else
+#makeIndent("$line", $len, $indent, $isLastLine,"$!{suffix}")
+#end
+#end
+## Macro to handle indentation if JCL statement does notfit in 71 chars
+## $line is the statement to be formatted
+## $len is the maximum length of a line.
+## $indent is the length of the indentation.
+## $isLastLine indicates if the statement is the last oneof a group of
+## parameters. The last one does not need thecontinuation character.
+## $suffix is the continuation character.
+#macro(makeIndent $line $len $indent $isLastLine $suffix)
+$line.substring(0, ${len})$suffix
+#set ($left = $line.substring(${len}))
+#set ($size = $indent + $left.length())
+#set ($left = $left.format("%${size}s", $left))
+#if($left.length() <= $len)
+#if($isLastLine)
+$line.format("%-${len}s", $left)
+#else
+$line.format("%-${len}s", $left)$suffix
+#end
+#else
+#makeIndent("$left", $len, $indent, $isLastLine,"$suffix")
+#end
+#end
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

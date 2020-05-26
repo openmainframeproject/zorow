@@ -1,0 +1,135 @@
+//*********************************************************************
+//* JOB NAME = DSNTAJID
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5605-DB2
+//*    (C) COPYRIGHT 1982, 2010 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 10
+//*
+//* FUNCTION = INITIALIZE DB2 CATALOG AND DIRECTORY DATASETS
+//*
+//* PSEUDOCODE =
+//*   DSNTLG   PROC      FOR PREFORMATTING ACTIVE LOGS
+//*   DSNTLOG  STEP      INVOKES CHANGE LOG TO NOTE LOGS
+//*   DSNLG..  STEPS     PREFORMAT EACH ACTIVE LOG
+//*
+//* NOTES =
+//*   DSNTIJID IS THE FIRST OF THREE JOBS FOR INITIALIZING THE DB2
+//*   CATALOG AND DIRECTORY:
+//*   (1) DSNTIJID: RECORD ACTIVE LOGS IN THE BSDS, PREFORMAT ACTIVE
+//*                 LOG DATA SETS, AND INITIALIZE THE DB2 DIRECTORY.
+//*   (2) DSNTIJIE: INITIALIZE THE DB2 CATALOG
+//*   (3) DSNTIJIF: INITIALIZE THE DB2 CATALOG (CONTINUED)
+//*
+//*   RUN ALL THREE JOBS PRIOR TO STARTING A NEW DB2 SUBSYSTEM OR THE
+//*   FIRST MEMBER OF A DATA SHARING GROUP.  WHEN INSTALLING SUBSEQUENT
+//*   MEMBERS OF A DATA SHARING GROUP, RUN ONLY DSNTIJID AS TAILORED
+//*   FOR THAT MEMBER.
+//*
+//* Change activity =
+//*   04/09/2018 Define a dedicated ICF catalog and              s76538
+//*              alias for Db2 BSDS and active log data sets
+//*
+//*********************************************************************
+//JOBLIB  DD  DISP=SHR,
+//            DSN=${DSNLOAD}
+//*
+//*********************************************************************
+//* DSNTLG: PROC FOR PREFORMATTING ACTIVE LOGS
+//*********************************************************************
+//DSNTLG  PROC LOG=XXXXXXXX
+//DSNTLG  EXEC PGM=DSNJLOGF
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSUT1   DD  DSN=&LOG,
+//             DISP=SHR
+//DSNTLG  PEND
+//*
+//*********************************************************************
+//* DSNTLOG: INVOKES CHANGE LOG TO NOTE LOGS
+//*********************************************************************
+//DSNTLOG EXEC PGM=DSNJU003
+//SYSUT1   DD  DISP=OLD,DSN=${BSDSNAM1}
+//SYSUT2   DD  DISP=OLD,DSN=${BSDSNAM2}
+//SYSPRINT DD  SYSOUT=*
+//SYSUDUMP DD  SYSOUT=*
+//SYSIN    DD  *
+ NEWCAT VSAMCAT=${VCATALOG}
+#set ($Integer = 0)
+#set ($lg = $Integer.parseInt(${LOGSNUM}))
+#foreach($num in [1..$lg])
+NEWLOG DSNAME=${LOGSPRE1}.DS#p0l($num),COPY1
+#if (${LOGSTWO} == "YES")
+NEWLOG DSNAME=${LOGSPRE2}.DS#p0l($num),COPY2
+#end
+#end
+//*
+//*********************************************************************
+//* DSNTLG..: PREFORMAT EACH ACTIVE LOG
+//*********************************************************************
+#set ($Integer = 0)
+#set ($lg = $Integer.parseInt(${LOGSNUM}))
+#set ($suf = 1)
+#foreach($num in [1..$lg])
+//DSNLG$suf  EXEC DSNTLG,LOG=${LOGSPRE1}.DS#p0l($num)${B}
+#set ($suf = $suf + 1)
+#if (${LOGSTWO} == "YES")
+//DSNLG$suf  EXEC DSNTLG,LOG=${LOGSPRE2}.DS#p0l($num)${B}
+#set ($suf = $suf + 1)
+#end
+#end
+//*
+## Macro to pad a string with spaces to the left
+## $str is the string to be padded
+## $len is the length to which the string will be padded
+#macro (pbl $str $len)
+#set ($plen = $len - $str.length())
+#set ($b = "                                        ")
+#set ($b = "$b                                      ")
+#if ($plen > 0)
+$b.substring(0,$plen)$str
+#else$str
+#end
+#end
+## Macro to pad a number with zeroes to the left
+## $num is the number to be padded
+#macro (p0l $num)
+#if ($num<=9)
+0$num#else$num#end
+#end
+## Macro to get the value to replace DSNT08
+## $dsvci is VARY DS CONTROL INTERVAL
+## return DSNT08 if $dsvci is YES
+## return DSNTIS if $dsvci is NO
+#macro (rp08 $dsvci)
+#if ($dsvci == "NO")
+DSNTIS#else
+DSNT08#end
+#end
+## Macro to get the value to replace DSNT16
+## $dsvci is VARY DS CONTROL INTERVAL
+## return DSNT16 if $dsvci is YES
+## return DSNTIS if $dsvci is NO
+#macro (rp16 $dsvci)
+#if ($dsvci == "NO")
+DSNTIS#else
+DSNT16#end
+#end
+## Macro to get the value to replace DSNT32
+## $dsvci is VARY DS CONTROL INTERVAL
+## return DSNT08 if $dsvci is YES
+## return DSNTIS if $dsvci is NO
+#macro (rp32 $dsvci)
+#if ($dsvci == "NO")
+DSNTIS#else
+DSNT32#end
+#end
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

@@ -1,0 +1,226 @@
+//*********************************************************************
+//* JOB NAME = DSNTAJIN
+//*
+//* DESCRIPTIVE NAME = INSTALLATION JOB STREAM
+//*
+//*    Licensed Materials - Property of IBM
+//*    5650-DB2
+//*    (C) COPYRIGHT 1982, 2016 IBM Corp.  All Rights Reserved.
+//*
+//*    STATUS = Version 12
+//*
+//* FUNCTION = DEFINE DB2 DATA SETS
+//*
+//* PSEUDOCODE =
+//*   DSNTIC   PROC      FOR INVOKING AMS
+//*   DSNTDBL  STEP      DEFINES BOOTSTRAP DATA SETS
+//*                          AND ACTIVE LOG DATA SETS
+//*   DSNTILC  STEP      LIST THE CATALOG ENTRIES
+//*
+//* NOTES =
+//*   1. THE INSTALL CLIST SHOULD DO MOST OF THE WORK,
+//*      BUT THE INSTALLER MAY INSPECT THE AMS COMMANDS AND
+//*      JCL  AND EDIT THEM WHERE NECESSARY
+//*      TO FIT LOCAL SITE REQUIREMENTS.
+//*   2. DSNAMES, CONTROL INTERVAL SIZE, RECORDSIZE,
+//*      LINEAR, NONORDERED, AND SHAREOPTIONS
+//*      MUST NOT BE CHANGED FOR DIRECTORY AND CATALOG DATA.
+//*   3. MANY PARAMETERS DO NOT APPLY, INCLUDING SPANNED,
+//*      EXCEPTIONEXIT, SPEED, BUFFERSPACE, AND
+//*      WRITECHECK FOR DIRECTORY AND CATALOG DATA.
+//*   4. DATA SET SIZES MAY BE CHANGED.
+//*   5. DATA SETS FOR THE DB2 CATALOG AND DIRECTORY MUST BE
+//*      SMS-MANAGED, AND BELONG TO A DFSMS DATA CLASS THAT IS
+//*      DEFINED WITH THE EXTENDED ADDRESSABILITY ATTRIBUTE.
+//*      OTHER DB2 SUBSYSTEM DATA SETS SUCH AS LOGS AND THE BSDS
+//*      DO NOT NEED TO BE MANAGED BY DFSMS.
+//*   6. FOR MIGRATION, DB2 DEFINES ITS OWN VSAM CLUSTERS FOR THE DB2
+//*      CATALOG AND DIRECTORY.  THEREFORE, IF YOU ARE MIGRATING TO
+//*      THIS RELEASE OF DB2, DO NOT RUN JOB STEPS AFTER DSNTNOV.
+//*
+//* CHANGE ACTIVITY =
+//*   07/28/2015 Modify BSDS RECSZ and CI sizes           179248 dp1888
+//*   07/30/2015 DB2 12 catalog initialization changes    179293 N19644
+//*              Add DSNOVX04
+//*              Add DSNOYX04
+//*              Add SYSTSDQY + DSNDQX01 + DSNDQX02
+//*                           + DSNDQX11
+//*                  SYSTSDQT + DSNDQX06
+//*                  SYSTSDQS + DSNDQX07
+//*                  SYSTSDQE + DSNDQX08
+//*                  SYSTSDQH + DSNDQX09
+//*                  SYSTSDQO + DSNDQX10
+//*                  SYSTSDQD + DSNDQX03 + DSNDQX04
+//*                           + DSNDQX05 + DSNDQX12
+//*   11/03/2015 DB2 12 catalog init changes part 2       179293 N19644
+//*              Add DSNDCX06                       s24922_inst1 s24922
+//*                  SYSTSICO
+//*                  SYSTSSES + DSNSNX02
+//*                  SYSTSSNL + DSNSNX01
+//*                  SYSTSSNX + DSNSNX04 + DSNSNX05
+//*                  SYSTSSXL + DSNSNX03
+//*                  SYSTSSTA + DSNSNX06
+//*              Mod DSNOYX04 to DSNQYX04
+//*   02/11/2016 32KB CI size for SYSTSSES                       182687
+//*   07/01/2016 Support for CD catalog updates                  184402
+//*              Add SYSTSLVH + DSNLVX01 + DSNLVX02
+//*   04/09/2018 Define a dedicated ICF catalog and              s76538
+//*              alias for Db2 BSDS and active log data sets
+//*
+//*********************************************************************
+//*
+//DSNTIC  PROC
+//* *******************************************************************
+//* DIRECTORY/CATALOG AMS INVOCATION INSTREAM JCL PROCEDURE
+//* *******************************************************************
+//DSNTIC  EXEC PGM=IDCAMS,COND=(2,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//DSNTIC  PEND
+//*
+//DSNTDBL EXEC DSNTIC
+//SYSIN    DD  *
+   DEFINE CLUSTER                             -
+         ( NAME(${BSDSNAM1})               -
+#if (${DATACLS7} != "")
+           DATACLAS(${DATACLS7})     -
+#end
+#if (${MGMTCLS7} != "")
+           MGMTCLAS(${MGMTCLS7})     -
+#end
+#if (${STORCLS7} != "")
+           STORCLAS(${STORCLS7})     -
+#end
+#if (${VOLSDAT7} != "")
+           VOLUMES(${VOLSDAT7})      -
+#end
+           REUSE                              -
+           SHAREOPTIONS(2 3) )                -
+      DATA                                    -
+         ( NAME(${BSDSNAM1}.DATA)          -
+           MEGABYTES(15 1)                    -
+           RECORDSIZE(8185 8185)              -
+           CONTROLINTERVALSIZE(8192)          -
+           FREESPACE(0 20)                    -
+           KEYS(4 0) )                        -
+      INDEX                                   -
+         ( NAME(${BSDSNAM1}.INDEX)         -
+           KILOBYTES(352 264)                 -
+           CONTROLINTERVALSIZE(4096) )   CATALOG(${VBSDSLOG})
+
+   DEFINE CLUSTER                             -
+         ( NAME(${BSDSNAM2})               -
+#if (${DATACLS6} != "")
+           DATACLAS(${DATACLS6})     -
+#end
+#if (${MGMTCLS6} != "")
+           MGMTCLAS(${MGMTCLS6})     -
+#end
+#if (${STORCLS6} != "")
+           STORCLAS(${STORCLS6})     -
+#end
+#if (${VOLSDAT6} != "")
+           VOLUMES(${VOLSDAT6})      -
+#end
+           REUSE                              -
+           SHAREOPTIONS(2 3) )                -
+      DATA                                    -
+         ( NAME(${BSDSNAM2}.DATA)          -
+           MEGABYTES(15 1)                    -
+           RECORDSIZE(8185 8185)              -
+           CONTROLINTERVALSIZE(8192)          -
+           FREESPACE(0 20)                    -
+           KEYS(4 0) )                        -
+      INDEX                                   -
+         ( NAME(${BSDSNAM2}.INDEX)         -
+           KILOBYTES(352 264)                 -
+           CONTROLINTERVALSIZE(4096) )   CATALOG(${VBSDSLOG})
+
+#set ($Integer = 0)
+#set ($lg = $Integer.parseInt(${LOGSNUM}))
+#foreach($num in [1..$lg])
+   DEFINE CLUSTER -
+         ( NAME (${LOGSPRE1}.DS#p0l(${num})) -
+#if (${DATACLS6} != "")
+           DATACLAS(${DATACLS6})     -
+#end
+#if (${MGMTCLS6} != "")
+           MGMTCLAS(${MGMTCLS6})     -
+#end
+#if (${STORCLS6} != "")
+           STORCLAS(${STORCLS6})     -
+#end
+#if (${VOLSDAT6} != "")
+           VOLUMES(${VOLSDAT6})      -
+#end
+           SHAREOPTIONS(2 3)             -
+           KILOBYTES(${SPCLOG})      -
+           LINEAR )                      -
+      DATA                             -
+         ( NAME (${LOGSPRE1}.DS#p0l(${num}).DATA)  -
+                   )    CATALOG(${VBSDSLOG})
+
+#if (${LOGSTWO} == "YES")
+   DEFINE CLUSTER -
+         ( NAME (${LOGSPRE2}.DS#p0l(${num})) -
+#if (${DATACLS7} != "")
+           DATACLAS(${DATACLS7})     -
+#end
+#if (${MGMTCLS7} != "")
+           MGMTCLAS(${MGMTCLS7})     -
+#end
+#if (${STORCLS7} != "")
+           STORCLAS(${STORCLS7})     -
+#end
+#if (${VOLSDAT7} != "")
+           VOLUMES(${VOLSDAT7})      -
+#end
+           SHAREOPTIONS(2 3)             -
+           KILOBYTES(${SPCLOG})          -
+           LINEAR )                      -
+      DATA                             -
+         ( NAME (${LOGSPRE2}.DS#p0l(${num}).DATA)  -
+               )    CATALOG(${VBSDSLOG})
+
+#end
+#end
+//DSNTILC EXEC DSNTIC
+//* *******************************************************************
+//*  LIST THE CATALOG
+//* *******************************************************************
+//SYSIN DD *
+    LISTCAT LEVEL(${VCATALOG}) ALL
+#if (${VCATALOG} == ${VBSDSLOG})
+#else
+    LISTCAT LEVEL(${VBSDSLOG}) ALL
+#end
+    LISTCAT LEVEL(#getCatname("${DSNTLIBP}","${MVSSNAME}")) ALL
+//*
+## Macro to pad a number with zeroes to the left
+## $num is the number to be padded
+#macro (p0l $num)
+#if ($num<=9)
+0$num#else$num#end
+#end
+## Macro to get the control interval size
+## $dsvci is VARY DS CONTROL INTERVAL
+## $dflt is the default value
+## return default value if $dsvci is YES
+## return 4096 if $dsvci is NO
+#macro (getCtrlIntv $dsvci $dflt)
+#if ($dsvci == "NO")
+CONTROLINTERVALSIZE(4096)#else
+CONTROLINTERVALSIZE($dflt)#end#end
+## Macro to get the catalog name
+## $dsntlibp is the install library prefix
+## $mvssname is the subsystem name
+#macro (getCatname $dsntlibp $mvssname)
+#if ($dsntlibp != "")
+$dsntlibp.$mvssname.toUpperCase()#else
+$mvssname.toUpperCase()#end#end
+## Macro to append suffix for data sets
+## $suffix is the data set suffix
+## return the suffix with the right period
+#macro (libs $suffix)
+#if ($suffix !=  "")
+.$suffix#else#end#end

@@ -1,0 +1,554 @@
+<step name="stepAGCK" optional="false">
+<title>Check if any optional feature requested</title>
+<description>This step checks if any optional feature is requested.</description>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGREST}==false &amp;&amp; ${AGJDBC}==false &amp;&amp; ${AGODBC}==false</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<instructions substitution="false">
+Run this step to check if any optional feature requested. <br/>
+Run this step only if optional feature requested.
+</instructions>
+<weight>10</weight>
+<skills>Db2</skills>
+<autoEnable>true</autoEnable>
+</step>
+<step name="stepGRID" optional="false">
+<title>Obtain registryID of a DSG originating member (REST API)</title>
+<description>This step obtains the registry ID of the originating member of a data sharing group.</description>
+<prereqStep name="stepAGCK"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGGROUP}==true || ${stepAGCK.stepState}=="Skipped" || ${AGFMRID} != null</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<instructions substitution="false">
+Run this step to get the registryID of the DSG originating member. <br/>
+Run this step only if provisioning a data sharing group, and this action is not performed by the DSG originating member.
+</instructions>
+<weight>10</weight>
+<skills>REST</skills>
+<autoEnable>true</autoEnable>
+<rest>
+<httpMethod>GET</httpMethod>
+<uriPath>/zosmf/provisioning/rest/1.0/scr/</uriPath>
+<queryParameters substitution="true">external-name=${AGFMRIN}</queryParameters>
+<expectedStatusCode>200</expectedStatusCode>
+<propertyMapping mapTo="AGFMRID">["scr-list"][0]["object-id"]</propertyMapping>
+</rest>
+</step>
+<step name="stepGENA" optional="false">
+<title>Obtain ENA* variable of a DSG originating member (REST API)</title>
+<description>This step obtains the ENA* variable value of the originating member of a data sharing group.</description>
+<prereqStep name="stepGRID"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGGROUP}==true  || ${stepAGCK.stepState}=="Skipped" </expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<instructions substitution="false">
+Run this step to get ENA* variable value of the DSG originating member. <br/>
+Run this step only if provisioning a data sharing group, and this action is not performed by the DSG originating member.
+</instructions>
+<weight>10</weight>
+<skills>REST</skills>
+<autoEnable>true</autoEnable>
+<rest>
+<httpMethod>GET</httpMethod>
+<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${AGFMRID}/key-value-variables/</uriPath>
+<expectedStatusCode>200</expectedStatusCode>
+<propertyMapping mapTo="ENAREST">["variables"]["ENAREST"]</propertyMapping>
+<propertyMapping mapTo="ENAODBC">["variables"]["ENAODBC"]</propertyMapping>
+<propertyMapping mapTo="ENAJDBC">["variables"]["ENAJDBC"]</propertyMapping>
+</rest>
+<setVariable name="ENACREST" scope="instance" substitution="false">false</setVariable>
+<setVariable name="ENACODBC" scope="instance" substitution="false">false</setVariable>
+<setVariable name="ENACJDBC" scope="instance" substitution="false">false</setVariable>
+</step>
+<step name="stepJRP" optional="false">
+<title>(Optional) Enable native RESTful services including versioning support (DSNTIJRP)</title>
+<description>Job DSNTIJRP creates the RESTful services database with versioning support enabled.</description>
+<prereqStep name="stepGENA"/>
+<runAsUser substitution="true">${PROTADMN}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGREST}==false || ${ENAREST}=="true"</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="DSNLOAD" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="INSSQLID" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="MVSSNAME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="RUNLIB" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<instructions substitution="false">
+1. Before running job DSNTIJRP, examine the BUFFERPOOL and STOGROUP settings to ensure that they are appropriate for your needs. <br/>
+This job specifies BUFFERPOOL BP0 and USING STOGROUP SYSDEFLT for the objects being created. <br/>
+If you want to specify a different value for BUFFERPOOL or STOGROUP, edit DSNTIJRP accordingly. <br/>
+2. Verify APARs PI70652 and PI96649 are installed. <br/>
+3. Run job DSNTIJRP to create the RESTful services database objects with versioning support enabled. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntijrp</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+<setVariable name="ENACREST" scope="instance" substitution="false">true</setVariable>
+<setVariable name="ENAREST" scope="instance" substitution="false">true</setVariable>
+</step>
+<step name="stepPENR" optional="false">
+<title>Update ENAREST in registry of DSG originating member (REST API)</title>
+<description>This step updates the ENAREST variable in the DSG originating member's registry.</description>
+<prereqStep name="stepJRP"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGGROUP}==true || ${stepAGCK.stepState}=="Skipped" || ${ENACREST}=="false"</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<instructions substitution="false">
+Run this step to update the ENAREST variable in the DSG originating member's registry. <br/>
+Run this step only if provisioning a data sharing group, and this action is not performed by the DSG originating member.
+</instructions>
+<weight>10</weight>
+<skills>REST</skills>
+<autoEnable>true</autoEnable>
+<rest>
+<httpMethod>PUT</httpMethod>
+<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${AGFMRID}/variables</uriPath>
+<requestBody substitution="true">
+{
+  "variables":[
+      {"name" : "ENAREST",
+       "value" : "true",
+       "visibility" : "public"}
+              ]
+}
+</requestBody>
+<expectedStatusCode>204</expectedStatusCode>
+</rest>
+</step>
+<step name="stepODBC" optional="false">
+<title>(Optional) Enable and verify ODBC install</title>
+<description>stepODBC consists of two sub steps: <br/>
+1. stepODBCBIND which executes job DSNTIJCL to BIND ODBC packages and plan. <br/>
+2. stepODBCVerify which executes job DSNTEJ8 to verify ODBC enablement. <br/>
+</description>
+<prereqStep name="stepGENA"/>
+<step name="stepODBCBIND" optional="false">
+<title>BIND ODBC packages and plan (DSNTIJCL)</title>
+<description>Job DSNTIJCL binds ODBC packages and plan.</description>
+<prereqStep name="stepGENA"/>
+<runAsUser substitution="true">${PROTADMN}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGODBC}==false || ${ENAODBC}=="true"</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="DDLOC" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DSNDBRM" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DSNLOAD" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="INSGRLST" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="INSSQLID" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="MVSSNAME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="PPROCLIB" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="RUNLIB" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<instructions substitution="false">
+1. Verify that FMID JDBCC17 (DB2 ODBC) is installed. <br/>
+2. Run job DSNTIJCL to bind ODBC packages and plans. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntijcl</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+</step>
+<step name="stepODBCVerify" optional="false">
+<title>Verify ODBC enablement (DSNTEJ8)</title>
+<description>Job DSNTEJ8 verifies ODBC enablement.</description>
+<prereqStep name="stepODBCBIND"/>
+<runAsUser substitution="true">${PROTADMN}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGODBC}==false || ${ENAODBC}=="true"</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="CCOMP" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="CPPAUTCL" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DSNEXIT" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DSNLOAD" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DSNMACS" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DSNSAMP" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="LELKED" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="LEPLMSGL" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="LERUN" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="PPROCLIB" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="RUNLIB" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="TVOLDEVT" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<instructions substitution="false">
+1. Verify that FMID JDBCC17 (DB2 ODBC) is installed. <br/>
+2. Run job DSNTEJ8 to execute a sample application to validate ODBC installation. <br/>
+If it runs successfully, it produces a return code of 0. <br/>
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<fileTemplate filePathSubstitution="false" substitution="true">dsntej8</fileTemplate>
+<submitAs maxRc="4">JCL</submitAs>
+<maxLrecl>80</maxLrecl>
+</template>
+<setVariable name="ENACODBC" scope="instance" substitution="false">true</setVariable>
+<setVariable name="ENAODBC" scope="instance" substitution="false">true</setVariable>
+</step>
+</step>
+<step name="stepPENO" optional="false">
+<title>Update ENAODBC in registry of DSG originating member (REST API)</title>
+<description>This step updates the ENAODBC variable in the DSG originating member's registry.</description>
+<prereqStep name="stepODBCVerify"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGGROUP}==true || ${stepAGCK.stepState}=="Skipped" || ${ENACODBC}=="false"</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<instructions substitution="false">
+Run this step to update the ENAODBC variable in the DSG originating member's registry. <br/>
+Run this step only if provisioning a data sharing group, and this action is not performed by the DSG originating member.
+</instructions>
+<weight>10</weight>
+<skills>REST</skills>
+<autoEnable>true</autoEnable>
+<rest>
+<httpMethod>PUT</httpMethod>
+<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${AGFMRID}/variables</uriPath>
+<requestBody substitution="true">
+{
+  "variables":[
+      {"name" : "ENAODBC",
+       "value" : "true",
+       "visibility" : "public"}
+              ]
+}
+</requestBody>
+<expectedStatusCode>204</expectedStatusCode>
+</rest>
+</step>
+<step name="stepJDBC" optional="false">
+<title>(Optional) Enable and verify JDBC type 2 and type 4 connections</title>
+<description>stepJDBC consists of 3 sub steps: <br/>
+1. stepJDBCBIND which binds the JDBC packages against the provisioned Db2 system. <br/>
+2. stepJDBCVerifyT2 which verifies JDBC local connections (Type 2) against the provisioned Db2 system. <br/>
+3. stepJDBCVerifyT4 which verifies JDBC local connections (Type 4) against the provisioned Db2 system. <br/>
+</description>
+<prereqStep name="stepGENA"/>
+<step name="stepJDBCBIND" optional="false">
+<title>Bind JDBC packages (Inline shell-JCL)</title>
+<description>stepJDBCBIND binds the JDBC packages against the provisioned Db2 system.</description>
+<prereqStep name="stepGENA"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGJDBC}==false || ${ENAJDBC}=="true"</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="APCO" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="CLASPATH" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DB2BASE" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DDLOC" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="IPNAME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="JAVAHOME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="JCCHOME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="JCCSID" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="TCPPORT" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<instructions substitution="false">
+1. Verify the following before running this step: <br/>
+   o The executor of this step, as specified in the variable AGEXECID, has the authority to generate RACF PassTickets on behalf of the user specified in the variable JCCSID. <br/>
+   o The db2provision.jar file is in the zFS directory DB2BASE/classes, where DB2BASE is the directory specified in the variable DB2BASE. <br/>
+   o FMID JDBCC12 (Db2 12 JDBC/SQLJ) is installed. <br/>
+2. Run this step stepJDBCBIND to BIND JDBC packages. <br/>
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<inlineTemplate substitution="true">#!/bin/sh;
+export JCC_HOME=${JCCHOME};
+export JAVA_HOME=${JAVAHOME};
+export CLASSPATH=$JCC_HOME/classes/db2jcc_license_cisuz.jar;
+export CLASSPATH=$CLASSPATH:$JCC_HOME/classes/db2jcc4.jar;
+export CLASSPATH=$CLASSPATH:${DB2BASE}/classes/db2provision.jar;
+export CLASSPATH=${CLASPATH}/IRRRacf.jar:$CLASSPATH;
+export PATH=.:$JAVA_HOME/bin:$PATH;
+CLSet="${APCO}";
+if [ "$CLSet" = "V10R1" ] || [ "$CLSet" = "V11R1" ] ||
+   [ "$CLSet" = "V12R1M100" ] || [ "$CLSet" = "V12R1M500" ]
+then
+      CLAPCO=""
+else
+      CLAPCO=":clientApplcompat="$CLSet";"
+fi
+URL='jdbc:db2://localhost:${TCPPORT}/${DDLOC}'$CLAPCO;
+USER=${JCCSID}
+APPLID=${IPNAME}
+PACKAGE="com.ibm.db2z.db2provision.passticket";
+PASSTICK=$(java -cp db2provision.jar:$CLASSPATH $PACKAGE $USER $APPLID);
+output=/tmp/db2-${_workflow-softwareServiceInstanceName}-jdbcbind;
+BIND='com.ibm.db2.jcc.DB2Binder';
+java $BIND -url $URL -user $USER -password $PASSTICK -action replace &gt; $output;
+cat $output;
+if grep "SQLCODE" $output
+then
+     exit 8;
+elif ! grep "finished" $output
+then
+     exit 8;
+fi
+exit $?;
+</inlineTemplate>
+<submitAs maxRc="0">shell-JCL</submitAs>
+</template>
+</step>
+<step name="stepJDBCVerifyT2" optional="false">
+<title>Verify JDBC Type 2 connections</title>
+<description>stepJDBCVerifyT2 verifies JDBC local connections (Type 2) against the provisioned Db2 system.</description>
+<prereqStep name="stepJDBCBIND"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGJDBC}==false || ${ENAJDBC}=="true"</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="DB2BASE" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DDLOC" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DSNEXIT" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DSNLOAD" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DSNLOD2" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="JAVAHOME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="JCCHOME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="MVSSNAME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<instructions substitution="false">
+1. Verify the following before running this step: <br/>
+   o The db2provision.jar file is in the zFS directory DB2BASE/classes, where DB2BASE is the directory specified in the variable DB2BASE. <br/>
+   o FMID JDBCC12 (Db2 12 JDBC/SQLJ) is installed. <br/>
+2. Run this step stepJDBCVerifyT2 to verify JDBC type 2 connections. <br/>
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<inlineTemplate substitution="true">#!/bin/sh;
+export JCC_HOME=${JCCHOME};
+export JAVA_HOME=${JAVAHOME};
+export CLASSPATH=$JCC_HOME/classes/db2jcc_license_cisuz.jar;
+export CLASSPATH=$CLASSPATH:$JCC_HOME/classes/db2jcc4.jar;
+export CLASSPATH=$CLASSPATH:${DB2BASE}/classes/db2provision.jar;
+export PATH=.:$JAVA_HOME/bin:$PATH;
+export STEPLIB=${DSNEXIT}:$STEPLIB;
+export STEPLIB=${DSNLOAD}:$STEPLIB;
+export STEPLIB=${DSNLOD2}:$STEPLIB;
+export LIBPATH=${JCCHOME}/lib:$LIBPATH;
+LOC='jdbc:db2:${DDLOC}';
+DB2SSID='${MVSSNAME}';
+PACKAGE1="com.ibm.db2z.db2provision.dsntej91";
+JAR="db2provision.jar:$CLASSPATH";
+output=/tmp/db2-${_workflow-softwareServiceInstanceName}-tej91t2;
+java -Ddb2.jcc.ssid=$DB2SSID -cp $JAR $PACKAGE1 $LOC &gt; $output;
+cat $output;
+if ! grep "complete" $output
+then
+     exit 8;
+fi
+exit $?;
+</inlineTemplate>
+<submitAs maxRc="0">shell-JCL</submitAs>
+</template>
+</step>
+<step name="stepJDBCVerifyT4" optional="false">
+<title>Verify JDBC Type 4 connections</title>
+<description>stepJDBCVerifyT4 verifies JDBC remote connection (Type 4) against the provisioned Db2 system.</description>
+<prereqStep name="stepJDBCVerifyT2"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGJDBC}==false || ${ENAJDBC}=="true"</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<variableValue name="APCO" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="CLASPATH" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DB2BASE" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="DDLOC" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="IPNAME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="JAVAHOME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="JCCHOME" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="JCCSID" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<variableValue name="TCPPORT" scope="instance" noPromptIfSet="false" required="false"></variableValue>
+<instructions substitution="false">
+1. Verify the following before running this step: <br/>
+   o The executor of this step, as specified in the variable AGEXECID, has the authority to generate RACF PassTickets on behalf of the user specified in the variable JCCSID. <br/>
+   o The db2provision.jar file is in the zFS directory DB2BASE/classes, where DB2BASE is the directory specified in the variable DB2BASE. <br/>
+   o FMID JDBCC12 (Db2 12 JDBC/SQLJ) is installed. <br/>
+   o FMID HDDA211 (Universal Database Driver for z/OS Java Edition, a pure Java type 4 JDBC driver), is installed. <br/>
+2. Run this step stepJDBCVerifyT4 to verify JDBC type 4 connections. <br/>
+</instructions>
+<weight>1</weight>
+<skills>Database Administrator</skills>
+<autoEnable>true</autoEnable>
+<canMarkAsFailed>false</canMarkAsFailed>
+<template>
+<inlineTemplate substitution="true">#!/bin/sh;
+export JCC_HOME=${JCCHOME};
+export JAVA_HOME=${JAVAHOME};
+export CLASSPATH=$JCC_HOME/classes/db2jcc_license_cisuz.jar;
+export CLASSPATH=$CLASSPATH:$JCC_HOME/classes/db2jcc4.jar;
+export CLASSPATH=$CLASSPATH:${DB2BASE}/classes/db2provision.jar;
+export CLASSPATH=${CLASPATH}/IRRRacf.jar:$CLASSPATH;
+export PATH=.:$JAVA_HOME/bin:$PATH;
+CLSet="${APCO}";
+if [ "$CLSet" = "V10R1" ] || [ "$CLSet" = "V11R1" ] ||
+   [ "$CLSet" = "V12R1M100" ] || [ "$CLSet" = "V12R1M500" ]
+then
+      CLAPCO=""
+else
+      CLAPCO=":clientApplcompat="$CLSet";"
+fi
+URL='jdbc:db2://localhost:${TCPPORT}/${DDLOC}'$CLAPCO;
+USER=${JCCSID}
+APPLID=${IPNAME}
+PACKAGE0="com.ibm.db2z.db2provision.passticket";
+PASSTICK=$(java -cp db2provision.jar:$CLASSPATH $PACKAGE0 $USER $APPLID);
+PACKAGE1="com.ibm.db2z.db2provision.dsntej91";
+output=/tmp/db2-${_workflow-softwareServiceInstanceName}-tej91t4;
+java -cp db2provision.jar:$CLASSPATH $PACKAGE1 $URL $USER $PASSTICK &gt; $output;
+cat $output;
+if ! grep "complete" $output
+then
+     exit 8;
+fi
+exit $?;
+</inlineTemplate>
+<submitAs maxRc="0">shell-JCL</submitAs>
+</template>
+<setVariable name="ENACJDBC" scope="instance" substitution="false">true</setVariable>
+<setVariable name="ENAJDBC" scope="instance" substitution="false">true</setVariable>
+</step>
+</step>
+<step name="stepPENJ" optional="false">
+<title>Update ENAJDBC in registry of DSG originating member (REST API)</title>
+<description>This step updates the ENAJDBC variable in the DSG originating member's registry.</description>
+<prereqStep name="stepJDBCVerifyT4"/>
+<runAsUser substitution="true">${AGEXECID}</runAsUser>
+<condition>
+<expression>"1"=="1"</expression>
+<description/>
+<targetStateSet>
+<extendStateExpression>
+<description/>
+<expression>${AGGROUP}==true || ${stepAGCK.stepState}=="Skipped" || ${ENACJDBC}=="false"</expression>
+<targetState>skipped</targetState>
+</extendStateExpression>
+</targetStateSet>
+</condition>
+<instructions substitution="false">
+Run this step to update the ENAJDBC variable in the DSG originating member's registry. <br/>
+Run this step only if provisioning a data sharing group, and this action is not performed by the DSG originating member.
+</instructions>
+<weight>10</weight>
+<skills>REST</skills>
+<autoEnable>true</autoEnable>
+<rest>
+<httpMethod>PUT</httpMethod>
+<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${AGFMRID}/variables</uriPath>
+<requestBody substitution="true">
+{
+  "variables":[
+      {"name" : "ENAJDBC",
+       "value" : "true",
+       "visibility" : "public"}
+              ]
+}
+</requestBody>
+<expectedStatusCode>204</expectedStatusCode>
+</rest>
+</step>
