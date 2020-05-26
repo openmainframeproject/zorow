@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-ZOS-SVCDUMP</workflowID>
+        <workflowDescription>IBM-MF-AUTO-SVCDUMP</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="tstc" scope="instance" visibility="private">
+        <label>Name of JOB to be Dumped</label>
+        <abstract>This can be a JOB or STC, If more than one specified separate with commas</abstract>
+        <description>The workflow will use the DUMP COMM command to take this dump</description>
+        <category>SVCDUMP</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>8</maxLength>
+        </string>
+    </variable>
+    <variable name="tparm" scope="instance" visibility="private">
+        <label>Additional Parms for Dump</label>
+        <abstract>Parms such as SDATA, DSPNAME, etc</abstract>
+        <description>These parms will be added to the reply</description>
+        <category>SVCDUMP</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <variable name="tcomm" scope="instance" visibility="private">
+        <label>Dump Tittle</label>
+        <abstract>Title used to identify your dump</abstract>
+        <description>This will be visible in D D,T command or IPCS.</description>
+        <category>SVCDUMP</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <atCreate name="tcomm" scope="instance" required="true" prompt="true"/>
+    <atCreate name="tparm" scope="instance" required="false" prompt="true"/>
+    <atCreate name="tstc" scope="instance" required="true" prompt="true"/>
+    <step name="SVC-Dump" optional="false">
+        <title>SVC Dump</title>
+        <description>&lt;h3&gt;SVC Dump&lt;/h3&gt;
+Use this workflow to take an SVC dump.
+
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</description>
+        <variableValue name="tcomm" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="tparm" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="tstc" scope="instance" noPromptIfSet="true" required="true"/>
+        <instructions substitution="false">&lt;h3&gt;Take an STC Dump&lt;/h3&gt;
+Use this workflow to take a dump of a running STC, TSU or JOB.
+&lt;br&gt;
+This workflow requires:
+&lt;ul&gt;
+  &lt;li&gt;Target Address Space Name&lt;/li&gt;
+  &lt;li&gt;Additional Dump Parameters&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">/* REXX */                                                          
+tstc='${tstc}'
+tparm='${tparm}'
+tcomm='${tcomm}'
+tsrc=strip(tstc)
+tparm=strip(tparm)
+tcomm=strip(tcomm)
+/*----------------------------------------------------------------
+ - Issues the DUMP COMM='' Command
+ - Traps the IEE094D reply number
+ - Replies with additional parms if any or witout parm
+ - Replies Jobname and end.
+ - Test for tparm: SDATA=(CSA,RGN,PSA,SQA,LSQA,TRT,SUM)
+----------------------------------------------------------------*/  
+call syscmd "dump comm='"tcomm"'"
+/* Trap for *07 IEE094D */
+parse var line.1 with '*' rnum 'IEE094D'
+rnum=strip(rnum)
+if strip(tparm) /= '' then
+   call syscmd rnum","||tparm||",JOBNAME=("||tstc||")"
+else
+   call syscmd rnum",JOBNAME=("||tstc||")"
+exit
+syscmd: 
+  parse arg cmd
+  x=msg('off')
+  'CONSOLE DEACTIVATE'
+  x=msg('off')
+  'CONSOLE NAME('SYSVAR(SYSUID)||'@) ACTIVATE'
+  'CONSOLE SYSCMD('cmd')'
+  msgs = GETMSG('line.','SOL',,,10)
+  'CONSOLE DEACTIVATE'
+  return</inlineTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+</workflow>

@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-RACF-TEMPLATE-UPDATE</workflowID>
+        <workflowDescription>IBM-MF-AUTO-RACF-TEMPLATE-UPDATE</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="linkDsn" scope="instance" visibility="private">
+        <label>Linklib Dataset Name</label>
+        <abstract>Usually SYS1.LINKLIB</abstract>
+        <description>Please enter the name of your SYS1.LINKLIB dataset.</description>
+        <category>Linklib Set</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+            <default>SYS1.LINKLIB</default>
+        </string>
+    </variable>
+    <variable name="linkVol" scope="instance" visibility="private">
+        <label>VOLSER for the Linklib Dataset</label>
+        <abstract>Please enter the volser</abstract>
+        <description>Please enter the six character for volser</description>
+        <category>Linklib Set</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+            <default>SYSR1</default>
+        </string>
+    </variable>
+    <variable name="racfB1Dsn" scope="instance" visibility="private">
+        <label>RACF Backup Database 1</label>
+        <abstract>Name of the Backup RACF Database 1</abstract>
+        <description>Name of the B1 RACF Database, leave blank if you don't have one</description>
+        <category>RACF Backup Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+            <default>SYS1.RACFDB1</default>
+        </string>
+    </variable>
+    <variable name="racfB2Dsn" scope="instance" visibility="private">
+        <label>RACF Backup Database 2</label>
+        <abstract>Name of the Backup RACF Database 2</abstract>
+        <description>Name of the B2 RACF Database, leave blank if you don't have one</description>
+        <category>RACF Backup Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="racfB3Dsn" scope="instance" visibility="private">
+        <label>RACF Backup Database 3:</label>
+        <abstract>Name of the Backup RACF Database 3</abstract>
+        <description>Name of the B3 RACF Database, leave blank if you don't have one</description>
+        <category>RACF Backup Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="racfB4Dsn" scope="instance" visibility="private">
+        <label>RACF Backup Database 4</label>
+        <abstract>Name of the Backup RACF Database 4</abstract>
+        <description>Name of the B4 RACF Database, leave blank if you don't have one</description>
+        <category>RACF Backup Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="racfP1Dsn" scope="instance" visibility="private">
+        <label>RACF Primary Database 1</label>
+        <abstract>Name of the Primary RACF Database 1</abstract>
+        <description>Name of the P1 RACF Database, leave blank if you don't have one</description>
+        <category>RACF Primary Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+            <default>SYS1.RACFP1</default>
+        </string>
+    </variable>
+    <variable name="racfP2Dsn" scope="instance" visibility="private">
+        <label>RACF Primary Database 2</label>
+        <abstract>Name of the Primary RACF Database 2</abstract>
+        <description>Name of the P2 RACF Database, leave blank if you don't have one</description>
+        <category>RACF Primary Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="racfP3Dsn" scope="instance" visibility="private">
+        <label>RACF Primary Database 3</label>
+        <abstract>Name of the Primary RACF Database 3</abstract>
+        <description>Name of the second RACF Database, leave blank if you don't have one</description>
+        <category>RACF Primary Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="racfP4Dsn" scope="instance" visibility="private">
+        <label>RACF Primary Database 4</label>
+        <abstract>Name of the primary first RACF Database 4</abstract>
+        <description>Name of the P4 RACF Database, leave blank if you don't have one</description>
+        <category>RACF Primary Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>DSNAME</validationType>
+        </string>
+    </variable>
+    <variable name="racfP1Vol" scope="instance" visibility="private">
+        <label>RACF Primary Vol 1</label>
+        <abstract>Racf Primary DB 1 Vol</abstract>
+        <description>Volume for the primary RACF db 1</description>
+        <category>RACF Primary Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <variable name="racfP2Vol" scope="instance" visibility="private">
+        <label>RACF Primary Vol 2</label>
+        <abstract>Racf Primary DB 2 Vol</abstract>
+        <description>Volume for the primary RACF db 2</description>
+        <category>RACF Primary Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <variable name="racfP3Vol" scope="instance" visibility="private">
+        <label>RACF Primary Vol 3</label>
+        <abstract>Racf Primary DB 3 Vol</abstract>
+        <description>Volume for the primary RACF db 3</description>
+        <category>RACF Primary Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <variable name="racfP4Vol" scope="instance" visibility="private">
+        <label>RACF Primary Vol 4</label>
+        <abstract>Racf Primary DB 4 Vol</abstract>
+        <description>Volume for the primary RACF db 4</description>
+        <category>RACF Primary Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <variable name="racfB1Vol" scope="instance" visibility="private">
+        <label>RACF Backup Vol 1</label>
+        <abstract>Racf Backup DB 1 Vol</abstract>
+        <description>Volume for the backup RACF db 1</description>
+        <category>RACF Backup Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <variable name="racfB2Vol" scope="instance" visibility="private">
+        <label>RACF Backup Vol 2</label>
+        <abstract>Racf Backup DB 2 Vol</abstract>
+        <description>Volume for the backup RACF db 2</description>
+        <category>RACF Backup Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <variable name="racfB3Vol" scope="instance" visibility="private">
+        <label>RACF Backup Vol 3</label>
+        <abstract>Racf Backup DB 3 Vol</abstract>
+        <description>Volume for the backup RACF db 3</description>
+        <category>RACF Backup Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <variable name="racfB4Vol" scope="instance" visibility="private">
+        <label>RACF Backup Vol 4</label>
+        <abstract>Racf Backup DB 4 Vol</abstract>
+        <description>Volume for the backup RACF db 4</description>
+        <category>RACF Backup Database</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <atCreate name="racfB1Dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="racfB2Dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="racfB3Dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="racfB4Dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="racfP1Dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="racfP2Dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="racfP3Dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="racfP4Dsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="linkDsn" scope="instance" required="true" prompt="true"/>
+    <atCreate name="linkVol" scope="instance" required="true" prompt="true"/>
+    <step name="racf-Discovery" optional="false">
+        <title>Discover RACF Settings</title>
+        <description>This step runs RVARY list , filters the names of the RACF DBs, sorts them and generate the input file for next step</description>
+        <instructions substitution="false">&lt;h3&gt;Discover RACF Settings&lt;/h3&gt;
+This step runs RVARY list , filters the names of the RACF DBs, sorts them and generate the input file for next step.
+&lt;br&gt;&lt;br&gt;
+
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">/*REXX*/
+x=outtrap(line.)
+address tso "rvary list"
+address tso "listc ent('sys1.linklib') all"
+x=outtrap("off")
+ucmd="sort -k 3 | awk -v OSF='\t' '{print $4, $5}'"
+call bpxwunix "grep -i prim | "||ucmd,line.,prim.
+call bpxwunix "grep -i back | "||ucmd,line.,back.
+call bpxwunix "grep -i -e linklib -e volser",line.,link.
+newstack
+do i=1 to prim.0
+   queue "racfP"||i||"Dsn="||word(prim.i,2)
+   queue "racfP"||i||"Vol="||word(prim.i,1)
+   queue "racfB"||i||"Dsn="||word(back.i,2)
+   queue "racfB"||i||"Vol="||word(back.i,1)
+end
+parse var link.2 with "VOLSER------------" volser .
+queue "linkDsn="||word(link.1,3)
+queue "linkVol="||volser
+do i=1 to queued()
+   parse pull sline
+   fileo.i= sline
+   say  sline
+   fileo.0=i
+end
+say fileo.0
+address syscall "writefile $_output 755 fileo."
+exit</inlineTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+            <output needResolveConflicts="false" sysoutDD="false" loadOutputFileArrayValue="true" substitution="false">/tmp/racfvars.txt</output>
+        </template>
+    </step>
+    <step name="racf-template-upgrade" optional="false">
+        <title>Upgrade RACF DB Template</title>
+        <description>This step will render the JCL to upgrade your RACF DB</description>
+        <prereqStep name="racf-Discovery"/>
+        <variableValue name="racfB1Vol" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="linkDsn" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="linkVol" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="racfB1Dsn" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="racfB2Dsn" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfB2Vol" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfB3Dsn" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfB3Vol" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfB4Dsn" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfB4Vol" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfP1Dsn" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="racfP1Vol" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="racfP2Dsn" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfP2Vol" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfP3Dsn" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfP3Vol" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfP4Dsn" scope="instance" noPromptIfSet="true" required="false"/>
+        <variableValue name="racfP4Vol" scope="instance" noPromptIfSet="true" required="false"/>
+        <instructions substitution="false">&lt;h3&gt;RACF DB Template Upgrade&lt;/h3&gt;
+This step renders the JCL to updgrade your RACF database Template, 
+the document renders the JCL according to how many RACF DBs you have.
+Currently we support up to 4 RACF DBs but it is very easy to expand if
+you need to.
+&lt;br&gt;&lt;br&gt;
+
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <skills>RACF Admin</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">//*-------------------------------------------------------------------*
+//RACFP1   EXEC PGM=IRRMIN00,PARM=UPDATE
+//STEPLIB  DD DISP=SHR,DSN=${linkDsn},
+//            UNIT=SYSALLDA,VOL=SER=${linkVol}
+//SYSPRINT DD SYSOUT=*
+//SYSRACF  DD DISP=SHR,DSN=${racfP1Dsn},VOL=SER=${racfP1Vol},
+//            UNIT=SYSDA
+#if(${racfB1Dsn} != "")
+//*-------------------------------------------------------------------*
+//RACFB1   EXEC PGM=IRRMIN00,PARM=UPDATE
+//STEPLIB  DD DISP=SHR,DSN=${linkDsn},
+//            UNIT=SYSALLDA,VOL=SER=${linkVol}
+//SYSPRINT DD SYSOUT=*
+//SYSRACF  DD DISP=SHR,DSN=${racfB1Dsn},VOL=SER=${racfB1Vol},
+//            UNIT=SYSDA
+#end
+#if(${racfP2Dsn} != "")
+//*-------------------------------------------------------------------*
+//RACFP2   EXEC PGM=IRRMIN00,PARM=UPDATE
+//STEPLIB  DD DISP=SHR,DSN=${linkDsn},
+//            UNIT=SYSALLDA,VOL=SER=${linkVol}
+//SYSPRINT DD SYSOUT=*
+//SYSRACF  DD DISP=SHR,DSN=${racfP2Dsn},VOL=SER=${racfP2Vol},
+//            UNIT=SYSDA
+#end
+#if(${racfB2Dsn} != "")
+//*-------------------------------------------------------------------*
+//RACFB2   EXEC PGM=IRRMIN00,PARM=UPDATE
+//STEPLIB  DD DISP=SHR,DSN=${linkDsn},
+//            UNIT=SYSALLDA,VOL=SER=${linkVol}
+//SYSPRINT DD SYSOUT=*
+//SYSRACF  DD DISP=SHR,DSN=${racfB2Dsn},VOL=SER=${racfB2Vol},
+//            UNIT=SYSDA
+#end
+#if(${racfP3Dsn} != "")
+//*-------------------------------------------------------------------*
+//RACFP3   EXEC PGM=IRRMIN00,PARM=UPDATE
+//STEPLIB  DD DISP=SHR,DSN=${linkDsn},
+//            UNIT=SYSALLDA,VOL=SER=${linkVol}
+//SYSPRINT DD SYSOUT=*
+//SYSRACF  DD DISP=SHR,DSN=${racfP3Dsn},VOL=SER=${racfP3Vol},
+//            UNIT=SYSDA
+#end
+#if(${racfB3Dsn} != "")
+//*-------------------------------------------------------------------*
+//RACFB3   EXEC PGM=IRRMIN00,PARM=UPDATE
+//STEPLIB  DD DISP=SHR,DSN=${linkDsn},
+//            UNIT=SYSALLDA,VOL=SER=${linkVol}
+//SYSPRINT DD SYSOUT=*
+//SYSRACF  DD DISP=SHR,DSN=${racfB3Dsn},VOL=SER=${racfB3Vol},
+//            UNIT=SYSDA
+#end
+#if(${racfP4Dsn} != "")
+//*-------------------------------------------------------------------*
+//RACFP4   EXEC PGM=IRRMIN00,PARM=UPDATE
+//STEPLIB  DD DISP=SHR,DSN=${linkDsn},
+//            UNIT=SYSALLDA,VOL=SER=${linkVol}
+//SYSPRINT DD SYSOUT=*
+//SYSRACF  DD DISP=SHR,DSN=${racfP4Dsn},VOL=SER=${racfP4Vol},
+//            UNIT=SYSDA
+#end
+#if(${racfB4Dsn} != "")
+//*-------------------------------------------------------------------*
+//RACFB4   EXEC PGM=IRRMIN00,PARM=UPDATE
+//STEPLIB  DD DISP=SHR,DSN=${linkDsn},
+//            UNIT=SYSALLDA,VOL=SER=${linkVol}
+//SYSPRINT DD SYSOUT=*
+//SYSRACF  DD DISP=SHR,DSN=${racfB4Dsn},VOL=SER=${racfB4Vol},
+//            UNIT=SYSDA
+#end
+//*-------------------------------------------------------------------*</inlineTemplate>
+            <submitAs maxRc="4">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+            <output needResolveConflicts="false" sysoutDD="false" loadOutputFileArrayValue="true" substitution="false">/tmp/racfvars.txt</output>
+        </template>
+    </step>
+</workflow>
