@@ -1,4 +1,3 @@
-
 provisioning-workflows/Db2/.DS_Store
 provisioning-workflows/Db2/Db2SchemaServices/.DS_Store
 provisioning-workflows/Db2/Db2SchemaServices/Dependency/.DS_Store
@@ -7,4 +6,3 @@ provisioning-workflows/Db2/Db2SchemaServices/ProvisionSampleSchema/.DS_Store
 provisioning-workflows/Db2/Db2SchemaServices/ProvisionDatabase/.DS_Store
 provisioning-workflows/Db2/Db2SchemaServices/.DS_Store
 provisioning-workflows/Db2/Db2SystemServices/Db2ProvisionSystemNonDS/.DS_Store
-provisioning-workflows/Db2/Db2SystemServices/Db2ProvisionSystemDS/.DS_Store
