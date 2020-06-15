@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
 <workflow>
     <autoTakeOwnership>false</autoTakeOwnership>
     <workflowInfo>
@@ -600,7 +607,7 @@ Update this field with your own text</instructions>
     <step name="DefineandAuthorizeUsers" optional="false">
         <title>DefineandAuthorizeUsers</title>
         <description>Define and Authorize Broker User and database access users.
-Groups and profiles required are assumed a prereq to this workflow. 
+Groups and profiles required are assumed a prereq to this workflow.
 
 Improvement: better error handling. Probably needs a rexx to fire commands and catch resuts of commands.</description>
         <prereqStep name="DisplayVariables"/>
@@ -617,7 +624,7 @@ Update this field with your own text</instructions>
 //SYSTSPRT DD SYSOUT=*
 //* The following definitions must be made
 //SYSTSIN  DD *
-## set variables 
+## set variables
 #set ($IIB_STCUSER = "${instance-IIB_BROKER_NAME}U")
 #set ($IIB_HOME_DIR = "/u/miscuser/${instance-IIB_BROKER_NAME.toLowerCase()}u")
 ##variable for MQCONN BATCH PROFILE RACF
@@ -625,7 +632,7 @@ Update this field with your own text</instructions>
 #set ($MC2 = "%" )
 #set ($MC34 = ${instance-IIB_QMGR_NAME.substring(2,4)} )
 #set ($MQCONNBATCH = "${MC1}${MC2}${MC34}" )
- 
+
 adduser $IIB_STCUSER  owner(${instance-IIB_STCDFLTGROUP}) dfltgrp(${instance-IIB_STCDFLTGROUP})
 altuser $IIB_STCUSER  name('STC-USER TBV BROKER')
 altuser $IIB_STCUSER  nopassword nooidcard
@@ -660,7 +667,7 @@ setropts refresh raclist(STARTED)
 //SYSPRINT DD SYSOUT=*
 //SYSTSIN DD *
 
-PE ${instance-ZOSMF_INSTANCE}.ZOSMF.TEMPLATE.RUNASUSERS.${_workflow-domainID}.${_workflow-templateName} - 
+PE ${instance-ZOSMF_INSTANCE}.ZOSMF.TEMPLATE.RUNASUSERS.${_workflow-domainID}.${_workflow-templateName} -
  CLASS(ZMFCLOUD) ID($IIB_STCUSER) ACCESS(READ)
 PE ${MQCONNBATCH}.BATCH CL(MQCONN) ID(${instance-ZOSMF_INSTALL_USER}) ACCESS(READ)
 PE *.DELETE.QLOCAL CL(MQCMDS) ID($IIB_STCUSER) ACCESS(ALTER)
@@ -674,22 +681,22 @@ SETROPTS RACLIST(FACILITY) REFRESH
 //SYSTSPRT DD SYSOUT=*
 //SYSTSIN  DD *
 adduser ${instance-IIB_XDBC_USER} owner(${instance-IIB_STCDFLTGROUP}) -
- dfltgrp(${instance-IIB_STCDFLTGROUP}) 
+ dfltgrp(${instance-IIB_STCDFLTGROUP})
 altuser ${instance-IIB_XDBC_USER} name('FTM USER TBV Broker ODBC') -
- PASSWORD(${instance-IIB_xDBC_PW}) 
+ PASSWORD(${instance-IIB_xDBC_PW})
 
-#set ($IIB_XDBC_HOME_DIR = "/u/miscuser/${instance-IIB_XDBC_USER.toLowerCase()}") 
-connect ${instance-IIB_XDBC_USER} group(${instance-IIB_STCDFLTGROUP}) - 
+#set ($IIB_XDBC_HOME_DIR = "/u/miscuser/${instance-IIB_XDBC_USER.toLowerCase()}")
+connect ${instance-IIB_XDBC_USER} group(${instance-IIB_STCDFLTGROUP}) -
  owner(${instance-IIB_STCDFLTGROUP})  auth(USE) uacc(NONE)
 altuser ${instance-IIB_XDBC_USER} omvs(home('$IIB_XDBC_HOME_DIR'))
 altuser ${instance-IIB_XDBC_USER} omvs(program('/bin/sh'))
 altuser ${instance-IIB_XDBC_USER} omvs(uid(${instance-IIB_XDBCUSER_UID}) shared)
 
 adduser ${instance-IIB_WAS_USER} owner(${instance-IIB_STCDFLTGROUP}) dfltgrp(${instance-IIB_STCDFLTGROUP})
-altuser ${instance-IIB_WAS_USER} name('FTM USER TBV WAS JDBC') PASSWORD(${instance-WAS_PW}) 
+altuser ${instance-IIB_WAS_USER} name('FTM USER TBV WAS JDBC') PASSWORD(${instance-WAS_PW})
 
-#set ($IIB_WAS_HOME_DIR = "/u/miscuser/${instance-IIB_WAS_USER.toLowerCase()}") 
-connect ${instance-IIB_WAS_USER} group(${instance-IIB_STCDFLTGROUP}) - 
+#set ($IIB_WAS_HOME_DIR = "/u/miscuser/${instance-IIB_WAS_USER.toLowerCase()}")
+connect ${instance-IIB_WAS_USER} group(${instance-IIB_STCDFLTGROUP}) -
  owner(${instance-IIB_STCDFLTGROUP})  auth(USE) uacc(NONE)
 altuser ${instance-IIB_WAS_USER} omvs(home('${instance-IIB_WAS_HOME_DIR}'))
 altuser ${instance-IIB_WAS_USER} omvs(program('/bin/sh'))

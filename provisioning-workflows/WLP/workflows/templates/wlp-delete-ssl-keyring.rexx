@@ -1,6 +1,11 @@
-/* Rexx */                                                                    
-trace commands                                                                                                              
+/* Rexx */
+trace commands
 address tso
+
+/*----------------------------------------------------------------*/
+/* Copyright Contributors to the zOS-Workflow Project.            */
+/* PDX-License-Identifier: Apache-2.0                             */
+/*----------------------------------------------------------------*/
 
 #if(${instance-SIGN_WITH} != "" && ${instance-SIGN_WITH})
 	#set($signCert = "TRUE")

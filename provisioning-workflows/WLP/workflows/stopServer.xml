@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
 
 <!-- Declare external file containing WAS variables referenced in the following steps -->
-<!DOCTYPE workflow [<!ENTITY copyright "Copyright IBM Corp., 2015">
-                    <!ENTITY variables SYSTEM "variable_imports.xml">
-                    ]> 
-                    
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">]>
+
 <workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
 
     <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
@@ -23,20 +27,20 @@
           <softwareType>WLP</softwareType>
       </Provisioning>
   </workflowInfo>
-  
+
   	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	<!--     Include WAS variables used by the following steps -->
 	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	&variables;
-	
-	
+
+
     <!--++++++++++++++++++++++-->
     <!--   Stop the Server    -->
-    <!--++++++++++++++++++++++-->  
+    <!--++++++++++++++++++++++-->
     <step name="copyProvisioningScript">
     <title>Copy Provisioning Script</title>
 	<description>Copy script to temp directory with unique name</description>
-	    
+
 	    <step name="copyScript">
 		    <title>Copy Script</title>
 	        <description>Copy the wlp-provisioning.sh script</description>
@@ -61,13 +65,13 @@
 	           	<submitAs>shell-JCL</submitAs>
 	       	</template>
 	    </step>
-    
+
     </step>
-	    
+
     <step name="stopServer">
         <title>Stop the Server</title>
         <description>Stop any existing Liberty servers for this user</description>
-		
+
 		<step name="stopServer_USS">
         	<title>Stop the Server from USS</title>
         	<description>Submit script to stop any existing Liberty servers for this user</description>
@@ -97,11 +101,11 @@
             	<submitAs>shell-JCL</submitAs>
         	</template>
     	</step>
-    	
+
     	<step name="stopServer_console">
         	<title>Stop the Server from Console</title>
         	<description>Issue a stop command for the server. If the command fails, issue a cancel</description>
-	        	
+
 	        <step name="issue_stop">
 	        	<title>Issue stop command</title>
 	        	<description>Issue a stop command for the server.</description>
@@ -132,12 +136,12 @@
         "unsol-detect-sync" : "Y",
         "unsol-detect-timeout" : "10",
         "system" : "${_workflow-systemName}"
-	  }	
+	  }
 					</requestBody>
 					<expectedStatusCode>200</expectedStatusCode>
 				</rest>
 	    	</step>
-	    	
+
 	    	<step name="check_status">
 	        	<title>Check Server Status</title>
 	        	<description>Check to see if the server job is still running</description>
@@ -166,13 +170,13 @@
 	    "cmd" : "d a,${_workflow-softwareServiceInstanceName}",
 		"sol-key" : "NOT FOUND",
 		"system" : "${_workflow-systemName}"
-	  }	
+	  }
 					</requestBody>
 					<expectedStatusCode>200</expectedStatusCode>
 					<propertyMapping mapTo="SERVER_STOP_STATUS">["sol-key-detected"]</propertyMapping>
 				</rest>
 	    	</step>
-	    	
+
 	    	<step name="issue_cancel">
 	        	<title>Issue Cancel Command</title>
 	        	<description>Cancel the server if it is still running</description>
@@ -205,14 +209,14 @@
 	  {
 	    "cmd" : "C ${_workflow-softwareServiceInstanceName}",
 	    "system" : "${_workflow-systemName}"
-	  }	
+	  }
 					</requestBody>
 					<expectedStatusCode>200</expectedStatusCode>
 				</rest>
 	    	</step>
     	</step>
     </step>
-    
+
     <step name="removeTempFiles">
         <title>Remove Temp Files</title>
         <description>Remove the temp files created by this workflow</description>

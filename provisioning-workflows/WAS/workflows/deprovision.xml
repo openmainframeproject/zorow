@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
 
 <workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                           xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
@@ -33,7 +38,7 @@
   <variable name="SERVER_ID_NUM" visibility="public">
       <label>Server ID Number</label>
       <abstract>Three digit number identifying server instance (including leading zeroes)</abstract>
-      <description>Three digit number identifying the server instance to be deprovisioned. This number is embedded in the 
+      <description>Three digit number identifying the server instance to be deprovisioned. This number is embedded in the
 	               server job name. For example, to deprovision server ZZ001S, specify 001 for the Server ID Number.</description>
       <category>User provided parameters</category>
       <string>
@@ -757,7 +762,7 @@
         <description>The ID of the allocated Soap port to use during deprovisioning</description>
 		<category>Response from Config Assistant</category>
 		<string/>
-	</variable>	
+	</variable>
 
   <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
   <!--     SAF user variables in server_group_variables.properties  -->
@@ -944,14 +949,14 @@
 		<category>Response from Config Assistant</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="IP_ADDRESS_ID" visibility="private">
 		<label>IP_ADDRESS_ID</label>
 		<abstract>IP Address ID for the app server</abstract>
         <description>The ID of the allocated IP address to use during deprovisioning</description>
 		<category>Response from Config Assistant</category>
 		<string/>
-	</variable>	
+	</variable>
 
     <!--++++++++++++++++++++++-->
     <!--   Deprovision Steps  -->
@@ -972,13 +977,13 @@
 <step name="resetAdminPW">
         <title>resetAdminPW</title>
         <description>resetAdminPW</description>
-	    <runAsUser substitution="true">$!{instance-PWRESET_USER}</runAsUser> 
-	    <approver substitution="true">$!{instance-PWRESET_APPROVER}</approver> 
+	    <runAsUser substitution="true">$!{instance-PWRESET_USER}</runAsUser>
+	    <approver substitution="true">$!{instance-PWRESET_APPROVER}</approver>
         <instructions substitution="false">This step runs automatically to reset the password of the WAS admin user id.</instructions>
         <weight>5</weight>
         <autoEnable>true</autoEnable>
         <template>
-          <inlineTemplate substitution="true">/* Rexx */    
+          <inlineTemplate substitution="true">/* Rexx */
 trace commands
 address tso
 "alu ${instance-SERVER_GROUP_PREFIX}AD${instance-SERVER_ID_NUM} password(${instance-DEFAULT_ADMIN_PW})"
@@ -991,8 +996,8 @@ exit
     <step name="stopAppServer">
           <title>stopAppServer</title>
           <description>stopAppServer</description>
-	      <runAsUser substitution="true">$!{instance-CONSOLE_USER}</runAsUser> 
-	      <approver substitution="true">$!{instance-CONSOLE_APPROVER}</approver> 
+	      <runAsUser substitution="true">$!{instance-CONSOLE_USER}</runAsUser>
+	      <approver substitution="true">$!{instance-CONSOLE_APPROVER}</approver>
           <instructions substitution="false">stopAppServer</instructions>
           <weight>5</weight>
           <autoEnable>true</autoEnable>
@@ -1012,8 +1017,8 @@ CONSOLE DEACTIVATE
     <step name="getDeprovisionProperties">
    		<title>Get properties for deprovisioning</title>
        	<description>Get properties set during provisioning</description>
-	    <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser> 
-	    <approver substitution="true">$!{instance-UID0_APPROVER}</approver> 
+	    <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser>
+	    <approver substitution="true">$!{instance-UID0_APPROVER}</approver>
        	<instructions substitution="false">Read properties from file</instructions>
         <weight>1</weight>
         <autoEnable>true</autoEnable>
@@ -1044,13 +1049,13 @@ CONSOLE DEACTIVATE
           	"template-name" : "${_workflow-templateName}",
           	"tenant-id" : "${_workflow-tenantID}",
         	  "network-parms" :
-        	  {       
+        	  {
         	    "ip-id" : "${instance-IP_ADDRESS_ID}"
             }
-          }    
+          }
         </requestBody>
         <expectedStatusCode>204</expectedStatusCode>
-      </rest>        	
+      </rest>
     </step>
 
     <step name="returnSoapPort">
@@ -1061,7 +1066,7 @@ CONSOLE DEACTIVATE
        	</instructions>
        	<weight>10</weight>
        	<skills>REST</skills>
-       	<autoEnable>true</autoEnable>    	
+       	<autoEnable>true</autoEnable>
      <rest>
      	<httpMethod>POST</httpMethod>
       <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
@@ -1071,13 +1076,13 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-SOAP_CONNECTOR_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
-     </rest> 
+     </rest>
     </step>
 
     <step name="returnAdminLocalPort">
@@ -1098,13 +1103,13 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-IPC_CONNECTOR_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
-     </rest> 
+     </rest>
     </step>
 
     <step name="returnAdminConsolePort">
@@ -1125,13 +1130,13 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-WC_adminhost_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
-     </rest> 
+     </rest>
     </step>
 
     <step name="returnAdminConsoleSecurePort">
@@ -1152,13 +1157,13 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-WC_adminhost_secure_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
-     </rest> 
+     </rest>
     </step>
 
     <step name="returnAdminOverlayTCPPort">
@@ -1179,10 +1184,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-OVERLAY_TCP_LISTENER_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1206,10 +1211,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-OVERLAY_UDP_LISTENER_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1233,10 +1238,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-DAEMON_PORT_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1260,10 +1265,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-DAEMON_SSL_PORT_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1287,10 +1292,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-DCS_UNICAST_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1314,10 +1319,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-WC_defaulthost_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1341,10 +1346,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-WC_defaulthost_secure_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1368,10 +1373,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-BOOTSTRAP_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1395,10 +1400,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-ORB_SSL_LISTENER_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1422,10 +1427,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-SIB_MQ_ENDPOINT_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1449,10 +1454,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-SIB_ENDPOINT_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1476,10 +1481,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1503,10 +1508,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-SIB_ENDPOINT_SECURE_ADDRESS_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1530,10 +1535,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-SIP_DEFAULTHOST_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1557,10 +1562,10 @@ CONSOLE DEACTIVATE
           "template-name" : "${_workflow-templateName}",
           "tenant-id" : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-SIP_DEFAULTHOST_SECURE_ID}"
           }
-        }    
+        }
       </requestBody>
       <expectedStatusCode>204</expectedStatusCode>
      </rest>
@@ -1569,8 +1574,8 @@ CONSOLE DEACTIVATE
   <step name="clearClassCache">
       <title>Run clearClassCache to delete java shared class cache</title>
       <description>Run clearClassCache to delete java shared class cache</description>
-	  <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser> 
-	  <approver substitution="true">$!{instance-UID0_APPROVER}</approver> 
+	  <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser>
+	  <approver substitution="true">$!{instance-UID0_APPROVER}</approver>
       <instructions substitution="false">This step runs automatically to clear the shared class cache</instructions>
       <weight>1</weight>
       <autoEnable>true</autoEnable>
@@ -1583,12 +1588,12 @@ CONSOLE DEACTIVATE
           <submitAs>shell-JCL</submitAs>
       </template>
   </step>
-	
+
 <step name="unmountFileSystem">
         <title>unmountFileSystem</title>
         <description>unmountFileSystem</description>
-	    <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser> 
-	    <approver substitution="true">$!{instance-UID0_APPROVER}</approver> 
+	    <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser>
+	    <approver substitution="true">$!{instance-UID0_APPROVER}</approver>
         <instructions substitution="false">unmountFileSystem</instructions>
         <weight>5</weight>
         <autoEnable>true</autoEnable>
@@ -1607,8 +1612,8 @@ CONSOLE DEACTIVATE
 <step name="deleteFileSystem">
         <title>deleteFileSystem</title>
         <description>deleteFileSystem</description>
-	    <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser> 
-	    <approver substitution="true">$!{instance-UID0_APPROVER}</approver> 
+	    <runAsUser substitution="true">$!{instance-UID0_USER}</runAsUser>
+	    <approver substitution="true">$!{instance-UID0_APPROVER}</approver>
         <instructions substitution="false">deleteFileSystem</instructions>
         <weight>5</weight>
         <autoEnable>true</autoEnable>
@@ -1626,8 +1631,8 @@ CONSOLE DEACTIVATE
 <step name="deleteProcs">
         <title>deleteProcs</title>
         <description>deleteProcs</description>
-	    <runAsUser substitution="true">$!{instance-PROCLIB_USER}</runAsUser> 
-	    <approver substitution="true">$!{instance-PROCLIB_APPROVER}</approver> 
+	    <runAsUser substitution="true">$!{instance-PROCLIB_USER}</runAsUser>
+	    <approver substitution="true">$!{instance-PROCLIB_APPROVER}</approver>
         <instructions substitution="false">deleteProcs</instructions>
         <weight>5</weight>
         <autoEnable>true</autoEnable>

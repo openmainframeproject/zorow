@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
 
 <!-- Declare external file containing WAS variables referenced in the following steps -->
-<!DOCTYPE workflow [<!ENTITY copyright "Copyright IBM Corp., 2015">
-                    <!ENTITY variables SYSTEM "variable_imports.xml">
-                    ]> 
-                    
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">]>
+
 <workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
 
     <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
@@ -23,20 +27,20 @@
           <softwareType>WLP</softwareType>
       </Provisioning>
   </workflowInfo>
-  
+
   	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	<!--     Include WAS variables used by the following steps -->
 	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	&variables;
-	
-	
+
+
     <!--++++++++++++++++++++++-->
     <!--   Stop the Server    -->
-    <!--++++++++++++++++++++++-->  
+    <!--++++++++++++++++++++++-->
     <step name="copyProvisioningScript">
     <title>Copy Provisioning Script</title>
 	<description>Copy script to temp directory with unique name</description>
-	    
+
 	    <step name="copyScript">
 		    <title>Copy Script</title>
 	        <description>Copy the wlp-provisioning.sh script</description>
@@ -61,13 +65,13 @@
 	           	<submitAs>shell-JCL</submitAs>
 	       	</template>
 	    </step>
-    
+
     </step>
-	    
+
     <step name="startServer">
         <title>Start the Server</title>
         <description>Start the server</description>
-        
+
         <step name="startServer_USS">
         	<title>Start the Server from USS</title>
         	<description>Submit script to start the server</description>
@@ -97,7 +101,7 @@
             	<submitAs>shell-JCL</submitAs>
         	</template>
         </step>
-        
+
         <step name="startServer_console">
         	<title>Start the Server from Console</title>
         	<description>Start the server from the console</description>
@@ -128,13 +132,13 @@
     "unsol-detect-sync" : "Y",
     "unsol-detect-timeout" : "120",
     "system" : "${_workflow-systemName}"
-  }	
+  }
 				</requestBody>
 				<expectedStatusCode>200</expectedStatusCode>
 			</rest>
     	</step>
     </step>
-    
+
     <step name="removeTempFiles">
         <title>Remove Temp Files</title>
         <description>Remove the temp files created by this workflow</description>

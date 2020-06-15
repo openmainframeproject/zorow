@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Declare external file containing WAS variables referenced in the following steps -->
-<!DOCTYPE workflow [<!ENTITY copyright "Copyright IBM Corp., 2015">
-                    <!ENTITY variables SYSTEM "variable_imports.xml">
-                    ]> 
-                    
-<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
 
-<!-- 
-	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">]>
+
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+
+<!--
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  	+  zLiberty Provision: Deprovision a new user ID, group and server.+
-	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 -->
 
 <workflowInfo>
@@ -37,7 +42,7 @@
     <step name="copyProvisioningScript">
     <title>Copy Provisioning Script</title>
 	<description>Copy script to tmp directory</description>
-	    
+
 	    <step name="copyScript">
 		    <title>Copy Script</title>
 	        <description>Copy the wlp-provisioning.sh script</description>
@@ -62,13 +67,13 @@
 	           	<submitAs>shell-JCL</submitAs>
 	       	</template>
 	    </step>
-    
+
     </step>
-    
+
     <step name="stopServer">
         <title>Stop the Server</title>
         <description>Stop any existing Liberty servers for this user</description>
-		
+
 		<step name="stopServer_USS">
         	<title>Stop the Server from USS</title>
         	<description>Submit script to stop any existing Liberty servers for this user</description>
@@ -98,11 +103,11 @@
             	<submitAs>shell-JCL</submitAs>
         	</template>
     	</step>
-    	
+
     	<step name="stopServer_console">
         	<title>Stop the Server from Console</title>
         	<description>Issue a stop command for the server. If the command fails, issue a cancel</description>
-	        	
+
 	        <step name="issue_stop">
 	        	<title>Issue stop command</title>
 	        	<description>Issue a stop command for the server.</description>
@@ -133,12 +138,12 @@
         "unsol-detect-sync" : "Y",
         "unsol-detect-timeout" : "10",
         "system" : "${_workflow-systemName}"
-	  }	
+	  }
 					</requestBody>
 					<expectedStatusCode>200</expectedStatusCode>
 				</rest>
 	    	</step>
-	    	
+
 	    	<step name="check_status">
 	        	<title>Check Server Status</title>
 	        	<description>Check to see if the server job is still running</description>
@@ -167,13 +172,13 @@
 	    "cmd" : "d a,${_workflow-softwareServiceInstanceName}",
 		"sol-key" : "NOT FOUND",
 		"system" : "${_workflow-systemName}"
-	  }	
+	  }
 					</requestBody>
 					<expectedStatusCode>200</expectedStatusCode>
 					<propertyMapping mapTo="SERVER_STOP_STATUS">["sol-key-detected"]</propertyMapping>
 				</rest>
 	    	</step>
-	    	
+
 	    	<step name="issue_cancel">
 	        	<title>Issue Cancel Command</title>
 	        	<description>Cancel the server if it is still running</description>
@@ -206,18 +211,18 @@
 	  {
 	    "cmd" : "C ${_workflow-softwareServiceInstanceName}",
 	    "system" : "${_workflow-systemName}"
-	  }	
+	  }
 					</requestBody>
 					<expectedStatusCode>200</expectedStatusCode>
 				</rest>
 	    	</step>
     	</step>
     </step>
-    
+
     <step name="returnNetworkResources">
     	<title>Return Network Resources</title>
         <description>Return allocated network resources back to Config Assistant</description>
-	    
+
 	    <step name="returnDVIPA">
 	  	    <title>Return DVIPA</title>
 	        <description>Invoke RESTful API to return IP address back to pool.</description>
@@ -250,18 +255,18 @@
 				<requestBody substitution="true">
  {
   "template-uuid":"${_workflow-templateID}",
-  "template-name":"${_workflow-templateName}", 
-  "tenant-id":"${_workflow-tenantID}",  
+  "template-name":"${_workflow-templateName}",
+  "tenant-id":"${_workflow-tenantID}",
   "network-parms" :
         {
            "ip-id":"${instance-IP_ADDRESS_ID}"
         }
-} 	
+}
 				</requestBody>
 				<expectedStatusCode>204</expectedStatusCode>
 			</rest>
 	    </step>
-	    
+
 	    <step name="returnHTTPPort">
 	  	    <title>Return HTTP Port</title>
 	        <description>Invoke RESTful API to return HTTP port back to pool.</description>
@@ -299,16 +304,16 @@
   "template-name" : "${_workflow-templateName}",
   "tenant-id" : "${_workflow-tenantID}",
   "network-parms" :
-        {       
+        {
            "port-id" : "${instance-HTTP_PORT_ID}"
         }
-  }    
+  }
 
                 </requestBody>
 				<expectedStatusCode>204</expectedStatusCode>
 			</rest>
 	    </step>
-	    
+
 	    <step name="returnHTTPSPort">
 	  	    <title>Return HTTPS Port</title>
 	        <description>Invoke RESTful API to return HTTPS port back to pool.</description>
@@ -346,22 +351,22 @@
   "template-name" : "${_workflow-templateName}",
   "tenant-id" : "${_workflow-tenantID}",
   "network-parms" :
-        {       
+        {
            "port-id" : "${instance-HTTPS_PORT_ID}"
         }
-  }    
+  }
 
                 </requestBody>
 				<expectedStatusCode>204</expectedStatusCode>
 			</rest>
 	    </step>
 	</step>
-	
+
 	<step name="deprovisionWLMResources">
 	<title>Deprovision WLM Resources</title>
 	<description>Remove wlm classification rule from WLM service definition
 	</description>
-	
+
 		<step name="removeClassificationRule">
 		<title>remove Classification Rule</title>
 		<description>Make a REST call to remove Classification Rule</description>
@@ -406,13 +411,13 @@
 			<expectedStatusCode>204</expectedStatusCode>
 		</rest>
 		</step>
-	
+
 	</step>
 
     <step name="deprovisionLibertyServer">
         <title>Deprovision the Liberty Server</title>
         <description>Submit script to deprovision a Liberty server.</description>
-        
+
         <step name="deleteAndUnmountZFS">
 	        <title>Delete and unmount ZFS</title>
 	        <description>If created, delete and unmount the ZFS</description>
@@ -438,7 +443,7 @@
 	          <submitAs>JCL</submitAs>
 	      	</template>
 		</step>
-		
+
         <step name="deleteInstanceDirectory">
 	       <title>Delete Instance Directory</title>
 	       <description>Delete the directory for this server instance</description>
@@ -454,10 +459,10 @@
 	           <submitAs>shell-JCL</submitAs>
 	       </template>
 	   </step>
-	   
-	   
+
+
     </step>
-    
+
     <step name="deleteSAFKeyring">
 	        <title>Delete SAF Certificate and Keyring</title>
 	        <description>If created, delete the unique SAF certificate and keyring</description>
@@ -483,12 +488,12 @@
           <submitAs>TSO-REXX-JCL</submitAs>
       	</template>
 	</step>
-	
-	<step name="deleteServerProc">                                                                  
-         <title>Delete Server Proc</title>                                                           
-         <description>Delete the server proc</description>   
+
+	<step name="deleteServerProc">
+         <title>Delete Server Proc</title>
+         <description>Delete the server proc</description>
     		<runAsUser substitution="true">$!{instance-PROCLIB_RUN_AS_ID}</runAsUser>
-	        <approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>                   
+	        <approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>
          <condition>
          	<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
          	<description>Check that the copyScript stepState is Complete</description>
@@ -501,15 +506,15 @@
        	</extendStateExpression>
       	</targetStateSet>
      	</condition>
-     	<instructions substitution="false">deleteProcs</instructions>                        
-         <weight>5</weight>                                                                     
-         <autoEnable>true</autoEnable>                                                          
-         <template>                                                                             
+     	<instructions substitution="false">deleteProcs</instructions>
+         <weight>5</weight>
+         <autoEnable>true</autoEnable>
+         <template>
            <fileTemplate substitution="true">templates/wlp-delete-server-proc.jcl</fileTemplate>
-         <submitAs>JCL</submitAs>                                                          
-       </template>                                                                            
+         <submitAs>JCL</submitAs>
+       </template>
     </step>
-    
+
     <step name="removeSAFSecurityProfiles">
         <title>Remove SAF Security Profiles</title>
         <description>Remove SAF security profiles created by this workflow</description>
@@ -523,7 +528,7 @@
             <submitAs>TSO-REXX-JCL</submitAs>
         </template>
     </step>
-	    
+
     <step name="removeTempFiles">
         <title>Remove Temp Files</title>
         <description>Remove the temp files created by this workflow</description>
@@ -543,5 +548,5 @@
            	<submitAs>shell-JCL</submitAs>
        	</template>
     </step>
-    
+
 </workflow>

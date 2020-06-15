@@ -1,4 +1,8 @@
 //******************************************************************
+//* Copyright Contributors to the zOS-Workflow Project.            *
+//* PDX-License-Identifier: Apache-2.0                             *
+//******************************************************************
+//******************************************************************
 //*              IBM Integration Bus                               *
 //*                                                                *
 //* Sample job to create integration servers                       *

@@ -1,3 +1,8 @@
+################################################################################
+# Copyright Contributors to the zOS-Workflow Project.                          #
+# SPDX-License-Identifier: Apache-2.0                                          #
+################################################################################
+
 workflow-definition-file:./provision.xml
 workflow-variable-input-file:../properties/workflow_variables.properties
 action-definition-file:./actions.xml

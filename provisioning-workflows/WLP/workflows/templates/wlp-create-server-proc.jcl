@@ -1,3 +1,7 @@
+//******************************************************************
+//* Copyright Contributors to the zOS-Workflow Project.            *
+//* PDX-License-Identifier: Apache-2.0                             *
+//******************************************************************
 //STEP1       EXEC  PGM=IKJEFT1A,DYNAMNBR=20
 //SYSTSPRT    DD    SYSOUT=A
 //SYSTSIN     DD    *
