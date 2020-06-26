@@ -1,3 +1,7 @@
+//******************************************************************
+//* Copyright Contributors to the zOS-Workflow Project.            *
+//* PDX-License-Identifier: Apache-2.0                             *
+//******************************************************************
 //GENER   EXEC PGM=IEBGENER
 //SYSPRINT DD SYSOUT=*
 //SYSIN DD *
@@ -45,7 +49,7 @@
  end
 additional = ${instance-ADDITIONAL_MEMBER}
 if additional = "NONE"
-then sysplexha = "NO" 
+then sysplexha = "NO"
 else sysplexha = "YES"
 
  brokername = "IB${instance-IIB_ENVIRONMENT}"substr(lpar,4,1)"${instance-IIB_BROKER_SEQ}"

@@ -1,36 +1,14 @@
-<!-- Use encoding IBM-1047 if this worflow definition file is to be held 
+<!-- Use encoding IBM-1047 if this worflow definition file is to be held
     in a z/OS dataset and encoding utf-8 if it is to be held in a UNIX file system -->
 
-<!DOCTYPE workflow [<!ENTITY copyright "Copyright IBM Corp., 2017">
-                    <!ENTITY variables SYSTEM "variable_imports.xml">
-                    ]> 
-<!--                                                        
-<copyright                                                  
- notice="cics-lm-source-program"                            
- pids="@PID###@"                                            
- years="2017"                                          
- crc="2342803383" >                                         
-                                                            
-                                                            
- Licensed Materials - Property of IBM                       
-                                                            
- @PID###@                                                   
-                                                            
- (C) Copyright IBM Corp. 2017 All Rights Reserved.    
-                                                            
- US Government Users Restricted Rights - Use, duplication or
- disclosure restricted by GSA ADP Schedule Contract with    
- IBM Corp.                                                  
-                                                            
- @{[**]copyright.years=2017}
- 
- CHANGE ACTIVITY :                                                                 
-                                                                 
- PN= REASON REL YYMMDD HDXXIII : REMARKS                         
-     Base   690 170213 HDLVDNM : Base                                                                     
-                                                            
- </copyright>                                               
---> 
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
+<!DOCTYPE workflow [ <!ENTITY variables SYSTEM "variable_imports.xml">]> 
 <workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../workflow_v1.xsd">
     <workflowInfo>
@@ -50,7 +28,7 @@
 	<!--     Include Liberty variables used by the following steps -->
 	<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	&variables;
-    
+
     <step name="checkStatusStartedTask" optional="false">
         <title>Check Liberty Server Status</title>
         <description>Check if Liberty is already active</description>
@@ -75,7 +53,7 @@
             <httpMethod>PUT</httpMethod>
 			<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
             <requestBody substitution="true">
-                { 
+                {
                   "cmd" : "d a,${_workflow-softwareServiceInstanceName}",
                   "sol-key" : "NOT FOUND"
                 }
@@ -110,7 +88,7 @@
 			   	export WLP_INSTALL_DIR="${instance-WLP_INSTALL_DIR}"
 				export WLP_SERVER_NAME="${_workflow-softwareServiceInstanceName}"
 				export WLP_USER_DIR="${instance-WLP_USER_DIR}"
-			    
+
 				status=$($WLP_INSTALL_DIR/bin/server status $WLP_SERVER_NAME)
 				if [ $(echo "$status" | grep -c "is running") = 1 ]
 				then
@@ -205,6 +183,6 @@
             </requestBody>
             <expectedStatusCode>204</expectedStatusCode>
         </rest>
-    </step>        
-    
+    </step>
+
  </workflow>

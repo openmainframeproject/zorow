@@ -1,5 +1,7 @@
 /*REXX*/
 /************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                  */
+/* SPDX-License-Identifier: Apache-2.0                                  */
 /*                                                                      */
 /* Execute shell script via JCL.                                        */
 /*                                                                      */

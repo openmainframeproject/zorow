@@ -1,7 +1,11 @@
-/* Rexx */                                                                    
-trace commands                                                                                                              
+/* Rexx */
+trace commands
 address tso
 
+/*----------------------------------------------------------------*/
+/* Copyright Contributors to the zOS-Workflow Project.            */
+/* PDX-License-Identifier: Apache-2.0                             */
+/*----------------------------------------------------------------*/
 /* ------------------------------------------------------------------------- */
 /* This rexx file contains the TSO commands to remove RACF profiles defined  */
 /* by this workflow.                                                         */

@@ -1,7 +1,11 @@
-/* Rexx */                                                                    
-trace commands                                                                                                              
+/* Rexx */
+trace commands
 address tso
 
+/*----------------------------------------------------------------*/
+/* Copyright Contributors to the zOS-Workflow Project.            */
+/* PDX-License-Identifier: Apache-2.0                             */
+/*----------------------------------------------------------------*/
 /* ------------------------------------------------------------------------- */
 /* This rexx file contains the TSO commands to allow the server to start as  */
 /* a started task (if configured to do so) and to grant the server access to */
@@ -65,7 +69,7 @@ IF RC<>0 then exit 8
 /* Define the server specific APPLID to RACF */
 "RDEFINE APPL ${_workflow-softwareServiceInstanceName} UACC(NONE)"
 
-/* Activate the APPL class */ 
+/* Activate the APPL class */
 /* If not active, the domain is not restricted, which means anyone can authenticate to it */
 "SETROPTS CLASSACT(APPL)"
 

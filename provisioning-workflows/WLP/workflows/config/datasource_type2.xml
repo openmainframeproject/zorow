@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
 <server>
 
     <!-- Enable features -->
@@ -6,7 +13,7 @@
         <feature>zosTransaction-1.0</feature>
         <feature>jdbc-4.0</feature>
     </featureManager>
-    
+
     <dataSource id="db2" jndiName="${db2.jndi.name}" type="javax.sql.ConnectionPoolDataSource">
         <jdbcDriver libraryRef="DB2JCC4Lib"/>
         <properties.db2.jcc driverType="2" databaseName="${db2.location}"/>
@@ -16,5 +23,5 @@
         <fileset dir="${db2.jdbc.driver}/classes" includes="db2jcc4.jar db2jcc_license_cisuz.jar"/>
         <fileset dir="${db2.jdbc.driver}/lib" includes="*"/>
     </library>
-    
+
 </server>

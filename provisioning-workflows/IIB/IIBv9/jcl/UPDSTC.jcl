@@ -1,3 +1,7 @@
+//******************************************************************
+//* Copyright Contributors to the zOS-Workflow Project.            *
+//* PDX-License-Identifier: Apache-2.0                             *
+//******************************************************************
 //${instance-IIB_BROKER_NAME} PROC COMPK='${instance-IIB_BROKER_NAME}',
 //         INSTP='/usr/lpp/mqsi/V9R0M0',
 //         MAINP='bipimain',

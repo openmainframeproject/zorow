@@ -1,6 +1,10 @@
+//******************************************************************
+//* Copyright Contributors to the zOS-Workflow Project.            *
+//* PDX-License-Identifier: Apache-2.0                             *
+//******************************************************************
 //GENER   EXEC PGM=IEBGENER
 //SYSPRINT DD SYSOUT=*
-//SYSIN DD * 
+//SYSIN DD *
  GENERATE
  LABELS DATA=ALL
 /*
@@ -21,7 +25,7 @@
  Say "IIB_WAS_USER = ${instance-IIB_WAS_USER} "
  Say "IIB_WASUSER_UID = ${instance-IIB_WASUSER_UID} "
  Say  "_workflow-tenantID = ${_workflow-tenantID}"
- Say "_workflow-domainID = ${_workflow-domainID}" 
+ Say "_workflow-domainID = ${_workflow-domainID}"
  Say "_workflow-templateName = ${_workflow-templateName}"
  Say "RABO_SYSPLEXHA = ${instance-RABO_SYSPLEXHA}"
 
