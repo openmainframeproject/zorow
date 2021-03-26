@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <autoTakeOwnership>false</autoTakeOwnership>
+    <workflowInfo>
+        <parallelSteps>true</parallelSteps>
+        <workflowID scope="none">Provision_Network_Resource</workflowID>
+        <workflowDescription>Provision Network Resources</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM</vendor>
+        <Provisioning>
+            <productID>zOSMF</productID>
+            <productName>z/OS</productName>
+            <productVersion>Version 2.4</productVersion>
+            <softwareType>zOS</softwareType>
+        </Provisioning>
+    </workflowInfo>
+    <variable name="OBTAIN_DVIPA" visibility="public">
+        <label>OBTAIN_DVIPA</label>
+        <abstract>Obtain DVIPA flag</abstract>
+        <description>Flag to indicate whether or not to obtain DVIPA resource</description>
+        <category>Boolean Variables</category>
+        <string valueMustBeChoice="true">
+            <choice>YES</choice>
+            <choice>NO</choice>
+        </string>
+    </variable>
+    <variable name="OBTAIN_PORT" visibility="public">
+        <label>OBTAIN_PORT</label>
+        <abstract>Obtain Port flag</abstract>
+        <description>Flag to indicate whether or not to obtain port resource</description>
+        <category>Boolean Variables</category>
+        <string valueMustBeChoice="true">
+            <choice>YES</choice>
+            <choice>NO</choice>
+        </string>
+    </variable>
+    <variable name="OBTAIN_APPLID" visibility="public">
+        <label>OBTAIN_APPLID</label>
+        <abstract>Obtain APPLID flag</abstract>
+        <description>Flag to indicate whether or not to obtain APPLID resource</description>
+        <category>Boolean Variables</category>
+        <string valueMustBeChoice="true">
+            <choice>YES</choice>
+            <choice>NO</choice>
+        </string>
+    </variable>
+    <variable name="IP_ADDRESS" visibility="public">
+        <label>IP_ADDRESS</label>
+        <abstract>TCP/IP DVIPA IP Address</abstract>
+        <description>TCP/IP DVIPA IP Address</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="IP_ADDRESS_ID" visibility="private">
+        <label>IP_ADDRESS_ID</label>
+        <abstract>Object ID of the IP Address resource</abstract>
+        <description>The object id of the allocated IP address to use during deprovisioning</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="PORT" visibility="public">
+        <label>PORT</label>
+        <abstract>TCP/IP Port Number</abstract>
+        <description>TCP/IP port number</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="PORT_ID" visibility="private">
+        <label>PORT_ID</label>
+        <abstract>Object ID of the port resource</abstract>
+        <description>The object id of the reserved Port address to use during deprovisioning</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="APPLID" visibility="public">
+        <label>APPLID</label>
+        <abstract>VTAM APPLID</abstract>
+        <description>VTAM APPLID</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="APPLID_ID" visibility="private">
+        <label>APPLID_ID</label>
+        <abstract>Object ID of the APPLID resource</abstract>
+        <description>The object id of the reserved APPLID resource to use during deprovisioning</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="JOB_NAME" visibility="public">
+        <label>JOB_NAME</label>
+        <abstract>Job name of server that will use allocated port. Specify * if Jobname is not available</abstract>
+        <description>Job name of server that will use allocated port. Specify * if Jobname is not available</description>
+        <category>REST</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <variable name="USAGE_TYPE" visibility="public">
+        <label>USAGE_TYPE</label>
+        <abstract>Usage type that matches with usage type associated with port pool</abstract>
+        <description>Usage type that matches with usage type associated with port pool. Request will fail if matching usage type is not found</description>
+        <category>REST</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+
+    <atCreate name="OBTAIN_DVIPA" scope="instance" required="false" prompt="true"/>
+    <atCreate name="OBTAIN_PORT" scope="instance" required="false" prompt="true"/>
+    <atCreate name="OBTAIN_APPLID" scope="instance" required="false" prompt="true"/>
+    <atCreate name="JOB_NAME" scope="instance" required="false" prompt="true"/>
+    <atCreate name="USAGE_TYPE" scope="instance" required="false" prompt="true"/>
+
+    <step name="allocateNetworkResources">
+        <title>Allocate Network Resources</title>
+        <description>Allocate port and/or DVIPA and/or VTAM APPLID</description>
+        <step name="allocatePort" optional="false">
+            <title>Allocate Port</title>
+            <description>Make a REST call to allocate port</description>
+            <condition>
+                <expression>"1" == "1"</expression>
+                <description>Check that previous step has completed</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if TCP/IP port resource
+                         is not requested
+                    </description>
+                    <extendStateExpression>
+                        <description>Skip if OBTAIN_PORT does not equal YES</description>
+                        <expression>${instance_OBTAIN_PORT} != "YES"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions substitution="false">
+                Execute step to allocate a port using z/OS Communications Server.
+            </instructions>
+            <weight>10</weight>
+            <skills>REST</skills>
+            <autoEnable>true</autoEnable>
+            <canMarkAsFailed>false</canMarkAsFailed>
+            <rest>
+                <httpMethod>POST</httpMethod>
+                <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/obtain</uriPath>
+                <requestBody substitution="true">
+                 {
+
+                    "template-uuid" : "${_workflow-templateID}",
+                    "template-name" : "${_workflow-templateName}",
+                    "tenant-id" : "${_workflow-tenantID}",
+                    "network-parms" :
+                    {
+
+                        "name" : "${_workflow-softwareServiceInstanceName}",
+                        "intent":"exclusive",
+                        "job-name" : "${instance-JOB_NAME}",
+                        "usage-type" : "${instance-USAGE_TYPE}",
+                        "system-name" : "${_workflow-systemName}"
+                    }
+                }
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+                <propertyMapping mapTo="PORT">["port"]</propertyMapping>
+                <propertyMapping mapTo="PORT_ID">["id"]</propertyMapping>
+            </rest>
+        </step>
+        <step name="allocateDVIPA" optional="false">
+            <title>Allocate DVIPA</title>
+            <description>Allocate a DVIPA </description>
+            <condition>
+                <expression>"1" == "1"</expression>
+                <description>Check that previous step has completed</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if TCP/IP DVIPA resource
+                             is not requested
+                    </description>
+                    <extendStateExpression>
+                        <description>Skip if OBTAIN_DVIPA does not equal YES</description>
+                        <expression>${instance_OBTAIN_DVIPA} != "YES"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions substitution="false">
+               Execute step to obtain the IP address using z/OS Communications Server.
+            </instructions>
+            <weight>10</weight>
+            <skills>REST</skills>
+            <autoEnable>true</autoEnable>
+            <canMarkAsFailed>false</canMarkAsFailed>
+            <rest>
+                <httpMethod>POST</httpMethod>
+                <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/ip/actions/obtain</uriPath>
+                <requestBody substitution="true">
+                {
+                "template-uuid":"${_workflow-templateID}",
+                "template-name":"${_workflow-templateName}",
+                "tenant-id":"${_workflow-tenantID}",
+                "network-parms" :
+                 {
+                   "ipaddr":"any4",
+                   "system-name" : "${_workflow-systemName}"
+                 }
+                }
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+                <propertyMapping mapTo="IP_ADDRESS">["ipaddr"]</propertyMapping>
+                <propertyMapping mapTo="IP_ADDRESS_ID">["id"]</propertyMapping>
+            </rest>
+        </step>
+        <step name="allocateAPPLID" optional="false">
+            <title>Allocate VTAM APPLID</title>
+            <description>Allocate VTAM APPLID </description>
+            <condition>
+                <expression>"1" == "1"</expression>
+                <description>Check that previous step has completed</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if VTAM APPLID_ID resource
+                             is not requested
+                    </description>
+                    <extendStateExpression>
+                        <description>Skip if OBTAIN_APPLID does not equal YES</description>
+                        <expression>${instance_OBTAIN_APPLID} != "YES"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions substitution="false">
+                 Execute step to obtain VTAM APPLID using z/OS Communications Server.
+            </instructions>
+            <weight>10</weight>
+            <skills>REST</skills>
+            <autoEnable>true</autoEnable>
+            <canMarkAsFailed>false</canMarkAsFailed>
+            <rest>
+                <httpMethod>POST</httpMethod>
+                <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/snaapplname/actions/obtain</uriPath>
+                <requestBody substitution="true">
+        				{
+        				  "template-uuid" : "${_workflow-templateID}",
+        				  "template-name" : "${_workflow-templateName}",
+        				  "tenant-id" : "${_workflow-tenantID}",
+        				  "network-parms" :
+        				        {
+        				           "name" : "${_workflow-templateName}",
+        				           "deployment-id" : "${_workflow-registryID}",
+        				           "sna-appl-name" : "${_workflow-softwareServiceInstanceName}"
+        				        }
+        				}
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+                <propertyMapping mapTo="APPLID_ID">["id"]</propertyMapping>
+                <propertyMapping mapTo="APPLID">["appl-name"]</propertyMapping>
+            </rest>
+        </step>
+    </step>
+</workflow>
