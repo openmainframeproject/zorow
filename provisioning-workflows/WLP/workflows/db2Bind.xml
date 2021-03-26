@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
 
 <!-- Declare external file containing WAS variables referenced in the following steps -->
-<!DOCTYPE workflow [<!ENTITY copyright "Copyright IBM Corp., 2015">
-                    <!ENTITY variables SYSTEM "variable_imports.xml">
-                    ]> 
-                    
+<!DOCTYPE workflow [ <!ENTITY variables SYSTEM "variable_imports.xml">]>
+
 <workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
 
     <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
@@ -23,19 +27,19 @@
           <softwareType>WLP</softwareType>
       </Provisioning>
   </workflowInfo>
-  
+
   	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	<!--     Include WAS variables used by the following steps -->
 	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	&variables;
 	<atCreate name="DB2_REGISTRY_NAME" required="true" prompt="true"/>
 	<atCreate name="DB2_JNDI_NAME" required="true" prompt="true"/>
-	
-	
+
+
     <!--++++++++++++++++++++++-->
     <!--   DB2 Bind Steps     -->
     <!--++++++++++++++++++++++-->
-    
+
     <step name="checkCurrentDatasourceBinding">
 	    <title>Check Current Datasource Binding</title>
         <description>Check if the server is already bound to a datasource</description>
@@ -51,14 +55,14 @@
             </inlineTemplate>
             <submitAs>shell-JCL</submitAs>
         </template>
-	</step> 
-	
+	</step>
+
 	<step name="getDB2Registry">
 		<title>Get DB2 Registry</title>
 		<description>
 			Invoke RESTful API to determine the object id of the registry entry.
 		</description>
-		
+
 		<instructions substitution="false">
 			Click Finish to perform the request to get the registry entry object id.
 		</instructions>
@@ -70,16 +74,16 @@
 			<uriPath>/zosmf/provisioning/rest/1.0/scr/</uriPath>
 			<queryParameters substitution="true">external-name=${instance-DB2_REGISTRY_NAME}</queryParameters>
 			<expectedStatusCode>200</expectedStatusCode>
-			<propertyMapping mapTo="DB2_REGISTRY_ID">["scr-list"][0]["object-id"]</propertyMapping> 
+			<propertyMapping mapTo="DB2_REGISTRY_ID">["scr-list"][0]["object-id"]</propertyMapping>
 		</rest>
 	</step>
-	
+
 	<step name="GetDB2Info">
 		<title>Get DB2 Info</title>
 		<description>
 			Invoke RESTful API to fetch the variables in the registry entry.
 		</description>
-		
+
 		<instructions substitution="false">
 			Click Finish to perform the request to get the registry entry variable values.
 		</instructions>
@@ -88,22 +92,22 @@
 		<autoEnable>true</autoEnable>
 		<rest>
 			<httpMethod>GET</httpMethod>
-			<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${instance-DB2_REGISTRY_ID}/key-value-variables/</uriPath>			
+			<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${instance-DB2_REGISTRY_ID}/key-value-variables/</uriPath>
 			<expectedStatusCode>200</expectedStatusCode>
-			<propertyMapping mapTo="DB2_LOCATION">["variables"]["location"]</propertyMapping>	
-            <propertyMapping mapTo="DB2_JDBC_DRIVER">["variables"]["jdbcDriverPath"]</propertyMapping>	
-            <propertyMapping mapTo="DB2_HLQ">["variables"]["HLQ"]</propertyMapping>	
-            <propertyMapping mapTo="DB2_USERID">["variables"]["userName"]</propertyMapping>	
+			<propertyMapping mapTo="DB2_LOCATION">["variables"]["location"]</propertyMapping>
+            <propertyMapping mapTo="DB2_JDBC_DRIVER">["variables"]["jdbcDriverPath"]</propertyMapping>
+            <propertyMapping mapTo="DB2_HLQ">["variables"]["HLQ"]</propertyMapping>
+            <propertyMapping mapTo="DB2_USERID">["variables"]["userName"]</propertyMapping>
 	        <propertyMapping mapTo="DB2_PASSWORD">["variables"]["password"]</propertyMapping>
-	        <propertyMapping mapTo="DB2_HOSTNAME">["variables"]["hostName"]</propertyMapping>	
-	        <propertyMapping mapTo="DB2_PORT">["variables"]["portNumber"]</propertyMapping>	
+	        <propertyMapping mapTo="DB2_HOSTNAME">["variables"]["hostName"]</propertyMapping>
+	        <propertyMapping mapTo="DB2_PORT">["variables"]["portNumber"]</propertyMapping>
 		</rest>
-	</step>	
-    
+	</step>
+
     <step name="copyProvisioningScript">
     <title>Copy Provisioning Script</title>
 	<description>Copy script to temp directory with unique name</description>
-	    
+
 	    <step name="copyScript">
 		    <title>Copy Script</title>
 	        <description>Copy the wlp-provisioning.sh script</description>
@@ -128,12 +132,12 @@
 	           	<submitAs>shell-JCL</submitAs>
 	       	</template>
 	    </step>
-    </step>  
-    
+    </step>
+
         <step name="stopServer">
         <title>Stop the Server</title>
         <description>Stop any existing Liberty servers for this user</description>
-		
+
 		<step name="stopServer_USS">
         	<title>Stop the Server from USS</title>
         	<description>Submit script to stop any existing Liberty servers for this user</description>
@@ -163,11 +167,11 @@
             	<submitAs>shell-JCL</submitAs>
         	</template>
     	</step>
-    	
+
     	<step name="stopServer_console">
         	<title>Stop the Server from Console</title>
         	<description>Issue a stop command for the server. If the command fails, issue a cancel</description>
-	        	
+
 	        <step name="issue_stop">
 	        	<title>Issue Stop Command</title>
 	        	<description>Issue a stop command for the server.</description>
@@ -198,12 +202,12 @@
         "unsol-detect-sync" : "Y",
         "unsol-detect-timeout" : "10",
         "system" : "${_workflow-systemName}"
-	  }	
+	  }
 					</requestBody>
 					<expectedStatusCode>200</expectedStatusCode>
 				</rest>
 	    	</step>
-	    	
+
 	    	<step name="check_status">
 	        	<title>Check Server Status</title>
 	        	<description>Check to see if the server job is still running</description>
@@ -232,13 +236,13 @@
 	    "cmd" : "d a,${_workflow-softwareServiceInstanceName}",
 		"sol-key" : "NOT FOUND",
 		"system" : "${_workflow-systemName}"
-	  }	
+	  }
 					</requestBody>
 					<expectedStatusCode>200</expectedStatusCode>
 					<propertyMapping mapTo="SERVER_STOP_STATUS">["sol-key-detected"]</propertyMapping>
 				</rest>
 	    	</step>
-	    	
+
 	    	<step name="issue_cancel">
 	        	<title>Issue Cancel Command</title>
 	        	<description>Cancel the server if it is still running</description>
@@ -271,19 +275,19 @@
 	  {
 	    "cmd" : "C ${_workflow-softwareServiceInstanceName}",
 	    "system" : "${_workflow-systemName}"
-	  }	
+	  }
 					</requestBody>
 					<expectedStatusCode>200</expectedStatusCode>
 				</rest>
 	    	</step>
     	</step>
     </step>
-    
-    <step name="deleteServerProc">                                                                  
-         <title>Delete Server Proc</title>                                                           
-         <description>Delete the server proc</description>   
+
+    <step name="deleteServerProc">
+         <title>Delete Server Proc</title>
+         <description>Delete the server proc</description>
     		<runAsUser substitution="true">$!{instance-PROCLIB_RUN_AS_ID}</runAsUser>
-	        <approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>                   
+	        <approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>
          <condition>
          	<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
          	<description>Check that the copyScript stepState is Complete</description>
@@ -296,15 +300,15 @@
        	</extendStateExpression>
       	</targetStateSet>
      	</condition>
-     	<instructions substitution="false">deleteProcs</instructions>                        
-         <weight>5</weight>                                                                     
-         <autoEnable>true</autoEnable>                                                          
-         <template>                                                                             
+     	<instructions substitution="false">deleteProcs</instructions>
+         <weight>5</weight>
+         <autoEnable>true</autoEnable>
+         <template>
            <fileTemplate substitution="true">templates/wlp-delete-server-proc.jcl</fileTemplate>
-         <submitAs>JCL</submitAs>                                                          
-       </template>                                                                            
+         <submitAs>JCL</submitAs>
+       </template>
     </step>
-	    
+
    <step name="copyDatasourceProperties">
 		    <title>Copy Datasource Properties</title>
 	        <description>Copy the datasource.properties file and auto resolve the variable names</description>
@@ -316,7 +320,7 @@
 	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.properties</saveAsUnixFile>
 	        </template>
         </step>
-        
+
    <step name="copyDB2Type4Config">
 	    <title>Copy DB2 Type 4 Config</title>
         <description>Copy the datasource_type4.xml template</description>
@@ -340,7 +344,7 @@
             <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.xml</saveAsUnixFile>
         </template>
     </step>
-		
+
     <step name="copyDB2Type2Config">
 	    <title>Copy DB2 Type 2 Config</title>
         <description>Copy the datasource_type2.xml template</description>
@@ -364,7 +368,7 @@
             <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.xml</saveAsUnixFile>
         </template>
     </step>
-    
+
     <step name="processDatasourceConfiguration">
 	    <title>Process Datasource Configuration</title>
         <description>Convert XML and create additional configuration files</description>
@@ -381,8 +385,8 @@
             </inlineTemplate>
             <submitAs>shell-JCL</submitAs>
         </template>
-	</step> 
-    
+	</step>
+
     <step name="addSteplibToProc">
         <title>Add STEPLIB to Proc</title>
         <description>Update the proc jcl with the STEPLIB statements</description>
@@ -410,12 +414,12 @@
            <submitAs>shell-JCL</submitAs>
        </template>
     </step>
-    
-    <step name="createServerProc">                                                                  
-            <title>Create Server Proc</title>                                                           
-            <description>Create the server proc</description>                                               
-       		<runAsUser substitution="true">$!{instance-PROCLIB_RUN_AS_ID}</runAsUser>    
-       		<approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>                    
+
+    <step name="createServerProc">
+            <title>Create Server Proc</title>
+            <description>Create the server proc</description>
+       		<runAsUser substitution="true">$!{instance-PROCLIB_RUN_AS_ID}</runAsUser>
+       		<approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>
             <condition>
             	<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
             	<description>Check that the copyScript stepState is Complete</description>
@@ -428,19 +432,19 @@
 		        	</extendStateExpression>
 	        	</targetStateSet>
         	</condition>
-        	<instructions substitution="false">copyProcs</instructions>                        
-            <weight>5</weight>                                                                     
-            <autoEnable>true</autoEnable>                                                          
-            <template>                                                                             
+        	<instructions substitution="false">copyProcs</instructions>
+            <weight>5</weight>
+            <autoEnable>true</autoEnable>
+            <template>
               <fileTemplate substitution="true">templates/wlp-create-server-proc.jcl</fileTemplate>
-            <submitAs>JCL</submitAs>                                                          
-          </template>                                                                            
+            <submitAs>JCL</submitAs>
+          </template>
        </step>
-       
+
        <step name="startServer">
         <title>Start the Server</title>
         <description>Start the server</description>
-        
+
         <step name="startServer_USS">
         	<title>Start the Server from USS</title>
         	<description>Submit script to start the server</description>
@@ -470,7 +474,7 @@
             	<submitAs>shell-JCL</submitAs>
         	</template>
         </step>
-        
+
         <step name="startServer_console">
         	<title>Start the Server from Console</title>
         	<description>Start the server from the console</description>
@@ -501,13 +505,13 @@
     "unsol-detect-sync" : "Y",
     "unsol-detect-timeout" : "120",
     "system" : "${_workflow-systemName}"
-  }	
+  }
 				</requestBody>
 				<expectedStatusCode>200</expectedStatusCode>
 			</rest>
     	</step>
     </step>
-    
+
     <step name="updateDB2Variables">
 		<title>Update DB2 Variables</title>
 		<description>
@@ -583,8 +587,8 @@
 
 		</rest>
 	</step>
-    
-    
+
+
     <step name="removeTempFiles">
         <title>Remove Temp Files</title>
         <description>Remove the temp files created by this workflow</description>

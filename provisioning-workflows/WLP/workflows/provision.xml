@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
 
 <!-- Declare external file containing WAS variables referenced in the following steps -->
-<!DOCTYPE workflow [<!ENTITY copyright "Copyright IBM Corp., 2015">
-                    <!ENTITY variables SYSTEM "variable_imports.xml">
-                    ]> 
-                    
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">]>
+
 <workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
 
     <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
@@ -23,22 +27,22 @@
           <softwareType>WLP</softwareType>
       </Provisioning>
   </workflowInfo>
-  
+
   	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	<!--     Include WAS variables used by the following steps -->
 	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	&variables;
 	<atCreate name="DB2_REGISTRY_NAME" required="false" prompt="true"/>
 	<atCreate name="DB2_JNDI_NAME" required="false" prompt="true"/>
-	
+
 	<atCreate name="GROUP_NAME" required="false" prompt="true"/>
-	
+
 	<atCreate name="START_INSTANCE" required="false"/>
 	<atCreate name="ZOSPT_IMAGE_LOCATION" required="false"/>
-	
+
     <!--++++++++++++++++++++++-->
     <!--   Provision Steps    -->
-    <!--++++++++++++++++++++++-->  
+    <!--++++++++++++++++++++++-->
     <step name="resolveUser">
     <title>Resolve User</title>
 	<description>Assign WLP_USER to current user if not specified</description>
@@ -146,11 +150,11 @@
 	       	</template>
 	    </step>
 	</step>
-	
+
 	<step name="resolveInstanceDir">
         <title>Resolve Instance Dir</title>
 	    <description>Resolve the WLP_USER_DIR variable.</description>
-	    
+
 	    <step name="getInstanceDir">
 	        <title>Get Instance Dir</title>
 	        <description>Get the provision directory to be used for WLP_USER_DIR</description>
@@ -166,7 +170,7 @@
 	           	        path=$(echo ~${instance-WLP_USER} | sed 's@/$@@')
                         echo WLP_USER_DIR $path/wlp-${_workflow-softwareServiceInstanceName} > "${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-${instance-WLP_USER}"
 	           	   fi
-		    	    
+
 	           	</inlineTemplate>
 	           	<submitAs>shell-JCL</submitAs>
 	        </template>
@@ -199,11 +203,11 @@
 	       	</template>
 	    </step>
 	</step>
-	
+
 	<step name="resolveJobname">
     <title>Resolve Jobname</title>
 	<description>Assign JOB_NAME to the unique z/OSMF provided instance name</description>
-	    
+
 	    <step name="getJobname">
 	        <title>Get Jobname</title>
 	        <description>Write the unique instance name to an output file</description>
@@ -247,14 +251,14 @@
 	       	</template>
 	    </step>
 	</step>
-    
+
     <step name="allocateNetworkResources">
     <title>Allocate Network Resources</title>
-    <description>Allocate ports for the new server using REST calls to the CA. 
+    <description>Allocate ports for the new server using REST calls to the CA.
     			 If DVIPAs are enabled, Liberty default ports 9080 and 9443 will be allocated as shared ports.
     			 If DVIPAs are not enabled, unique ports will be exclusively allocated.
                  </description>
-		
+
 		<step name="allocateHTTPPort">
 	        <title>Allocate HTTP Port</title>
 	        <description>Make a REST call to allocate HTTP port</description>
@@ -274,7 +278,7 @@
   "template-name" : "${_workflow-templateName}",
   "tenant-id" : "${_workflow-tenantID}",
   "network-parms" :
-        {   
+        {
 
            "name" : "${_workflow-softwareServiceInstanceName}",
            #if(${instance-WLP_ENABLE_DVIPA} == "TRUE")
@@ -284,17 +288,17 @@
                "intent":"exclusive",
            #end
 
-           "job-name" : "${_workflow-softwareServiceInstanceName}",        
+           "job-name" : "${_workflow-softwareServiceInstanceName}",
            "system-name" : "${_workflow-systemName}"
         }
-  }	
+  }
 				</requestBody>
 				<expectedStatusCode>200</expectedStatusCode>
 				<propertyMapping mapTo="HTTP_PORT">["port"]</propertyMapping>
 				<propertyMapping mapTo="HTTP_PORT_ID">["id"]</propertyMapping>
 			</rest>
 		</step>
-		
+
 		<step name="allocateHTTPSPort">
 	        <title>Allocate HTTPS Port</title>
 	        <description>Make a REST call to allocate HTTPS port</description>
@@ -314,7 +318,7 @@
   "template-name" : "${_workflow-templateName}",
   "tenant-id" : "${_workflow-tenantID}",
   "network-parms" :
-        {   
+        {
 
            "name" : "${_workflow-softwareServiceInstanceName}",
            #if(${instance-WLP_ENABLE_DVIPA} == "TRUE")
@@ -324,17 +328,17 @@
                "intent":"exclusive",
            #end
 
-           "job-name" : "${_workflow-softwareServiceInstanceName}",        
+           "job-name" : "${_workflow-softwareServiceInstanceName}",
            "system-name" : "${_workflow-systemName}"
         }
-  } 
+  }
 				</requestBody>
 				<expectedStatusCode>200</expectedStatusCode>
 				<propertyMapping mapTo="HTTPS_PORT">["port"]</propertyMapping>
 				<propertyMapping mapTo="HTTPS_PORT_ID">["id"]</propertyMapping>
 			</rest>
 		</step>
-    
+
 	    <step name="allocateDVIPA">
 	        <title>Allocate DVIPA</title>
 	        <description>Allocate a DVIPA for this server</description>
@@ -362,14 +366,14 @@
 				<requestBody substitution="true">
  {
   "template-uuid":"${_workflow-templateID}",
-  "template-name":"${_workflow-templateName}", 
-  "tenant-id":"${_workflow-tenantID}",  
+  "template-name":"${_workflow-templateName}",
+  "tenant-id":"${_workflow-tenantID}",
   "network-parms" :
         {
            "ipaddr":"any4",
            "system-name":"${_workflow-systemName}"
         }
-} 	
+}
 				</requestBody>
 				<expectedStatusCode>200</expectedStatusCode>
 				<propertyMapping mapTo="IP_ADDRESS">["ipaddr"]</propertyMapping>
@@ -377,12 +381,12 @@
 			</rest>
 		</step>
 	</step>
-	
+
 	<step name="allocateWlmResources">
 	<title>Allocate Wlm Resources</title>
 	<description>Add a new wlm classification rule
 	</description>
-	
+
 		<step name="addWLMClassificationRule">
 		<title>Add WLM Classification Rule</title>
 		<description>Make a REST call to add Classification Rule in WLM Service Definition</description>
@@ -426,11 +430,11 @@
 		</rest>
 		</step>
 	</step>
-	
+
 	<step name="allocateDB2Resources">
 	<title>Allocate DB2 Resources</title>
 	<description>Allocate resources from a preset registry for the specified DB2 subsystem</description>
-	
+
 		<step name="getDB2Registry">
 			<title>Get DB2 Registry</title>
 			<description>
@@ -454,7 +458,7 @@
 					</extendStateExpression>
 				</targetStateSet>
 			</condition>
-			
+
 			<instructions substitution="true">Submit REST call to execute step</instructions>
 			<weight>10</weight>
 			<skills>SCR</skills>
@@ -464,16 +468,16 @@
 				<uriPath>/zosmf/provisioning/rest/1.0/scr/</uriPath>
 				<queryParameters substitution="true">external-name=${instance-DB2_REGISTRY_NAME}</queryParameters>
 				<expectedStatusCode>200</expectedStatusCode>
-				<propertyMapping mapTo="DB2_REGISTRY_ID">["scr-list"][0]["object-id"]</propertyMapping> 
+				<propertyMapping mapTo="DB2_REGISTRY_ID">["scr-list"][0]["object-id"]</propertyMapping>
 			</rest>
 		</step>
-		
+
 		<step name="getDB2Info">
 			<title>Get DB2 Info</title>
 			<description>
 				Invoke RESTful API to fetch the variables in the registry entry.
 			</description>
-			
+
 			<condition>
 			    <expression><![CDATA["1" == "1"]]></expression>
 			    <description>Only perform when the Liberty server is created</description>
@@ -491,32 +495,32 @@
 					</extendStateExpression>
 				</targetStateSet>
 			</condition>
-			
+
 			<instructions substitution="true">Submit REST call to execute step</instructions>
 			<weight>10</weight>
 			<skills>SCR</skills>
 			<autoEnable>true</autoEnable>
 			<rest>
 				<httpMethod>GET</httpMethod>
-				<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${instance-DB2_REGISTRY_ID}/key-value-variables/</uriPath>			
+				<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${instance-DB2_REGISTRY_ID}/key-value-variables/</uriPath>
 				<expectedStatusCode>200</expectedStatusCode>
-				<propertyMapping mapTo="DB2_LOCATION">["variables"]["location"]</propertyMapping>	
+				<propertyMapping mapTo="DB2_LOCATION">["variables"]["location"]</propertyMapping>
 	            <propertyMapping mapTo="DB2_JDBC_DRIVER">["variables"]["jdbcDriverPath"]</propertyMapping>
-	            <propertyMapping mapTo="DB2_HLQ">["variables"]["HLQ"]</propertyMapping>	
-	            <propertyMapping mapTo="DB2_USERID">["variables"]["userName"]</propertyMapping>	
+	            <propertyMapping mapTo="DB2_HLQ">["variables"]["HLQ"]</propertyMapping>
+	            <propertyMapping mapTo="DB2_USERID">["variables"]["userName"]</propertyMapping>
 	            <propertyMapping mapTo="DB2_PASSWORD">["variables"]["password"]</propertyMapping>
-	            <propertyMapping mapTo="DB2_HOSTNAME">["variables"]["hostName"]</propertyMapping>	
-	            <propertyMapping mapTo="DB2_PORT">["variables"]["portNumber"]</propertyMapping>	
+	            <propertyMapping mapTo="DB2_HOSTNAME">["variables"]["hostName"]</propertyMapping>
+	            <propertyMapping mapTo="DB2_PORT">["variables"]["portNumber"]</propertyMapping>
 			</rest>
-		</step>	
+		</step>
 	</step>
-	
+
 	<step name="copyProvisioningScript">
     <title>Copy Provisioning Script</title>
 	<description>Copy provisioning script to temp directory with a unique name. This will be called from subsequent steps to perform
-				 various operations to setup the Liberty server. This step is intentionally performed after the steps above so that 
+				 various operations to setup the Liberty server. This step is intentionally performed after the steps above so that
 				 most runtime variables would be set and could be auto-resolved in the script. </description>
-	    
+
 	    <step name="copyScript">
 		    <title>Copy Script</title>
 	        <description>Copy the wlp-provisioning.sh script</description>
@@ -541,13 +545,13 @@
 	           	<submitAs>shell-JCL</submitAs>
 	       	</template>
 	    </step>
-    
+
     </step>
-	
+
 	<step name="createInstanceDirectory">
 	    <title>Create instance directory</title>
 	    <description>Create the directory and file system (if requested) for the server instance</description>
-		
+
 		<step name="createDir">
 	        <title>Create Directory</title>
 	        <description>Create a new directory for this server instance</description>
@@ -565,7 +569,7 @@
 	           	<submitAs>shell-JCL</submitAs>
 	        </template>
 	    </step>
-	    
+
 	    <step name="setGroupPermissions">
 	        <title>Set Group Permissions</title>
 	        <description>Set group permissions on the new directory for this server instance</description>
@@ -591,13 +595,13 @@
 	        <autoEnable>true</autoEnable>
 			<template>
 		    	<inlineTemplate substitution="true">
- 			    chmod 770 ${instance-WLP_USER_DIR}  
-                chown ${instance-WLP_USER}:${instance-GROUP_NAME} ${instance-WLP_USER_DIR} 
+ 			    chmod 770 ${instance-WLP_USER_DIR}
+                chown ${instance-WLP_USER}:${instance-GROUP_NAME} ${instance-WLP_USER_DIR}
 	           	</inlineTemplate>
 	           	<submitAs>shell-JCL</submitAs>
 	        </template>
 	    </step>
-	    
+
 		<step name="createZFS">
 	        <title>Create and Mount ZFS</title>
 	        <description>If requested, create and mount a new ZFS</description>
@@ -615,7 +619,7 @@
 					</extendStateExpression>
 				</targetStateSet>
 			</condition>
-			
+
 	        <instructions substitution="true">Submit JCL to execute step</instructions>
 	        <weight>1</weight>
 	        <autoEnable>true</autoEnable>
@@ -624,10 +628,10 @@
 	          <submitAs>JCL</submitAs>
 	      	</template>
 	    </step>
-	    
-	    
+
+
 	</step>
-	
+
     <step name="createLibertyServer">
         <title>Create a New Liberty Server</title>
         <description>Submit script to provision a new Liberty server.</description>
@@ -646,11 +650,11 @@
             <submitAs>shell-JCL</submitAs>
         </template>
     </step>
-	
+
     <step name="configureLibertyServer">
         <title>Configure the Liberty Server</title>
         <description>Configure the new Liberty server.</description>
-        
+
         <step name="copyServerConfig">
 		    <title>Copy Server Config</title>
 	        <description>Copy the server.xml file</description>
@@ -662,7 +666,7 @@
 	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/server.xml</saveAsUnixFile>
 	        </template>
         </step>
-        
+
         <step name="copyBootstrapProperties">
 		    <title>Copy Bootstrap Properties</title>
 	        <description>Copy the bootstrap.properties file and auto resolve the variable names</description>
@@ -674,7 +678,7 @@
 	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/bootstrap.properties</saveAsUnixFile>
 	        </template>
         </step>
-        
+
         <step name="processConfig">
             <title>Process Config</title>
             <description>Convert XML and create additional configuration files for the new server</description>
@@ -684,7 +688,7 @@
         	<template>
            		<inlineTemplate substitution="true">
             	if [ "${instance-WLP_USER}" = $(whoami) ]; then
-            	    ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configure 
+            	    ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configure
             	else
             	    su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configure"
             	fi
@@ -693,11 +697,11 @@
         	</template>
     	</step>
     </step>
-    
+
     <step name="configureSSL">
 		<title>Configure SSL</title>
 		<description>Configure keystore for ssl</description>
-		
+
 		<step name="createSAFKeyring">
 	        <title>Create SAF Certificate and Keyring</title>
 	        <description>If requested, create a unique SAF certificate and keyring</description>
@@ -715,7 +719,7 @@
 					</extendStateExpression>
 				</targetStateSet>
 			</condition>
-			
+
 	        <instructions substitution="true">Submit REXX to execute step</instructions>
 	        <weight>1</weight>
 	        <autoEnable>true</autoEnable>
@@ -724,7 +728,7 @@
 	          <submitAs>TSO-REXX-JCL</submitAs>
 	      	</template>
 		</step>
-		
+
 		<step name="copySAFKeystoreConfig">
 		    <title>Copy SAF Keystore Config</title>
 	        <description>Copy the keystore_saf.xml template</description>
@@ -748,7 +752,7 @@
 	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/keystore.xml</saveAsUnixFile>
 	        </template>
         </step>
-		
+
 	    <step name="copyDefaultKeystoreConfig">
 		    <title>Copy Default Keystore Config</title>
 	        <description>Copy the keystore_default.xml template</description>
@@ -777,7 +781,7 @@
 	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/keystore.xml</saveAsUnixFile>
 	        </template>
         </step>
-	        
+
 		<step name="processKeystoreConfig">
 	        <title>Process Keystore Configuration</title>
 	        <description>Convert keystore configuration XML</description>
@@ -796,11 +800,11 @@
 	        </template>
 		</step>
     </step>
-	
+
 	<step name="configureDB2Bind">
 		<title>Configure DB2 Bind</title>
 		<description>If requested, get DB2 registry data needed to bind to a DB2 data source</description>
-    
+
     	<step name="copyDatasourceProperties">
 		    <title>Copy Datasource Properties</title>
 	        <description>Copy the datasource.properties file and auto resolve the variable names</description>
@@ -829,7 +833,7 @@
 	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.properties</saveAsUnixFile>
 	        </template>
         </step>
-        
+
         <step name="copyDB2Type4Config">
 		    <title>Copy DB2 Type 4 Config</title>
 	        <description>Copy the datasource_type4.xml template</description>
@@ -858,7 +862,7 @@
 	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.xml</saveAsUnixFile>
 	        </template>
         </step>
-		
+
 	    <step name="copyDB2Type2Config">
 		    <title>Copy DB2 Type 2 Config</title>
 	        <description>Copy the datasource_type2.xml template</description>
@@ -887,7 +891,7 @@
 	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.xml</saveAsUnixFile>
 	        </template>
         </step>
-        
+
         <step name="processDatasourceConfiguration">
 	        <title>Process Datasource Configuration</title>
 	        <description>Convert XML and create additional config files </description>
@@ -914,21 +918,21 @@
 	        <template>
             <inlineTemplate substitution="true">
             if [ "${instance-WLP_USER}" = $(whoami) ]; then
-                ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureDatasource 
+                ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureDatasource
             else
                 su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureDatasource"
             fi
             </inlineTemplate>
             <submitAs>shell-JCL</submitAs>
         </template>
-	    </step> 
-		
+	    </step>
+
     </step>
- 
+
     <step name="configureStartedTask">
     	<title>Configure Started Task</title>
     	<description>Configure the server to start as a started task</description>
-	
+
 	    <step name="configureServerProc">
 	        <title>Configure Server Proc</title>
 	        <description>Configure the proc used to start this server instance</description>
@@ -958,12 +962,12 @@
             	<submitAs>shell-JCL</submitAs>
 	       	</template>
 	    </step>
-    	
-    	<step name="createServerProc">                                                                  
-            <title>Create Server Proc</title>                                                           
-            <description>Create the server proc</description>                                               
-       		<runAsUser substitution="true">$!{instance-PROCLIB_RUN_AS_ID}</runAsUser>    
-       		<approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>                    
+
+    	<step name="createServerProc">
+            <title>Create Server Proc</title>
+            <description>Create the server proc</description>
+       		<runAsUser substitution="true">$!{instance-PROCLIB_RUN_AS_ID}</runAsUser>
+       		<approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>
             <condition>
             	<expression><![CDATA["1" == "1"]]></expression>
             	<description>Only perform check if server has been created</description>
@@ -976,17 +980,17 @@
 		        	</extendStateExpression>
 	        	</targetStateSet>
         	</condition>
-        	<instructions substitution="true">Submit JCL to execute step</instructions>                       
-            <weight>5</weight>                                                                     
-            <autoEnable>true</autoEnable>                                                          
-            <template>                                                                             
+        	<instructions substitution="true">Submit JCL to execute step</instructions>
+            <weight>5</weight>
+            <autoEnable>true</autoEnable>
+            <template>
               <fileTemplate substitution="true">templates/wlp-create-server-proc.jcl</fileTemplate>
-            <submitAs>JCL</submitAs>                                                          
-          </template>                                                                            
+            <submitAs>JCL</submitAs>
+          </template>
        </step>
-       
+
 	</step>
-	
+
 	<step name="configureSAFSecurityProfiles">
         <title>Configure SAF Security</title>
         <description>Configure the new Liberty server for z/OS authentication to the angel</description>
@@ -1000,10 +1004,10 @@
             <submitAs>TSO-REXX-JCL</submitAs>
         </template>
     </step>
-    
+
     <step name="installApps">
 	    <title>Install Apps</title>
-        <description>Install default applications if specified</description>  
+        <description>Install default applications if specified</description>
         <condition>
 			    <expression><![CDATA["1" == "1"]]></expression>
 			    <description>Only perform when the Liberty server is created</description>
@@ -1021,7 +1025,7 @@
 					</extendStateExpression>
 				</targetStateSet>
 			</condition>
-			
+
 			<instructions substitution="true">Click Finish to install applications</instructions>
 	        <weight>1</weight>
 	        <autoEnable>true</autoEnable>
@@ -1032,9 +1036,9 @@
             	</inlineTemplate>
             	<submitAs>shell-JCL</submitAs>
             </template>
-	    
+
 	</step>
-	
+
 	<step name="untarZOSPTImage">
 		<title>Untar ZOSPT Image</title>
 		<description>Untar ZOSPT image (only used when provisioning from ZOSPT)</description>
@@ -1055,34 +1059,34 @@
 		<autoEnable>true</autoEnable>
 		<template>
 			<inlineTemplate substitution="true">
-                ## Set the unpack directory into which to unpack the tar file 
+                ## Set the unpack directory into which to unpack the tar file
                 unpackDir=${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}
                 echo "Directory into which the tar file will be unpacked: ${unpackDir}"
-                
+
                 # Change directory to unpackDir
                  cd ${unpackDir}
                  mkdir tmp
                  cd tmp
-                
+
                 # Untar the image file into the $unpackDir/tmp directory
                  pax -rf ${instance-ZOSPT_IMAGE_LOCATION}
-                
+
                 # Move the contents of rootfs into the unpackDir
                  cp -R ./rootfs/* ${unpackDir}
-                
+
                  # Delete tmp
                  cd ${unpackDir}
                  rm -R tmp
-                
+
             </inlineTemplate>
      		<submitAs>shell-JCL</submitAs>
 		</template>
 	</step>
-	
+
     <step name="startServer">
         <title>Start the Server</title>
         <description>Start the server</description>
-        
+
         <step name="startServer_USS">
         	<title>Start the Server from USS</title>
         	<description>Submit script to start the server</description>
@@ -1117,7 +1121,7 @@
             	<submitAs>shell-JCL</submitAs>
         	</template>
         </step>
-        
+
         <step name="startServer_console">
         	<title>Start the server from Console</title>
         	<description>Start the server from the console</description>
@@ -1153,13 +1157,13 @@
     "unsol-detect-sync" : "Y",
     "unsol-detect-timeout" : "120",
     "system" : "${_workflow-systemName}"
-  }	
+  }
 				</requestBody>
 				<expectedStatusCode>200</expectedStatusCode>
 			</rest>
     	</step>
     </step>
-    
+
     <step name="removeTempFiles">
         <title>Remove Temp Files</title>
         <description>Remove the temp files created by this workflow</description>

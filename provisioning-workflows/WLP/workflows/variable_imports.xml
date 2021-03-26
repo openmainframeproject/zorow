@@ -1,3 +1,10 @@
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
   <!--+++++++++++++++++++-->
   <!-- Basic Variables   -->
   <!--+++++++++++++++++++-->
@@ -17,7 +24,7 @@
        <category>String Variables</category>
        <string />
    </variable>
-  
+
   <variable name="WLP_USER_DIR" visibility="public">
       <label>WLP_USER_DIR</label>
       <abstract>Provision directory</abstract>
@@ -33,7 +40,7 @@
       <category>String Variables</category>
       <string />
   </variable>
-  
+
   <variable name="TEMP_DIR" visibility="private">
       <label>TEMP_DIR</label>
       <abstract>temp directory</abstract>
@@ -41,7 +48,7 @@
       <category>String Variables</category>
       <string />
   </variable>
-  
+
   <variable name="APPS_DIR" visibility="private">
        <label>APPS_DIR</label>
        <abstract>Path to applications</abstract>
@@ -49,11 +56,11 @@
        <category>String Variables</category>
        <string />
    </variable>
-  
+
   <!--++++++++++++++++++++-->
   <!-- SSL Authentication -->
   <!--++++++++++++++++++++-->
-  
+
   <variable name="WLP_ENABLE_SSL_SAF_CERTIFICATES" visibility="private">
       <label>"WLP_ENABLE_SSL_SAF_CERTIFICATES"</label>
       <abstract>Enable SSL SAF Certificates</abstract>
@@ -61,7 +68,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <variable name="SIGN_WITH" visibility="private">
       <label>"SIGN_WITH"</label>
       <abstract>Certificate Authority to sign certificates</abstract>
@@ -70,7 +77,7 @@
       <string>
       </string>
     </variable>
-    
+
     <variable name="CERTIFICATE_EXPIRATION_DATE" visibility="private">
       <label>"CERTIFICATE_EXPIRATION_DATE"</label>
       <abstract>Date when newly created certificates expire</abstract>
@@ -79,11 +86,11 @@
       <string>
       </string>
     </variable>
-  
+
     <!--++++++++++++++++++++++++++++-->
     <!-- Network resource variables -->
 	<!--++++++++++++++++++++++++++++-->
-	
+
 	<variable name="WLP_ENABLE_DVIPA" visibility="private">
 	    <label>WLP_ENABLE_DVIPA</label>
 	    <abstract>Enable DVIPA flag</abstract>
@@ -91,7 +98,7 @@
 	    <category>String Variables</category>
 	    <string/>
 	</variable>
-	
+
 	<variable name="IP_ADDRESS" visibility="public">
 		<label>IP_ADDRESS</label>
 		<abstract>IP Address for the Liberty server</abstract>
@@ -99,15 +106,15 @@
 		<category>REST</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="IP_ADDRESS_ID" visibility="private">
 		<label>IP_ADDRESS_ID</label>
 		<abstract>IP Address ID for the Liberty server</abstract>
         <description>The ID of the allocated IP address to use during deprovisioning</description>
 		<category>REST</category>
 		<string/>
-	</variable>	
-	
+	</variable>
+
 	<variable name="HTTP_PORT" visibility="public">
 		<label>HTTP_PORT</label>
 		<abstract>HTTP_PORT for the Liberty server</abstract>
@@ -115,15 +122,15 @@
 		<category>REST</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="HTTP_PORT_ID" visibility="private">
 		<label>HTTP_PORT_ID</label>
 		<abstract>HTTP port ID for the Liberty server</abstract>
         <description>The ID of the reserved HTTP Port address to use during deprovisioning</description>
 		<category>REST</category>
 		<string/>
-	</variable>	
-	
+	</variable>
+
 	<variable name="HTTPS_PORT" visibility="public">
 		<label>HTTPS_PORT</label>
 		<abstract>HTTPS_PORT for the Liberty server</abstract>
@@ -131,19 +138,19 @@
 		<category>REST</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="HTTPS_PORT_ID" visibility="private">
 		<label>HTTPS_PORT_ID</label>
 		<abstract>HTTPS port ID for the Liberty server</abstract>
         <description>The ID of the reserved HTTPS Port address to use during deprovisioning</description>
 		<category>REST</category>
 		<string/>
-	</variable>	
-	
+	</variable>
+
 	<!--+++++++++++++++++++++++++++++++-->
 	<!-- WLM Resource variables -->
 	<!--+++++++++++++++++++++++++++++++-->
-	
+
 	<variable name="DEFINE_WLM_RULE" visibility="private">
 	    <label>DEFINE_WLM_RULE</label>
 	    <abstract>Define WLM Classification Rule flag</abstract>
@@ -151,7 +158,7 @@
 	    <category>String Variables</category>
 	    <string/>
 	</variable>
-	
+
 	 <variable name="CLASSIFICATION_RULE_ID" visibility="public" >
 		<label>CLASSIFICATION_RULE_ID</label>
 		<abstract>Classification Rule ID from WLM</abstract>
@@ -175,12 +182,12 @@
 		<category>REST</category>
 		<string/>
 	</variable>
-  
-	
+
+
 	<!--+++++++++++++++++++++++++++++++-->
 	<!-- SAF domain security variables -->
 	<!--+++++++++++++++++++++++++++++++-->
-	
+
 	<variable name="UNAUTH_USER" visibility="private">
 		<label>UNAUTH_USER</label>
 		<abstract>Unauthenticated user</abstract>
@@ -188,11 +195,11 @@
 		<category>String Variables</category>
 		<string/>
 	</variable>
-	
+
 	<!--++++++++++++++++++++++++++++-->
 	<!-- DB2 bind feature variables -->
 	<!--++++++++++++++++++++++++++++-->
-	
+
 	<variable name="DB2_REGISTRY_NAME" visibility="public">
 		<label>DB2_REGISTRY_NAME</label>
 		<abstract>Registry name</abstract>
@@ -200,7 +207,7 @@
 		<category>String Variables</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="DB2_REGISTRY_ID" visibility="private">
 		<label>DB2_REGISTRY_ID</label>
 		<abstract>Existing DB2 registry name</abstract>
@@ -209,7 +216,7 @@
 		<category>REST</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="DB2_LOCATION" visibility="private">
 		<label>DB2_LOCATION</label>
 		<abstract>DB2 location</abstract>
@@ -217,7 +224,7 @@
 		<category>REST</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="DB2_JDBC_DRIVER" visibility="private">
 		<label>DB2_JDBC_DRIVER</label>
 		<abstract>DB2 JDBC driver path</abstract>
@@ -225,7 +232,7 @@
 		<category>REST</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="DB2_CONNECTION_TYPE" visibility="private">
       <label>"DB2_CONNECTION_TYPE"</label>
       <abstract>DB2 Connection Type</abstract>
@@ -233,7 +240,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
 	<variable name="DB2_HLQ" visibility="private">
 		<label>DB2_HLQ</label>
 		<abstract>DB2 HLQ</abstract>
@@ -241,7 +248,7 @@
 		<category>REST</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="DB2_USERID" visibility="private">
       <label>"DB2_USERID"</label>
       <abstract>DB2 user id</abstract>
@@ -249,7 +256,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <variable name="DB2_PASSWORD" visibility="private">
       <label>"DB2_PASSWORD"</label>
       <abstract>DB2 Password</abstract>
@@ -257,7 +264,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <variable name="DB2_HOSTNAME" visibility="private">
       <label>"DB2_HOSTNAME"</label>
       <abstract>DB2 hostname</abstract>
@@ -265,7 +272,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <variable name="DB2_PORT" visibility="private">
       <label>"DB2_PORT"</label>
       <abstract>DB2 port</abstract>
@@ -273,7 +280,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <variable name="DB2_JNDI_NAME" visibility="public">
       <label>DB2_JNDI_NAME</label>
       <abstract>JNDI name</abstract>
@@ -281,11 +288,11 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
 	<!--++++++++++++++++++++++++-->
 	<!-- Start option variables -->
     <!--++++++++++++++++++++++++-->
-    
+
     <variable name="START_INSTANCE" visibility="private">
       <label>START_INSTANCE</label>
       <abstract>Auto start the server</abstract>
@@ -293,7 +300,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
 	<variable name="START_SERVER_AS_STARTED_TASK" visibility="private">
 		<label>START_SERVER_AS_STARTED_TASK</label>
 		<abstract>Start server as started task</abstract>
@@ -301,7 +308,7 @@
 		<category>REST</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="JOB_NAME" visibility="public">
 		<label>JOB_NAME</label>
 		<abstract>Job name</abstract>
@@ -309,7 +316,7 @@
 		<category>REST</category>
 		<string/>
 	</variable>
-    
+
     <variable name="PROCLIB" visibility="private">
       <label>PROCLIB</label>
       <abstract>The PROCLIB dataset</abstract>
@@ -317,7 +324,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <variable name="CONSOLE_NAME" visibility="private">
       <label>CONSOLE_NAME</label>
       <abstract>The console name to use for invoking console commands</abstract>
@@ -325,7 +332,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <variable name="SERVER_STOP_STATUS" scope="instance" visibility="private">
         <label>SERVER_STOP_STATUS</label>
         <abstract>Holds the status of the server stop</abstract>
@@ -333,71 +340,71 @@
         <category>REST</category>
         <string/>
     </variable>
-    
+
     <!--++++++++++++++++++++++-->
     <!-- File System creation -->
     <!--++++++++++++++++++++++-->
-    
-    <variable name="WLP_CREATE_ZFS" visibility="private">                    
-      <label>WLP_CREATE_ZFS</label>                    
-      <abstract>Create ZFS</abstract>                                             
-      <description>Flag for whether or not a new ZFS will be created</description>                                                                                                                                                 
-      <category>String Variables</category>                        
-      <string/>                        
-    </variable>                      
-                        
-    <variable name="MOUNT_POINT" visibility="private">                      
-      <label>MOUNT_POINT</label>                      
-      <abstract>zfsMountPoint</abstract>                                               
-      <description>zfsMountPoint</description>                                                                                                                                                   
+
+    <variable name="WLP_CREATE_ZFS" visibility="private">
+      <label>WLP_CREATE_ZFS</label>
+      <abstract>Create ZFS</abstract>
+      <description>Flag for whether or not a new ZFS will be created</description>
       <category>String Variables</category>
-      <string/>                        
-    </variable>                        
-                        
-    <variable name="VOLUME" visibility="private">                          
-      <label>VOLUME</label>                          
-      <abstract>zfsVolume</abstract>                                                   
-      <description>zfsVolume</description>                                                                                                                                                       
-      <category>String Variables</category>                        
-      <string/>                        
-    </variable>                          
-                        
-    <variable name="GROUP_NAME" visibility="public">                           
-      <label>GROUP_NAME</label>                           
-      <abstract>SAF Group</abstract>                                                    
-      <description>Set this variable to an existing SAF group name to allow that group access to this server instance.</description>                                                                                                                                                        
-      <category>String Variables</category>                        
-      <string/>                        
-    </variable>                        
-                        
-    <variable name="PRIMARY_CYLINDERS" visibility="private">                   
-      <label>"PRIMARY_CYLINDERS"</label>                   
-      <abstract>zfsPrimCylinders</abstract>                                            
-      <description>zfsPrimCylinders</description>                                                                                                                                                
-      <category>String Variables</category>                        
-      <string/>                        
-    </variable>                        
-                        
-    <variable name="SECONDARY_CYLINDERS" visibility="private">                    
-      <label>SECONDARY_CYLINDERS</label>                    
-      <abstract>zfsSecCylinders</abstract>                                             
-      <description>zfsSecCylinders</description>                                                                                                                                                 
-      <category>String Variables</category>                        
-      <string/>                        
-    </variable>      
-    
-    <variable name="FILE_SYSTEM_HLQ" visibility="private">                    
-      <label>FILE_SYSTEM_HLQ</label>                    
-      <abstract>zfsHLQ</abstract>                                             
-      <description>zfsHLQ</description>                                                                                                                                                 
-      <category>String Variables</category>                        
-      <string/>                        
-    </variable>      
-    
+      <string/>
+    </variable>
+
+    <variable name="MOUNT_POINT" visibility="private">
+      <label>MOUNT_POINT</label>
+      <abstract>zfsMountPoint</abstract>
+      <description>zfsMountPoint</description>
+      <category>String Variables</category>
+      <string/>
+    </variable>
+
+    <variable name="VOLUME" visibility="private">
+      <label>VOLUME</label>
+      <abstract>zfsVolume</abstract>
+      <description>zfsVolume</description>
+      <category>String Variables</category>
+      <string/>
+    </variable>
+
+    <variable name="GROUP_NAME" visibility="public">
+      <label>GROUP_NAME</label>
+      <abstract>SAF Group</abstract>
+      <description>Set this variable to an existing SAF group name to allow that group access to this server instance.</description>
+      <category>String Variables</category>
+      <string/>
+    </variable>
+
+    <variable name="PRIMARY_CYLINDERS" visibility="private">
+      <label>"PRIMARY_CYLINDERS"</label>
+      <abstract>zfsPrimCylinders</abstract>
+      <description>zfsPrimCylinders</description>
+      <category>String Variables</category>
+      <string/>
+    </variable>
+
+    <variable name="SECONDARY_CYLINDERS" visibility="private">
+      <label>SECONDARY_CYLINDERS</label>
+      <abstract>zfsSecCylinders</abstract>
+      <description>zfsSecCylinders</description>
+      <category>String Variables</category>
+      <string/>
+    </variable>
+
+    <variable name="FILE_SYSTEM_HLQ" visibility="private">
+      <label>FILE_SYSTEM_HLQ</label>
+      <abstract>zfsHLQ</abstract>
+      <description>zfsHLQ</description>
+      <category>String Variables</category>
+      <string/>
+    </variable>
+
     <!--++++++++++++++++++++++++++++++-->
     <!-- Approval and run as user ids -->
     <!--++++++++++++++++++++++++++++++-->
-    
+
     <variable name="SECURITY_RUN_AS_ID" visibility="private">
       <label>"SECURITY_RUN_AS_ID"</label>
       <abstract>APF authorized user id for security related provisioning tasks</abstract>
@@ -405,7 +412,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <variable name="SECURITY_APPROVAL_ID" visibility="private">
       <label>"SECURITY_APPROVAL_ID"</label>
       <abstract>The user id to approve security related provisioning tasks</abstract>
@@ -413,24 +420,24 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
-    
-    <variable name="MOUNT_RUN_AS_ID" visibility="private">                    
-      <label>MOUNT_RUN_AS_ID</label>                    
-      <abstract>The user id for file system creation and mounting</abstract>                                             
-      <description>The id of the user authorized to create and mount file systems</description>                                                                                                                                                 
-      <category>String Variables</category>                        
-      <string/>                        
-    </variable>  
-    
-    <variable name="MOUNT_APPROVAL_ID" visibility="private">                    
-      <label>MOUNT_APPROVAL_ID</label>                    
-      <abstract>The user id to approve file system creation</abstract>                                             
-      <description>The user id to approve file system creation</description>                                                                                                                                                 
-      <category>String Variables</category>                        
-      <string/>                        
-    </variable>   
-    
+
+
+    <variable name="MOUNT_RUN_AS_ID" visibility="private">
+      <label>MOUNT_RUN_AS_ID</label>
+      <abstract>The user id for file system creation and mounting</abstract>
+      <description>The id of the user authorized to create and mount file systems</description>
+      <category>String Variables</category>
+      <string/>
+    </variable>
+
+    <variable name="MOUNT_APPROVAL_ID" visibility="private">
+      <label>MOUNT_APPROVAL_ID</label>
+      <abstract>The user id to approve file system creation</abstract>
+      <description>The user id to approve file system creation</description>
+      <category>String Variables</category>
+      <string/>
+    </variable>
+
      <variable name="CONSOLE_RUN_AS_ID" visibility="private">
       <label>CONSOLE_RUN_AS_ID</label>
       <abstract>The user id for executing mvs console start and stop commands</abstract>
@@ -438,7 +445,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
      <variable name="CONSOLE_APPROVAL_ID" visibility="private">
       <label>CONSOLE_APPROVAL_ID</label>
       <abstract>The user id to approve the execution of console commands</abstract>
@@ -446,7 +453,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <variable name="PROCLIB_RUN_AS_ID" visibility="private">
       <label>PROCLIB_RUN_AS_ID</label>
       <abstract>The user id for adding and removing procedures from the proclib</abstract>
@@ -454,7 +461,7 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <variable name="PROCLIB_APPROVAL_ID" visibility="private">
       <label>PROCLIB_APPROVAL_ID</label>
       <abstract>The user id to approval proclib additions</abstract>
@@ -462,11 +469,11 @@
       <category>String Variables</category>
       <string />
     </variable>
-    
+
     <!--++++++++++++++++++++++++++++++-->
     <!--   ZOSPT specific vairables   -->
     <!--++++++++++++++++++++++++++++++-->
-    
+
     <variable name="ZOSPT_VERSION_SUPPORTED" scope="instance" visibility="public">
         <label>ZOSPT_VERSION_SUPPORTED</label>
         <abstract>z/OS Provisioning Toolkit specification level supported</abstract>
@@ -478,7 +485,7 @@
 
         </string>
     </variable>
-    
+
     <variable name="ZOSPT_IMAGE_LOCATION" scope="instance" visibility="private">
         <label>IMAGE_LOCATION</label>
         <abstract>Location of an image</abstract>
@@ -486,6 +493,3 @@
         <category>ZOSPT</category>
         <string/>
     </variable>
-    
-    
-           

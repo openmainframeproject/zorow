@@ -1,3 +1,7 @@
+//******************************************************************
+//* Copyright Contributors to the zOS-Workflow Project.            *
+//* PDX-License-Identifier: Apache-2.0                             *
+//******************************************************************
 //DEFINE EXEC PGM=IDCAMS
 //SYSPRINT DD SYSOUT=*
 //SYSIN DD *
