@@ -24,7 +24,7 @@
     <variable name="PORT_ID" visibility="private">
         <label>PORT_ID</label>
         <abstract>Object ID of the port address</abstract>
-        <description>The object id of the reserved Port address to use during deprovisioning</description>
+        <description>The object ID of the reserved port address to use during deprovisioning</description>
         <category>REST</category>
         <string/>
     </variable>
