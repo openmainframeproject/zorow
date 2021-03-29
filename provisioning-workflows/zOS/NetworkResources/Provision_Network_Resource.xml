@@ -26,7 +26,7 @@
     </variable>
     <variable name="OBTAIN_PORT" visibility="public">
         <label>OBTAIN_PORT</label>
-        <abstract>Obtain Port Choice</abstract>
+        <abstract>Obtain Port choice</abstract>
         <description>Choice to indicate whether or not to obtain port resource</description>
         <category>Boolean Variables</category>
         <string valueMustBeChoice="true">
