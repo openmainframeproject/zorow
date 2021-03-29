@@ -18,30 +18,34 @@
         <label>OBTAIN_DVIPA</label>
         <abstract>Obtain DVIPA choice</abstract>
         <description>Choice to indicate whether or not to obtain DVIPA resource</description>
-        <category>Boolean Variables</category>
+        <category>String Variables</category>
         <string valueMustBeChoice="true">
             <choice>YES</choice>
             <choice>NO</choice>
+            <default>NO</default>
         </string>
     </variable>
     <variable name="OBTAIN_PORT" visibility="public">
         <label>OBTAIN_PORT</label>
         <abstract>Obtain Port choice</abstract>
-        <description>Choice to indicate whether or not to obtain port resource</description>
-        <category>Boolean Variables</category>
+        <description>Choice to indicate whether or not to obtain port resource. Job name must be specified to 
+        associate provisioned port with a specific job</description>
+        <category>String Variables</category>
         <string valueMustBeChoice="true">
             <choice>YES</choice>
             <choice>NO</choice>
+            <default>NO</default>
         </string>
     </variable>
     <variable name="OBTAIN_APPLID" visibility="public">
         <label>OBTAIN_APPLID</label>
         <abstract>Obtain APPLID choice</abstract>
         <description>Choice to indicate whether or not to obtain APPLID resource</description>
-        <category>Boolean Variables</category>
+        <category>String Variables</category>
         <string valueMustBeChoice="true">
             <choice>YES</choice>
             <choice>NO</choice>
+            <default>NO</default>
         </string>
     </variable>
     <variable name="IP_ADDRESS" visibility="public">
@@ -95,7 +99,9 @@
         <description>Identifies z/OS job that will be utilizing the allocated port. This property is required when
             TCP/IP port is requested. If job name is not known, "*" can be specified as value.</description>
         <category>REST</category>
-        <string valueMustBeChoice="false" multiLine="false"/>
+        <string valueMustBeChoice="false" multiLine="false">
+                <default>*</default>
+        </string>
     </variable>
     <variable name="USAGE_TYPE" visibility="public">
         <label>USAGE_TYPE</label>
@@ -110,11 +116,32 @@
         <string valueMustBeChoice="false" multiLine="false"/>
     </variable>
 
-    <atCreate name="OBTAIN_DVIPA" scope="instance" required="false" prompt="true"/>
-    <atCreate name="OBTAIN_PORT" scope="instance" required="false" prompt="true"/>
-    <atCreate name="OBTAIN_APPLID" scope="instance" required="false" prompt="true"/>
+    <atCreate name="OBTAIN_DVIPA" scope="instance" required="true" prompt="true"/>
+    <atCreate name="OBTAIN_PORT" scope="instance" required="true" prompt="true"/>
     <atCreate name="JOB_NAME" scope="instance" required="false" prompt="true"/>
     <atCreate name="USAGE_TYPE" scope="instance" required="false" prompt="true"/>
+    <atCreate name="OBTAIN_APPLID" scope="instance" required="true" prompt="true"/>
+
+    
+    <step name="Instructions" optional="false">
+        <title>Instructions</title>
+        <description>This step provides instructions</description>
+        <instructions substitution="false">&lt;p&gt;This is a sample workflow to dynamically provision z/OS network resources such as 
+        Dynamic VIPA, Port and VTAM Application ID (APPLID) using IBM Cloud Provisioning and Management for z/OS.&lt;br&gt;
+        One or more of the following properties must be provided with value set to &amp;quot;YES&amp;quot; to provision appropriate network resource.&lt;/p&gt;
+
+        &lt;p&gt;Following properties can be provided at the provisioning time.&lt;/p&gt;
+
+         &lt;p&gt;OBTAIN_DVIPA - Identifies whether dynamic VIPA should be obtained. Specify &amp;quot;YES&amp;quot;
+             or &amp;quot;NO&amp;quot;. If no value is specified, dynamic VIPA will not be provisioned.&lt;br&gt;
+         OBTAIN_PORT - Identifies whether TCP/IP port should be obtained. Specify &amp;quot;YES&amp;quot; 
+            or &amp;quot;NO&amp;quot;. If no value is specified, TCP/IP port will not be provisioned.&lt;br&gt;
+         OBTAIN_APPLID - Identifies whether VTAM Application ID (APPLID) should be obtained. 
+            Specify &amp;quot;YES&amp;quot; or &amp;quot;NO&amp;quot;. If no value is specified, VTAM APPLID will not be provisioned.&lt;/p&gt;</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+    </step>
 
     <step name="allocateNetworkResources">
         <title>Allocate Network Resources</title>

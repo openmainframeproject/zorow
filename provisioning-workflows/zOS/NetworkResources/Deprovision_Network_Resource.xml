@@ -6,7 +6,7 @@
         <workflowVersion>1.0</workflowVersion>
         <vendor>IBM</vendor>
         <Provisioning>
-            <productID>zosmf</productID>
+            <productID>zOSMF</productID>
             <productName>z/OS</productName>
             <productVersion>Version 2.4</productVersion>
             <softwareType>NETWORK</softwareType>
