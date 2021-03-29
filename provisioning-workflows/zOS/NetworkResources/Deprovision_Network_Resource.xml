@@ -61,7 +61,7 @@
                 </targetStateSet>
             </condition>
             <instructions substitution="false">
-            Execute step to return the IP address back to z/OS Communications Server.
+            Execute step to return the IP address back to the pool.
             </instructions>
             <weight>10</weight>
             <skills>REST</skills>
@@ -154,7 +154,7 @@
                 </targetStateSet>
             </condition>
             <instructions substitution="false">
-                 Execute step to return the VTAM APPLID back to z/OS Communications Server.
+                 Execute step to return the VTAM APPLID back to the pool.
             </instructions>
             <weight>10</weight>
             <skills>REST</skills>
