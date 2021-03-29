@@ -60,7 +60,7 @@
     </variable>
     <variable name="PORT" visibility="public">
         <label>PORT</label>
-        <abstract>TCP/IP Port Number</abstract>
+        <abstract>TCP/IP port number</abstract>
         <description>TCP/IP port number</description>
         <category>REST</category>
         <string/>
