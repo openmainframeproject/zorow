@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workflow>
     <workflowInfo>
-        <workflowID>Derovision_Network_Resource</workflowID>
+        <workflowID>Deprovision_Network_Resource</workflowID>
         <workflowDescription>Derovision Network Resource</workflowDescription>
         <workflowVersion>1.0</workflowVersion>
         <vendor>IBM</vendor>
