@@ -2,7 +2,7 @@
 <workflow>
     <workflowInfo>
         <workflowID>Deprovision_Network_Resource</workflowID>
-        <workflowDescription>Derovision Network Resource</workflowDescription>
+        <workflowDescription>Deprovision Network Resource</workflowDescription>
         <workflowVersion>1.0</workflowVersion>
         <vendor>IBM</vendor>
         <Provisioning>
