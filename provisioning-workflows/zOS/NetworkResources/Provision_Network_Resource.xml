@@ -16,7 +16,7 @@
     </workflowInfo>
     <variable name="OBTAIN_DVIPA" visibility="public">
         <label>OBTAIN_DVIPA</label>
-        <abstract>Obtain DVIPA Choice</abstract>
+        <abstract>Obtain DVIPA choice</abstract>
         <description>Choice to indicate whether or not to obtain DVIPA resource</description>
         <category>Boolean Variables</category>
         <string valueMustBeChoice="true">
