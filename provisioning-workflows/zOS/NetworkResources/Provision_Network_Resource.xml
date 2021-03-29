@@ -59,7 +59,7 @@
     <variable name="IP_ADDRESS_ID" visibility="private">
         <label>IP_ADDRESS_ID</label>
         <abstract>Object ID of the IP address</abstract>
-        <description>The object ID of the allocated IP address to use during deprovisioning</description>
+        <description>The object ID of the provisioned IP address to use during deprovisioning</description>
         <category>REST</category>
         <string/>
     </variable>
@@ -74,7 +74,7 @@
     <variable name="PORT_ID" visibility="private">
         <label>PORT_ID</label>
         <abstract>Object ID of the port address</abstract>
-        <description>The object ID of the reserved Port address to use during deprovisioning</description>
+        <description>The object ID of the provisioned port number to use during deprovisioning</description>
         <category>REST</category>
         <string/>
     </variable>
@@ -89,7 +89,7 @@
     <variable name="APPLID_ID" visibility="private">
         <label>APPLID_ID</label>
         <abstract>Object ID of the APPLID name</abstract>
-        <description>The object ID of the reserved APPLID name to use during deprovisioning</description>
+        <description>The object ID of the provisioned VTAM APPLID name to use during deprovisioning</description>
         <category>REST</category>
         <string/>
     </variable>
