@@ -31,8 +31,8 @@
 
     <variable name="APPLID_ID" visibility="private">
         <label>APPLID_ID</label>
-        <abstract>Object ID of the APPLID</abstract>
-        <description>The object ID of the provisioned APPLID</description>
+        <abstract>Object ID of the VTAM APPLID name</abstract>
+        <description>The object ID of the provisioned VTAM APPLID name</description>
         <category>REST</category>
         <string/>
     </variable>
