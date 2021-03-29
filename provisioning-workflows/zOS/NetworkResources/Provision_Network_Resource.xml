@@ -53,7 +53,7 @@
     </variable>
     <variable name="IP_ADDRESS_ID" visibility="private">
         <label>IP_ADDRESS_ID</label>
-        <abstract>Object ID of the IP Address resource</abstract>
+        <abstract>Object ID of the IP address</abstract>
         <description>The object id of the allocated IP address to use during deprovisioning</description>
         <category>REST</category>
         <string/>
