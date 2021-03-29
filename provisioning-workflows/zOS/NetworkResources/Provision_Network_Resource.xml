@@ -16,8 +16,8 @@
     </workflowInfo>
     <variable name="OBTAIN_DVIPA" visibility="public">
         <label>OBTAIN_DVIPA</label>
-        <abstract>Obtain DVIPA flag</abstract>
-        <description>Flag to indicate whether or not to obtain DVIPA resource</description>
+        <abstract>Obtain DVIPA Choice</abstract>
+        <description>Choice to indicate whether or not to obtain DVIPA resource</description>
         <category>Boolean Variables</category>
         <string valueMustBeChoice="true">
             <choice>YES</choice>
@@ -26,8 +26,8 @@
     </variable>
     <variable name="OBTAIN_PORT" visibility="public">
         <label>OBTAIN_PORT</label>
-        <abstract>Obtain Port flag</abstract>
-        <description>Flag to indicate whether or not to obtain port resource</description>
+        <abstract>Obtain Port Choice</abstract>
+        <description>Choice to indicate whether or not to obtain port resource</description>
         <category>Boolean Variables</category>
         <string valueMustBeChoice="true">
             <choice>YES</choice>
@@ -36,8 +36,8 @@
     </variable>
     <variable name="OBTAIN_APPLID" visibility="public">
         <label>OBTAIN_APPLID</label>
-        <abstract>Obtain APPLID flag</abstract>
-        <description>Flag to indicate whether or not to obtain APPLID resource</description>
+        <abstract>Obtain APPLID Choice</abstract>
+        <description>Choice to indicate whether or not to obtain APPLID resource</description>
         <category>Boolean Variables</category>
         <string valueMustBeChoice="true">
             <choice>YES</choice>
@@ -47,7 +47,8 @@
     <variable name="IP_ADDRESS" visibility="public">
         <label>IP_ADDRESS</label>
         <abstract>TCP/IP DVIPA IP Address</abstract>
-        <description>TCP/IP DVIPA IP Address</description>
+        <description>TCP/IP DVIPA IP Address that will be obtained from the IP pool defined in the z/OSMF
+            Network Configuration Assistant</description>
         <category>REST</category>
         <string/>
     </variable>
@@ -61,7 +62,8 @@
     <variable name="PORT" visibility="public">
         <label>PORT</label>
         <abstract>TCP/IP port number</abstract>
-        <description>TCP/IP port number</description>
+        <description>TCP/IP port number that will be obtained from the port pool defined in the z/OSMF
+            Network Configuration Assistant</description>
         <category>REST</category>
         <string/>
     </variable>
@@ -75,7 +77,8 @@
     <variable name="APPLID" visibility="public">
         <label>APPLID</label>
         <abstract>VTAM APPLID</abstract>
-        <description>VTAM application ID (APPLID) Name</description>
+        <description>VTAM application ID (APPLID) Name that will be obtained from the APPLID pool defined in the z/OSMF
+            Network Configuration Assistant</description>
         <category>REST</category>
         <string/>
     </variable>
