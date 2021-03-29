@@ -45,7 +45,7 @@
             <description>Invoke RESTful API to return IP address back to pool.</description>
             <condition>
                 <expression>"1" == "1"</expression>
-                <description>Check that previous step has completed</description>
+                <description>Evaluate target state based on variable values</description>
                 <targetStateSet>
                     <description>Set state to Skipped if IP_ADDRESS_ID is not set</description>
                     <extendStateExpression>
@@ -90,7 +90,7 @@
             <description>Invoke RESTful API to return port back to pool.</description>
             <condition>
                 <expression>"1" == "1"</expression>
-                <description>Check that previous step has completed</description>
+                <description>Evaluate target state based on variable values</description>
                 <targetStateSet>
                     <description>Set state to Skipped if PORT_ID is not set.</description>
                     <extendStateExpression>
@@ -138,7 +138,7 @@
             <description>Invoke RESTful API to return APPLID back to pool.</description>
             <condition>
                 <expression>"1" == "1"</expression>
-                <description>Check that previous step has completed</description>
+                <description>Evaluate target state based on variable values</description>
                 <targetStateSet>
                     <description>Set state to Skipped if APPLID_ID is not set.</description>
                     <extendStateExpression>
