@@ -124,7 +124,7 @@
             <description>Make a REST call to allocate port</description>
             <condition>
                 <expression>"1" == "1"</expression>
-                <description>Check that previous step has completed</description>
+                <description>Evaluate target state based on variable values</description>
                 <targetStateSet>
                     <description>Set state to Skipped if TCP/IP port resource
                          is not requested
@@ -173,7 +173,7 @@
             <description>Allocate a DVIPA </description>
             <condition>
                 <expression>"1" == "1"</expression>
-                <description>Check that previous step has completed</description>
+                <description>Evaluate target state based on variable values</description>
                 <targetStateSet>
                     <description>Set state to Skipped if TCP/IP DVIPA resource
                              is not requested
@@ -217,7 +217,7 @@
             <description>Allocate VTAM APPLID </description>
             <condition>
                 <expression>"1" == "1"</expression>
-                <description>Check that previous step has completed</description>
+                <description>Evaluate target state based on variable values</description>
                 <targetStateSet>
                     <description>Set state to Skipped if VTAM APPLID_ID resource
                              is not requested
