@@ -32,7 +32,7 @@
     <variable name="APPLID_ID" visibility="private">
         <label>APPLID_ID</label>
         <abstract>Object ID of the APPLID resource</abstract>
-        <description>The object id of the reserved APPLID resource to use during deprovisioning</description>
+        <description>The object ID of the reserved APPLID resource to use during deprovisioning</description>
         <category>REST</category>
         <string/>
     </variable>
