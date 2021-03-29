@@ -36,7 +36,7 @@
     </variable>
     <variable name="OBTAIN_APPLID" visibility="public">
         <label>OBTAIN_APPLID</label>
-        <abstract>Obtain APPLID Choice</abstract>
+        <abstract>Obtain APPLID choice</abstract>
         <description>Choice to indicate whether or not to obtain APPLID resource</description>
         <category>Boolean Variables</category>
         <string valueMustBeChoice="true">
