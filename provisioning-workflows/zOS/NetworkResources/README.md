@@ -15,7 +15,7 @@ IBM Cloud Provisioning and Management for z/OS is a feature within z/OSMF. It pr
 1. Download the workflow files to a z/OS system running IBM Cloud Provisioning and Management.
 2. Create a new template for the Network Resource Provisioning following the instructions in IBM Cloud Provisioning and Management.
 3. Associate the template to a tenant (user or group of users) who will be requesting network resources and create network resource pool.
-4. Work with network administrator to complete network resource pool in z/OSMF Network Configuration Assistance plugin identifying IP ranges, port ranges and SNA APPL ID ranges.
+4. Work with network administrator to complete network resource pool in z/OSMF Network Configuration Assistance plugin identifying IP ranges, port ranges and VTAM APPL ID ranges.
 5. Test the template. The workflow provided in "Provision_Network_Resource.xml" will be driven to provision the requested network resource.
 6. Publish the template.
 
