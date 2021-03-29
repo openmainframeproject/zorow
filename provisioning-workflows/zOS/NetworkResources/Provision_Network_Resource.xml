@@ -47,7 +47,7 @@
     <variable name="IP_ADDRESS" visibility="public">
         <label>IP_ADDRESS</label>
         <abstract>TCP/IP DVIPA IP Address</abstract>
-        <description>TCP/IP DVIPA IP Address that will be obtained from the IP pool defined in the z/OSMF
+        <description>TCP/IP DVIPA IP address that will be obtained from the IP pool defined in the z/OSMF
             Network Configuration Assistant</description>
         <category>REST</category>
         <string/>
