@@ -75,28 +75,34 @@
     <variable name="APPLID" visibility="public">
         <label>APPLID</label>
         <abstract>VTAM APPLID</abstract>
-        <description>VTAM APPLID</description>
+        <description>VTAM application ID (APPLID) Name</description>
         <category>REST</category>
         <string/>
     </variable>
     <variable name="APPLID_ID" visibility="private">
         <label>APPLID_ID</label>
-        <abstract>Object ID of the APPLID resource</abstract>
-        <description>The object id of the reserved APPLID resource to use during deprovisioning</description>
+        <abstract>Object ID of the APPLID name</abstract>
+        <description>The object id of the reserved APPLID name to use during deprovisioning</description>
         <category>REST</category>
         <string/>
     </variable>
     <variable name="JOB_NAME" visibility="public">
         <label>JOB_NAME</label>
-        <abstract>Job name of server that will use allocated port. Specify * if Jobname is not available</abstract>
-        <description>Job name of server that will use allocated port. Specify * if Jobname is not available</description>
+        <abstract>Job name of server of application that will use allocated port. Specify * if Jobname is not known</abstract>
+        <description>Identifies z/OS job that will be utilizing the allocated port. This property is required when
+            TCP/IP port is requested. If job name is not known, "*" can be specified as value.</description>
         <category>REST</category>
         <string valueMustBeChoice="false" multiLine="false"/>
     </variable>
     <variable name="USAGE_TYPE" visibility="public">
         <label>USAGE_TYPE</label>
         <abstract>Usage type that matches with usage type associated with port pool</abstract>
-        <description>Usage type that matches with usage type associated with port pool. Request will fail if matching usage type is not found</description>
+        <description>Optional property that identifies type of application (e.g. WLP, CICS or Node) for which port needs
+            to be provisioned. When pool of port ranges defined in z/OSMF Network Configuration Assistant,
+            network administrator can identify usage type for specific port ranges. USAGE_TYPE property must match
+            with usage type defined in z/OSMF Network Configuration Assistant otherwise the port provisioning request
+            will fail. When USAGE_TYPE property is not specified, port is provisioned from a port ranges pool that
+            is defined with out usage type</description>
         <category>REST</category>
         <string valueMustBeChoice="false" multiLine="false"/>
     </variable>
