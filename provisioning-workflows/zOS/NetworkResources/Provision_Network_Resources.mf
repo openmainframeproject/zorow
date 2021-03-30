@@ -1,0 +1,4 @@
+workflow-definition-file:./Provision_Network_Resource.xml
+workflow-variable-input-file:
+action-definition-file:./Network_Actions.xml
+description:Provision network resources such as APPLID, Port and DVIPA

@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <autoTakeOwnership>false</autoTakeOwnership>
+    <workflowInfo>
+        <parallelSteps>true</parallelSteps>
+        <workflowID scope="none">Provision_Network_Resource</workflowID>
+        <workflowDescription>Provision Network Resources</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM</vendor>
+        <Provisioning>
+            <productID>zOSMF</productID>
+            <productName>z/OS</productName>
+            <productVersion>Version 2.4</productVersion>
+            <softwareType>zOS</softwareType>
+        </Provisioning>
+    </workflowInfo>
+    <variable name="OBTAIN_DVIPA" visibility="public">
+        <label>OBTAIN_DVIPA</label>
+        <abstract>Obtain DVIPA choice</abstract>
+        <description>Choice to indicate whether or not to obtain DVIPA resource</description>
+        <category>String Variables</category>
+        <string valueMustBeChoice="true">
+            <choice>YES</choice>
+            <choice>NO</choice>
+            <default>NO</default>
+        </string>
+    </variable>
+    <variable name="OBTAIN_PORT" visibility="public">
+        <label>OBTAIN_PORT</label>
+        <abstract>Obtain Port choice</abstract>
+        <description>Choice to indicate whether or not to obtain port resource. Job name must be specified to 
+        associate provisioned port with a specific job</description>
+        <category>String Variables</category>
+        <string valueMustBeChoice="true">
+            <choice>YES</choice>
+            <choice>NO</choice>
+            <default>NO</default>
+        </string>
+    </variable>
+    <variable name="OBTAIN_APPLID" visibility="public">
+        <label>OBTAIN_APPLID</label>
+        <abstract>Obtain APPLID choice</abstract>
+        <description>Choice to indicate whether or not to obtain APPLID resource</description>
+        <category>String Variables</category>
+        <string valueMustBeChoice="true">
+            <choice>YES</choice>
+            <choice>NO</choice>
+            <default>NO</default>
+        </string>
+    </variable>
+    <variable name="IP_ADDRESS" visibility="public">
+        <label>IP_ADDRESS</label>
+        <abstract>TCP/IP DVIPA IP Address</abstract>
+        <description>TCP/IP DVIPA IP address that will be obtained from the IP pool defined in the z/OSMF
+            Network Configuration Assistant</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="IP_ADDRESS_ID" visibility="private">
+        <label>IP_ADDRESS_ID</label>
+        <abstract>Object ID of the IP address</abstract>
+        <description>The object ID of the provisioned IP address to use during deprovisioning</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="PORT" visibility="public">
+        <label>PORT</label>
+        <abstract>TCP/IP port number</abstract>
+        <description>TCP/IP port number that will be obtained from the port pool defined in the z/OSMF
+            Network Configuration Assistant</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="PORT_ID" visibility="private">
+        <label>PORT_ID</label>
+        <abstract>Object ID of the port address</abstract>
+        <description>The object ID of the provisioned port number to use during deprovisioning</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="APPLID" visibility="public">
+        <label>APPLID</label>
+        <abstract>VTAM APPLID</abstract>
+        <description>VTAM application ID (APPLID) Name that will be obtained from the APPLID pool defined in the z/OSMF
+            Network Configuration Assistant</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="APPLID_ID" visibility="private">
+        <label>APPLID_ID</label>
+        <abstract>Object ID of the APPLID name</abstract>
+        <description>The object ID of the provisioned VTAM APPLID name to use during deprovisioning</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+    <variable name="JOB_NAME" visibility="public">
+        <label>JOB_NAME</label>
+        <abstract>Job name of server of application that will use allocated port. Specify * if Jobname is not known</abstract>
+        <description>Identifies z/OS job that will be utilizing the allocated port. This property is required when
+            TCP/IP port is requested. If job name is not known, "*" can be specified as value.</description>
+        <category>REST</category>
+        <string valueMustBeChoice="false" multiLine="false">
+                <default>*</default>
+        </string>
+    </variable>
+    <variable name="USAGE_TYPE" visibility="public">
+        <label>USAGE_TYPE</label>
+        <abstract>Usage type that matches with usage type associated with port pool</abstract>
+        <description>Optional property that identifies type of application (e.g. WLP, CICS or Node) for which port needs
+            to be provisioned. When pool of port ranges defined in z/OSMF Network Configuration Assistant,
+            network administrator can identify usage type for specific port ranges. USAGE_TYPE property must match
+            with usage type defined in z/OSMF Network Configuration Assistant otherwise the port provisioning request
+            will fail. When USAGE_TYPE property is not specified, port is provisioned from a port ranges pool that
+            is defined with out usage type</description>
+        <category>REST</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+
+    <atCreate name="OBTAIN_DVIPA" scope="instance" required="true" prompt="true"/>
+    <atCreate name="OBTAIN_PORT" scope="instance" required="true" prompt="true"/>
+    <atCreate name="JOB_NAME" scope="instance" required="false" prompt="true"/>
+    <atCreate name="USAGE_TYPE" scope="instance" required="false" prompt="true"/>
+    <atCreate name="OBTAIN_APPLID" scope="instance" required="true" prompt="true"/>
+
+    
+    <step name="Instructions" optional="false">
+        <title>Instructions</title>
+        <description>This step provides instructions</description>
+        <instructions substitution="false">&lt;p&gt;This is a sample workflow to dynamically provision z/OS network resources such as 
+        Dynamic VIPA, Port and VTAM Application ID (APPLID) using IBM Cloud Provisioning and Management for z/OS.&lt;br&gt;
+        One or more of the following properties must be provided with value set to &amp;quot;YES&amp;quot; to provision appropriate network resource.&lt;/p&gt;
+
+        &lt;p&gt;Following properties can be provided at the provisioning time.&lt;/p&gt;
+
+         &lt;p&gt;OBTAIN_DVIPA - Identifies whether dynamic VIPA should be obtained. Specify &amp;quot;YES&amp;quot;
+             or &amp;quot;NO&amp;quot;. If no value is specified, dynamic VIPA will not be provisioned.&lt;br&gt;
+         OBTAIN_PORT - Identifies whether TCP/IP port should be obtained. Specify &amp;quot;YES&amp;quot; 
+            or &amp;quot;NO&amp;quot;. If no value is specified, TCP/IP port will not be provisioned.&lt;br&gt;
+         OBTAIN_APPLID - Identifies whether VTAM Application ID (APPLID) should be obtained. 
+            Specify &amp;quot;YES&amp;quot; or &amp;quot;NO&amp;quot;. If no value is specified, VTAM APPLID will not be provisioned.&lt;/p&gt;</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+    </step>
+
+    <step name="allocateNetworkResources">
+        <title>Allocate Network Resources</title>
+        <description>Allocate port and/or DVIPA and/or VTAM APPLID</description>
+        <step name="allocatePort" optional="false">
+            <title>Allocate Port</title>
+            <description>Make a REST call to allocate port</description>
+            <condition>
+                <expression>"1" == "1"</expression>
+                <description>Evaluate target state based on variable values</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if TCP/IP port resource
+                         is not requested
+                    </description>
+                    <extendStateExpression>
+                        <description>Skip if OBTAIN_PORT does not equal YES</description>
+                        <expression>${instance_OBTAIN_PORT} != "YES"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions substitution="false">
+                Execute step to allocate a port using z/OS Communications Server.
+            </instructions>
+            <weight>10</weight>
+            <skills>REST</skills>
+            <autoEnable>true</autoEnable>
+            <canMarkAsFailed>false</canMarkAsFailed>
+            <rest>
+                <httpMethod>POST</httpMethod>
+                <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/obtain</uriPath>
+                <requestBody substitution="true">
+                 {
+
+                    "template-uuid" : "${_workflow-templateID}",
+                    "template-name" : "${_workflow-templateName}",
+                    "tenant-id" : "${_workflow-tenantID}",
+                    "network-parms" :
+                    {
+
+                        "name" : "${_workflow-softwareServiceInstanceName}",
+                        "intent":"exclusive",
+                        "job-name" : "${instance-JOB_NAME}",
+                        "usage-type" : "${instance-USAGE_TYPE}",
+                        "system-name" : "${_workflow-systemName}"
+                    }
+                }
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+                <propertyMapping mapTo="PORT">["port"]</propertyMapping>
+                <propertyMapping mapTo="PORT_ID">["id"]</propertyMapping>
+            </rest>
+        </step>
+        <step name="allocateDVIPA" optional="false">
+            <title>Allocate DVIPA</title>
+            <description>Allocate a DVIPA </description>
+            <condition>
+                <expression>"1" == "1"</expression>
+                <description>Evaluate target state based on variable values</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if TCP/IP DVIPA resource
+                             is not requested
+                    </description>
+                    <extendStateExpression>
+                        <description>Skip if OBTAIN_DVIPA does not equal YES</description>
+                        <expression>${instance_OBTAIN_DVIPA} != "YES"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions substitution="false">
+               Execute step to obtain the IP address using z/OS Communications Server.
+            </instructions>
+            <weight>10</weight>
+            <skills>REST</skills>
+            <autoEnable>true</autoEnable>
+            <canMarkAsFailed>false</canMarkAsFailed>
+            <rest>
+                <httpMethod>POST</httpMethod>
+                <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/ip/actions/obtain</uriPath>
+                <requestBody substitution="true">
+                {
+                "template-uuid":"${_workflow-templateID}",
+                "template-name":"${_workflow-templateName}",
+                "tenant-id":"${_workflow-tenantID}",
+                "network-parms" :
+                 {
+                   "ipaddr":"any4",
+                   "system-name" : "${_workflow-systemName}"
+                 }
+                }
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+                <propertyMapping mapTo="IP_ADDRESS">["ipaddr"]</propertyMapping>
+                <propertyMapping mapTo="IP_ADDRESS_ID">["id"]</propertyMapping>
+            </rest>
+        </step>
+        <step name="allocateAPPLID" optional="false">
+            <title>Allocate VTAM APPLID</title>
+            <description>Allocate VTAM APPLID </description>
+            <condition>
+                <expression>"1" == "1"</expression>
+                <description>Evaluate target state based on variable values</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if VTAM APPLID_ID resource
+                             is not requested
+                    </description>
+                    <extendStateExpression>
+                        <description>Skip if OBTAIN_APPLID does not equal YES</description>
+                        <expression>${instance_OBTAIN_APPLID} != "YES"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions substitution="false">
+                 Execute step to obtain VTAM APPLID using z/OS Communications Server.
+            </instructions>
+            <weight>10</weight>
+            <skills>REST</skills>
+            <autoEnable>true</autoEnable>
+            <canMarkAsFailed>false</canMarkAsFailed>
+            <rest>
+                <httpMethod>POST</httpMethod>
+                <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/snaapplname/actions/obtain</uriPath>
+                <requestBody substitution="true">
+        				{
+        				  "template-uuid" : "${_workflow-templateID}",
+        				  "template-name" : "${_workflow-templateName}",
+        				  "tenant-id" : "${_workflow-tenantID}",
+        				  "network-parms" :
+        				        {
+        				           "name" : "${_workflow-templateName}",
+        				           "deployment-id" : "${_workflow-registryID}",
+        				           "sna-appl-name" : "${_workflow-softwareServiceInstanceName}"
+        				        }
+        				}
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+                <propertyMapping mapTo="APPLID_ID">["id"]</propertyMapping>
+                <propertyMapping mapTo="APPLID">["appl-name"]</propertyMapping>
+            </rest>
+        </step>
+    </step>
+</workflow>

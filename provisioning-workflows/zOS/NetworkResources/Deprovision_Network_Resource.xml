@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workflow>
+    <workflowInfo>
+        <workflowID>Deprovision_Network_Resource</workflowID>
+        <workflowDescription>Deprovision Network Resource</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM</vendor>
+        <Provisioning>
+            <productID>zOSMF</productID>
+            <productName>z/OS</productName>
+            <productVersion>Version 2.4</productVersion>
+            <softwareType>NETWORK</softwareType>
+        </Provisioning>
+    </workflowInfo>
+
+    <variable name="IP_ADDRESS_ID" visibility="private">
+        <label>IP_ADDRESS_ID</label>
+        <abstract>Object ID of the IP address resource</abstract>
+        <description>The object ID of the provisioned IP address</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+
+    <variable name="PORT_ID" visibility="private">
+        <label>PORT_ID</label>
+        <abstract>Object ID of the port number</abstract>
+        <description>The object ID of the provisioned port number</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+
+    <variable name="APPLID_ID" visibility="private">
+        <label>APPLID_ID</label>
+        <abstract>Object ID of the VTAM APPLID name</abstract>
+        <description>The object ID of the provisioned VTAM APPLID name</description>
+        <category>REST</category>
+        <string/>
+    </variable>
+
+    <step name="returnNetworkResources">
+        <title>Return Network Resources</title>
+        <description>Return allocated network resources back to Network Config Assistant pool</description>
+        <step name="returnDVIPA" optional="false">
+            <title>Return DVIPA</title>
+            <description>Invoke RESTful API to return IP address back to Network Config Assistant pool.</description>
+            <condition>
+                <expression>"1" == "1"</expression>
+                <description>Evaluate target state based on variable values</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if IP_ADDRESS_ID is not set</description>
+                    <extendStateExpression>
+                        <description>Skip if IP_ADDRESS_ID is null</description>
+                        <expression>${instance_IP_ADDRESS_ID} == null</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                     <extendStateExpression>
+                        <description>Skipped if IP_ADDRESS_ID is blank</description>
+                        <expression> ${instance_IP_ADDRESS_ID} == ""</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions substitution="false">
+            Execute step to return the IP address back to the pool.
+            </instructions>
+            <weight>10</weight>
+            <skills>REST</skills>
+            <autoEnable>true</autoEnable>
+            <canMarkAsFailed>false</canMarkAsFailed>
+            <rest>
+                <httpMethod>POST</httpMethod>
+                <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/ip/actions/release</uriPath>
+                <requestBody substitution="true">
+                    {
+                    "template-uuid":"${_workflow-templateID}",
+                    "template-name":"${_workflow-templateName}",
+                    "tenant-id":"${_workflow-tenantID}",
+                    "network-parms" :
+                            {
+                            "ip-id":"${instance-IP_ADDRESS_ID}"
+                            }
+                    }
+                </requestBody>
+                <expectedStatusCode>204</expectedStatusCode>
+            </rest>
+            <setVariable name="IP_ADDRESS_ID" scope="instance"></setVariable>
+        </step>
+        <step name="returnPort" optional="false">
+            <title>Return Port</title>
+            <description>Invoke RESTful API to return port number back to Network Config Assistant pool.</description>
+            <condition>
+                <expression>"1" == "1"</expression>
+                <description>Evaluate target state based on variable values</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if PORT_ID is not set.</description>
+                    <extendStateExpression>
+                        <description>Skipped if PORT_ID is null</description>
+                        <expression> ${instance_PORT_ID} == null</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                    <extendStateExpression>
+                        <description>Skipped if PORT_ID is null string</description>
+                        <expression> ${instance_PORT_ID} == ""</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions substitution="false">
+                Execute step to return the port number back to the pool.
+            </instructions>
+            <weight>10</weight>
+            <skills>REST</skills>
+            <autoEnable>true</autoEnable>
+            <canMarkAsFailed>false</canMarkAsFailed>
+            <rest>
+                <httpMethod>POST</httpMethod>
+                <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+                <requestBody substitution="true">
+
+                    {
+
+                    "template-uuid" : "${_workflow-templateID}",
+                    "template-name" : "${_workflow-templateName}",
+                    "tenant-id" : "${_workflow-tenantID}",
+                    "network-parms" :
+                            {
+                            "port-id" : "${instance-PORT_ID}"
+                            }
+                    }
+
+                </requestBody>
+                <expectedStatusCode>204</expectedStatusCode>
+            </rest>
+            <setVariable name="PORT_ID" scope="instance"></setVariable>
+        </step>
+        <step name="returnAPPLID" optional="false">
+            <title>Return APPLID</title>
+            <description>Invoke RESTful API to return APPLID back to Network Config Assistant pool.</description>
+            <condition>
+                <expression>"1" == "1"</expression>
+                <description>Evaluate target state based on variable values</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if APPLID_ID is not set.</description>
+                    <extendStateExpression>
+                        <description>Skipped if APPLID_ID is null</description>
+                        <expression> ${instance_APPLID_ID} == null</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                    <extendStateExpression>
+                        <description>Skipped if APPLID_ID is null string</description>
+                        <expression> ${instance_APPLID_ID} == ""</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions substitution="false">
+                 Execute step to return the VTAM APPLID back to the pool.
+            </instructions>
+            <weight>10</weight>
+            <skills>REST</skills>
+            <autoEnable>true</autoEnable>
+            <canMarkAsFailed>false</canMarkAsFailed>
+            <rest>
+                <httpMethod>POST</httpMethod>
+                <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/snaapplname/actions/release</uriPath>
+                <requestBody substitution="true">
+                    {
+                        "template-uuid" : "${_workflow-templateID}",
+                        "template-name" : "${_workflow-templateName}",
+                        "tenant-id" : "${_workflow-tenantID}",
+                        "network-parms" :
+                        {
+                          "appl-name-id" : "${instance-APPLID_ID}"
+                        }
+                    }
+                    </requestBody>
+                    <expectedStatusCode>204</expectedStatusCode>
+            </rest>
+            <setVariable name="APPLID_ID" scope="instance"></setVariable>
+        </step>
+    </step>
+</workflow>
