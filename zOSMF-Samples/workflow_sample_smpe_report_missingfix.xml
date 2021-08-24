@@ -66,8 +66,8 @@ target zone you wish to query, and the name of the SMP/E FIXCAT you are interest
 with a FIXCAT type you designate: &lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;Before you run this step, obtain and RECEIVE the latest HOLDDATA. Use your usual
-service acquisition portals or download the HOLDDATA directly from Enhanced HOLDDATA for z/OS website. 
-&lt;li&gt;Perform this step, which will run the SMP/E REPORT MISSINGFIX command on the FIXCAT 
+service acquisition portals or download the HOLDDATA directly from Enhanced HOLDDATA for z/OS website.
+&lt;li&gt;Perform this step, which will run the SMP/E REPORT MISSINGFIX command on the FIXCAT
  you are interested in. For a list of all IBM SMP/E FIXCATs see
 &lt;a&gt;class="xref" href="https://www.ibm.com/support/pages/ibm-fix-category-values-and-descriptions"&amp;gt;&amp;lt;cite&amp;gt;IBM Fix Category Values and Descriptions&lt;/a&gt;.
 &lt;/ol&gt;
@@ -80,19 +80,19 @@ Periodically, you might want to obtain the latest HOLDDATA and rerun this step t
         <template>
             <inlineTemplate substitution="true">//*********************************************************************
 //*********************************************************************/
-//* Copyright 2021 IBM Corp.                                          */
-//*                                                                   */
-//* Licensed under the Apache License, Version 2.0 (the "License");   */
-//* you may not use this file except in compliance with the License.  */
-//* You may obtain a copy of the License at                           */
-//*                                                                   */
-//* http://www.apache.org/licenses/LICENSE-2.0                        */
-//*                                                                   */
-//* Unless required by applicable law or agreed to in writing, software*/
-//* distributed under the License is distributed on an "AS IS" BASIS, */
-//* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. */
-//* See the License for the specific language governing permissions and */
-//* limitations under the License.                                   */
+//* Copyright 2021 IBM Corp.
+//*
+//* Licensed under the Apache License, Version 2.0 (the "License");
+//* you may not use this file except in compliance with the License.
+//* You may obtain a copy of the License at
+//*
+//* http://www.apache.org/licenses/LICENSE-2.0
+//*
+//* Unless required by applicable law or agreed to in writing, software
+//* distributed under the License is distributed on an "AS IS" BASIS,
+//* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//* See the License for the specific language governing permissions and
+//* limitations under the License.
 //*********************************************************************/
 //*
 //*  STEP #1:      COPY STEP - IEBGENER -
