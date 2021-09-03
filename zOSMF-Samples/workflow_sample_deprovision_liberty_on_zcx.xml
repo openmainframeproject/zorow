@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+
+<!-- 
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	This sample demonstrates how to destroy an Open Liberty Docker container in a zCX 
+    instance.
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+
+<workflowInfo>
+	<workflowID>deprovisionLiberty</workflowID>
+	<workflowDescription>Sample demonstrating how to destroy an Open Liberty Docker container in a zCX instance.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+
+<variable name="zcx_ipv4">
+	<label>IPADDR4</label>
+	<abstract>ZCX IPV4 address.</abstract>
+	<description>A validation type of IPADDR4 allows a valid IPV4 address. See the Internet Protocol RFC for details.
+	</description>
+	<category>Network</category>
+	<string>
+		<validationType>IPADDR4</validationType>
+		<default>0.0.0.0</default>
+	</string>
+</variable>
+
+<variable name="zcx_ssh_private_key_path">
+	<label>zCXKeyPath</label>
+	<abstract>zCX SSH private key path.</abstract>
+	<description>The zCX private key path.
+	</description>
+	<category>Network</category>
+	<string>
+		<default>/home/user/.ssh/id_rsa </default>
+	</string>
+</variable>
+
+<variable name="shell_path">
+	<label>shell script file path</label>
+	<abstract>shell script file path.</abstract>
+	<description>The shell script file path.
+	</description>
+	<category>Network</category>
+	<string>
+		<default>/tmp</default>
+	</string>
+</variable>
+
+<step name="output">
+	<title>A step with an output shell script file</title>
+	<description>This step generates an output shell script file.</description>
+	<variableValue name="zcx_ipv4" required="true"/>
+	<variableValue name="shell_path" required="true"/>
+	<instructions>
+		In this example step, the docker commands are written to the output shell script file.
+       	</instructions>
+	<weight>5</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template>
+       		<inlineTemplate substitution="true">
+#!/bin/sh
+docker rm -f $(docker ps -a | grep “liberty-21.0.0.2” | awk ‘{print $1}’)
+       		</inlineTemplate>
+		<saveAsUnixFile substitution="true">${instance-shell_path}/stop_liberty.sh</saveAsUnixFile>
+       	</template>
+</step>
+
+<step name="deprovision_liberty">
+	<title>Destroy an Open Liberty Docker container in a zCX instance</title>
+	<description>This step destroys an Open Liberty Docker container in a zCX instance automatically.</description>
+	<variableValue name="zcx_ipv4" required="true"/>
+	<variableValue name="zcx_ssh_private_key_path" required="true"/> 
+	<variableValue name="shell_path" required="true"/> 
+	<instructions substitution="false">In this example step, you will execute a ssh command to deprovision an Open Liberty Docker container in zCX.</instructions>
+	<weight>3</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template>      		
+       <inlineTemplate substitution="true">
+       	  ssh admin@${instance-zcx_ipv4} -p 8022 -i ${instance-zcx_ssh_private_key_path} &lt; ${instance-shell_path}/stop_liberty.sh
+       </inlineTemplate>
+       		<submitAs>shell-JCL</submitAs>
+       	</template>
+</step>
+
+</workflow>
