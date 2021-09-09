@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [ <!ENTITY variables SYSTEM "variable_imports.xml">]>
+
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- zLiberty Provisioning : Provision a new user ID, group and server    -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>zLiberty_DB2Bind_p</workflowID>
+      <workflowDescription>Bind a Liberty provision to a DB2 subsystem.</workflowDescription>
+      <workflowVersion>1.0</workflowVersion>
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>zosLiberty</productID>
+          <productName>Liberty for z/OS</productName>
+          <productVersion>Version 9</productVersion>
+          <softwareType>WLP</softwareType>
+      </Provisioning>
+  </workflowInfo>
+
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	<atCreate name="DB2_REGISTRY_NAME" required="true" prompt="true"/>
+	<atCreate name="DB2_JNDI_NAME" required="true" prompt="true"/>
+
+
+    <!--++++++++++++++++++++++-->
+    <!--   DB2 Bind Steps     -->
+    <!--++++++++++++++++++++++-->
+
+    <step name="checkCurrentDatasourceBinding">
+	    <title>Check Current Datasource Binding</title>
+        <description>Check if the server is already bound to a datasource</description>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+            if [ -e  "${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.xml" ]; then
+                echo "Server ${_workflow-softwareServiceInstanceName} is already bound to a datasource"
+                exit 1
+            fi
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+        </template>
+	</step>
+
+	<step name="getDB2Registry">
+		<title>Get DB2 Registry</title>
+		<description>
+			Invoke RESTful API to determine the object id of the registry entry.
+		</description>
+
+		<instructions substitution="false">
+			Click Finish to perform the request to get the registry entry object id.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+		<autoEnable>true</autoEnable>
+		<rest>
+			<httpMethod>GET</httpMethod>
+			<uriPath>/zosmf/provisioning/rest/1.0/scr/</uriPath>
+			<queryParameters substitution="true">external-name=${instance-DB2_REGISTRY_NAME}</queryParameters>
+			<expectedStatusCode>200</expectedStatusCode>
+			<propertyMapping mapTo="DB2_REGISTRY_ID">["scr-list"][0]["object-id"]</propertyMapping>
+		</rest>
+	</step>
+
+	<step name="GetDB2Info">
+		<title>Get DB2 Info</title>
+		<description>
+			Invoke RESTful API to fetch the variables in the registry entry.
+		</description>
+
+		<instructions substitution="false">
+			Click Finish to perform the request to get the registry entry variable values.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+		<autoEnable>true</autoEnable>
+		<rest>
+			<httpMethod>GET</httpMethod>
+			<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${instance-DB2_REGISTRY_ID}/key-value-variables/</uriPath>
+			<expectedStatusCode>200</expectedStatusCode>
+			<propertyMapping mapTo="DB2_LOCATION">["variables"]["location"]</propertyMapping>
+            <propertyMapping mapTo="DB2_JDBC_DRIVER">["variables"]["jdbcDriverPath"]</propertyMapping>
+            <propertyMapping mapTo="DB2_HLQ">["variables"]["HLQ"]</propertyMapping>
+            <propertyMapping mapTo="DB2_USERID">["variables"]["userName"]</propertyMapping>
+	        <propertyMapping mapTo="DB2_PASSWORD">["variables"]["password"]</propertyMapping>
+	        <propertyMapping mapTo="DB2_HOSTNAME">["variables"]["hostName"]</propertyMapping>
+	        <propertyMapping mapTo="DB2_PORT">["variables"]["portNumber"]</propertyMapping>
+		</rest>
+	</step>
+
+    <step name="copyProvisioningScript">
+    <title>Copy Provisioning Script</title>
+	<description>Copy script to temp directory with unique name</description>
+
+	    <step name="copyScript">
+		    <title>Copy Script</title>
+	        <description>Copy the wlp-provisioning.sh script</description>
+	        <instructions substitution="false">Copy the wlp-provisioning.sh script to the tmp directory with a name unique to this workflow</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">templates/wlp-provisioning.sh</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh</saveAsUnixFile>
+	        </template>
+        </step>
+        <step name="setScriptPermissions">
+	        <title>Set Script Permissions</title>
+	        <description>Set the permissions of the newly copied script</description>
+	        <instructions substitution="false">Chmod 755 on the newly copied script</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+	           	chmod 755 ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	       	</template>
+	    </step>
+    </step>
+
+        <step name="stopServer">
+        <title>Stop the Server</title>
+        <description>Stop any existing Liberty servers for this user</description>
+
+		<step name="stopServer_USS">
+        	<title>Stop the Server from USS</title>
+        	<description>Submit script to stop any existing Liberty servers for this user</description>
+			<condition>
+         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+         		<description>Check that the copyScript stepState is Complete</description>
+         		<targetStateSet>
+       				<description>Check if we are starting as a started task</description>
+       				<extendStateExpression>
+        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} == "TRUE"]]></expression>
+        				<targetState>Skipped</targetState>
+       				</extendStateExpression>
+      			</targetStateSet>
+     		</condition>
+     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+        	<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<template>
+            	<inlineTemplate substitution="true">
+            	if [ "${instance-WLP_USER}" = $(whoami) ]; then
+            	    ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --stop
+            	else
+            	    su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --stop"
+            	fi
+            	</inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+        	</template>
+    	</step>
+
+    	<step name="stopServer_console">
+        	<title>Stop the Server from Console</title>
+        	<description>Issue a stop command for the server. If the command fails, issue a cancel</description>
+
+	        <step name="issue_stop">
+	        	<title>Issue Stop Command</title>
+	        	<description>Issue a stop command for the server.</description>
+	        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+		        <approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+				<condition>
+	         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+	         		<description>Only perform check if previous step has completed</description>
+	         		<targetStateSet>
+	       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	       				<extendStateExpression>
+	        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+	        				<targetState>Skipped</targetState>
+	       				</extendStateExpression>
+	      			</targetStateSet>
+	     		</condition>
+	     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+	        	<weight>1</weight>
+	        	<autoEnable>true</autoEnable>
+	        	<rest>
+					<httpMethod>PUT</httpMethod>
+					<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+					<requestBody substitution="true">
+	  {
+	    "cmd" : "STOP ${_workflow-softwareServiceInstanceName}",
+	    "unsol-key" : "DUMMY",
+        "unsol-detect-sync" : "Y",
+        "unsol-detect-timeout" : "10",
+        "system" : "${_workflow-systemName}"
+	  }
+					</requestBody>
+					<expectedStatusCode>200</expectedStatusCode>
+				</rest>
+	    	</step>
+
+	    	<step name="check_status">
+	        	<title>Check Server Status</title>
+	        	<description>Check to see if the server job is still running</description>
+	        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+		        <approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+				<condition>
+	         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+	         		<description>Only perform check if previous step has completed</description>
+	         		<targetStateSet>
+	       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	       				<extendStateExpression>
+	        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+	        				<targetState>Skipped</targetState>
+	       				</extendStateExpression>
+	      			</targetStateSet>
+	     		</condition>
+	     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+	        	<weight>1</weight>
+	        	<autoEnable>true</autoEnable>
+	        	<rest>
+					<httpMethod>PUT</httpMethod>
+					<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+					<requestBody substitution="true">
+	  {
+	    "cmd" : "d a,${_workflow-softwareServiceInstanceName}",
+		"sol-key" : "NOT FOUND",
+		"system" : "${_workflow-systemName}"
+	  }
+					</requestBody>
+					<expectedStatusCode>200</expectedStatusCode>
+					<propertyMapping mapTo="SERVER_STOP_STATUS">["sol-key-detected"]</propertyMapping>
+				</rest>
+	    	</step>
+
+	    	<step name="issue_cancel">
+	        	<title>Issue Cancel Command</title>
+	        	<description>Cancel the server if it is still running</description>
+	        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+		        <approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+				<condition>
+	         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+	         		<description>Only perform check if previous step has completed</description>
+	         		<targetStateSet>
+	       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	       				<extendStateExpression>
+	        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+	        				<targetState>Skipped</targetState>
+	       				</extendStateExpression>
+	       				<extendStateExpression>
+                            <description>Only execute it SERVER_STOP_STATUS is false</description>
+                            <expression><![CDATA[ ${instance-SERVER_STOP_STATUS} != "false"]]></expression>
+                            <targetState>Skipped</targetState>
+                        </extendStateExpression>
+	      			</targetStateSet>
+	     		</condition>
+	     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+	        	<weight>1</weight>
+	        	<autoEnable>true</autoEnable>
+	        	<rest>
+					<httpMethod>PUT</httpMethod>
+					<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+					<requestBody substitution="true">
+	  {
+	    "cmd" : "C ${_workflow-softwareServiceInstanceName}",
+	    "system" : "${_workflow-systemName}"
+	  }
+					</requestBody>
+					<expectedStatusCode>200</expectedStatusCode>
+				</rest>
+	    	</step>
+    	</step>
+    </step>
+
+    <step name="deleteServerProc">
+         <title>Delete Server Proc</title>
+         <description>Delete the server proc</description>
+    		<runAsUser substitution="true">$!{instance-PROCLIB_RUN_AS_ID}</runAsUser>
+	        <approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>
+         <condition>
+         	<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+         	<description>Check that the copyScript stepState is Complete</description>
+         	<targetStateSet>
+       	<description>Check if we are starting as a started task</description>
+       	<extendStateExpression>
+        	<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+        	<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE" ]]></expression>
+        	<targetState>Skipped</targetState>
+       	</extendStateExpression>
+      	</targetStateSet>
+     	</condition>
+     	<instructions substitution="false">deleteProcs</instructions>
+         <weight>5</weight>
+         <autoEnable>true</autoEnable>
+         <template>
+           <fileTemplate substitution="true">templates/wlp-delete-server-proc.jcl</fileTemplate>
+         <submitAs>JCL</submitAs>
+       </template>
+    </step>
+
+   <step name="copyDatasourceProperties">
+		    <title>Copy Datasource Properties</title>
+	        <description>Copy the datasource.properties file and auto resolve the variable names</description>
+			<instructions substitution="true">Click Finish to copy the file</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">config/datasource.properties</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.properties</saveAsUnixFile>
+	        </template>
+        </step>
+
+   <step name="copyDB2Type4Config">
+	    <title>Copy DB2 Type 4 Config</title>
+        <description>Copy the datasource_type4.xml template</description>
+        <condition>
+		    <expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+		    <description>Check that copyScript.stepState is Complete</description>
+               <targetStateSet>
+				<description>Check the DB2 connection type</description>
+				<extendStateExpression>
+					<description>Skip if the DB2 connection type is not 4</description>
+					<expression><![CDATA[ ${instance_DB2_CONNECTION_TYPE} != "4"]]></expression>
+					<targetState>Skipped</targetState>
+				</extendStateExpression>
+			</targetStateSet>
+		</condition>
+		<instructions substitution="true">Click Finish to copy the config</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">config/datasource_type4.xml</fileTemplate>
+            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.xml</saveAsUnixFile>
+        </template>
+    </step>
+
+    <step name="copyDB2Type2Config">
+	    <title>Copy DB2 Type 2 Config</title>
+        <description>Copy the datasource_type2.xml template</description>
+        <condition>
+			    <expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+			    <description>Check that copyScript.stepState is Complete</description>
+                <targetStateSet>
+					<description>Check stepState of previous step</description>
+					<extendStateExpression>
+						<description>Skip if previous step was or will be performed</description>
+						<expression><![CDATA[ ${copyDB2Type4Config.stepState} == "Complete" ||  ${copyDB2Type4Config.stepState} == "Ready"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+		<instructions substitution="true">Click Finish to copy the config</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">config/datasource_type2.xml</fileTemplate>
+            <saveAsUnixFile substitution="true">${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/datasource.xml</saveAsUnixFile>
+        </template>
+    </step>
+
+    <step name="processDatasourceConfiguration">
+	    <title>Process Datasource Configuration</title>
+        <description>Convert XML and create additional configuration files</description>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+            if [ "${instance-WLP_USER}" = $(whoami) ]; then
+                ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureDatasource ${instance-DB2_HLQ}
+            else
+                su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --configureDatasource ${instance-DB2_HLQ}"
+            fi
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+        </template>
+	</step>
+
+    <step name="addSteplibToProc">
+        <title>Add STEPLIB to Proc</title>
+        <description>Update the proc jcl with the STEPLIB statements</description>
+        <condition>
+            	<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+            	<description>Check that the copyScript stepState is Complete</description>
+            	<targetStateSet>
+		        	<description>Check if we are starting as a started task</description>
+		        	<extendStateExpression>
+			        	<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+			        	<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE" ]]></expression>
+			        	<targetState>Skipped</targetState>
+		        	</extendStateExpression>
+	        	</targetStateSet>
+        	</condition>
+        <instructions substitution="true">Update the proc jcl with the STEPLIB statements</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+           <inlineTemplate substitution="true">
+           echo "//STEPLIB  DD DISP=SHR,DSN=${instance-DB2_HLQ}.SDSNEXIT" >> ${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/${_workflow-softwareServiceInstanceName}.jcl
+	       echo "//         DD DISP=SHR,DSN=${instance-DB2_HLQ}.SDSNLOD2" >> ${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/${_workflow-softwareServiceInstanceName}.jcl
+           echo "//         DD DISP=SHR,DSN=${instance-DB2_HLQ}.SDSNLOAD" >> ${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/${_workflow-softwareServiceInstanceName}.jcl
+           </inlineTemplate>
+           <submitAs>shell-JCL</submitAs>
+       </template>
+    </step>
+
+    <step name="createServerProc">
+            <title>Create Server Proc</title>
+            <description>Create the server proc</description>
+       		<runAsUser substitution="true">$!{instance-PROCLIB_RUN_AS_ID}</runAsUser>
+       		<approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>
+            <condition>
+            	<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+            	<description>Check that the copyScript stepState is Complete</description>
+            	<targetStateSet>
+		        	<description>Check if we are starting as a started task</description>
+		        	<extendStateExpression>
+			        	<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+			        	<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE" ]]></expression>
+			        	<targetState>Skipped</targetState>
+		        	</extendStateExpression>
+	        	</targetStateSet>
+        	</condition>
+        	<instructions substitution="false">copyProcs</instructions>
+            <weight>5</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+              <fileTemplate substitution="true">templates/wlp-create-server-proc.jcl</fileTemplate>
+            <submitAs>JCL</submitAs>
+          </template>
+       </step>
+
+       <step name="startServer">
+        <title>Start the Server</title>
+        <description>Start the server</description>
+
+        <step name="startServer_USS">
+        	<title>Start the Server from USS</title>
+        	<description>Submit script to start the server</description>
+        	<condition>
+         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+         		<description>Check that the copyScript stepState is Complete</description>
+         		<targetStateSet>
+       				<description>Check if we are starting as a started task</description>
+       				<extendStateExpression>
+        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} == "TRUE"]]></expression>
+        				<targetState>Skipped</targetState>
+       				</extendStateExpression>
+      			</targetStateSet>
+     		</condition>
+     		<instructions substitution="true">Submit the ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh script to start the server.</instructions>
+        	<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<template>
+            	<inlineTemplate substitution="true">
+            if [ "${instance-WLP_USER}" = $(whoami) ]; then
+                ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --start ${instance-WLP_USER_DIR}
+            else
+                su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --start"
+            fi
+            	</inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+        	</template>
+        </step>
+
+        <step name="startServer_console">
+        	<title>Start the Server from Console</title>
+        	<description>Start the server from the console</description>
+        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+        	<approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+			<condition>
+         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+         		<description>Check that the copyScript stepState is Complete</description>
+         		<targetStateSet>
+       				<description>Check if we are starting as a started task</description>
+       				<extendStateExpression>
+        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+        				<targetState>Skipped</targetState>
+       				</extendStateExpression>
+      			</targetStateSet>
+     		</condition>
+     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+        	<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<rest>
+				<httpMethod>PUT</httpMethod>
+				<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+				<requestBody substitution="true">
+  {
+    "cmd" : "START ${_workflow-softwareServiceInstanceName},PARMS='${_workflow-softwareServiceInstanceName}'",
+    "unsol-key" : "CWWKF0011I: The server ${_workflow-softwareServiceInstanceName}",
+    "unsol-detect-sync" : "Y",
+    "unsol-detect-timeout" : "120",
+    "system" : "${_workflow-systemName}"
+  }
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+			</rest>
+    	</step>
+    </step>
+
+    <step name="updateDB2Variables">
+		<title>Update DB2 Variables</title>
+		<description>
+		Invoke RESTful API to update the db2 variable in the registry.
+		</description>
+
+		<instructions substitution="false">
+		Click Finish to perform the request to update the db2 variable in the registry.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+		<autoEnable>true</autoEnable>
+		<rest>
+			<httpMethod>PUT</httpMethod>
+			<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${_workflow-parentRegistryID}/variables</uriPath>
+			<requestBody substitution="true">
+{
+"variables" : [
+{
+"name":"DB2_REGISTRY_NAME",
+"value": "${instance-DB2_REGISTRY_NAME}",
+"visibility":"public"
+},
+{
+"name":"DB2_REGISTRY_ID",
+"value": "${instance-DB2_REGISTRY_ID}",
+"visibility":"public"
+},
+{
+"name":"DB2_LOCATION",
+"value": "${instance-DB2_LOCATION}",
+"visibility":"private"
+},
+{
+"name":"DB2_USERID",
+"value": "${instance-DB2_USERID}",
+"visibility":"private"
+},
+{
+"name":"DB2_PASSWORD",
+"value": "${instance-DB2_PASSWORD}",
+"visibility":"private"
+},
+{
+"name":"DB2_HOSTNAME",
+"value": "${instance-DB2_HOSTNAME}",
+"visibility":"private"
+},
+{
+"name":"DB2_PORT",
+"value": "${instance-DB2_PORT}",
+"visibility":"private"
+},
+{
+"name":"DB2_JDBC_DRIVER",
+"value": "${instance-DB2_JDBC_DRIVER}",
+"visibility":"private"
+},
+{
+"name":"DB2_HLQ",
+"value": "${instance-DB2_HLQ}",
+"visibility":"private"
+},
+{
+"name":"DB2_JNDI_NAME",
+"value": "${instance-DB2_JNDI_NAME}",
+"visibility":"public"
+}
+]
+}
+			</requestBody>
+			<expectedStatusCode>204</expectedStatusCode>
+
+		</rest>
+	</step>
+
+
+    <step name="removeTempFiles">
+        <title>Remove Temp Files</title>
+        <description>Remove the temp files created by this workflow</description>
+        <instructions substitution="true">Remove the files copied to ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-*</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+		<template>
+	    	<inlineTemplate substitution="true">
+           	rm ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-*
+           	</inlineTemplate>
+           	<submitAs>shell-JCL</submitAs>
+       	</template>
+    </step>
+</workflow>

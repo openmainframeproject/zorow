@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">]>
+
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+
+<!--
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 	+  zLiberty Provision: Deprovision a new user ID, group and server.+
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+<workflowInfo>
+	<workflowID>zLiberty_Deprovision</workflowID>
+	<workflowDescription>Deprovision a Liberty Server.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Provisioning>
+          <productID>zosLiberty</productID>
+          <productName>Liberty for z/OS</productName>
+          <productVersion>Version 9</productVersion>
+          <softwareType>WLP</softwareType>
+      </Provisioning>
+</workflowInfo>
+
+  <!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+
+    <!--++++++++++++++++++++++-->
+    <!--   Deprovision Steps  -->
+    <!--++++++++++++++++++++++-->
+    <step name="copyProvisioningScript">
+    <title>Copy Provisioning Script</title>
+	<description>Copy script to tmp directory</description>
+
+	    <step name="copyScript">
+		    <title>Copy Script</title>
+	        <description>Copy the wlp-provisioning.sh script</description>
+	        <instructions substitution="false">Copy the wlp-provisioning.sh script to the tmp directory with a name unique to this workflow</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	            <fileTemplate substitution="true">templates/wlp-provisioning.sh</fileTemplate>
+	            <saveAsUnixFile substitution="true">${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh</saveAsUnixFile>
+	        </template>
+        </step>
+        <step name="setScriptPermissions">
+	        <title>Set Script Permissions</title>
+	        <description>Set the permissions of the newly copied script</description>
+	        <instructions substitution="false">Chmod 755 on the newly copied script</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+			<template>
+		    	<inlineTemplate substitution="true">
+	           	chmod 755 ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh
+	           	</inlineTemplate>
+	           	<submitAs>shell-JCL</submitAs>
+	       	</template>
+	    </step>
+
+    </step>
+
+    <step name="stopServer">
+        <title>Stop the Server</title>
+        <description>Stop any existing Liberty servers for this user</description>
+
+		<step name="stopServer_USS">
+        	<title>Stop the Server from USS</title>
+        	<description>Submit script to stop any existing Liberty servers for this user</description>
+			<condition>
+         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+         		<description>Check that the copyScript stepState is Complete</description>
+         		<targetStateSet>
+       				<description>Check if we are starting as a started task</description>
+       				<extendStateExpression>
+        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} == "TRUE"]]></expression>
+        				<targetState>Skipped</targetState>
+       				</extendStateExpression>
+      			</targetStateSet>
+     		</condition>
+     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+        	<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<template>
+            	<inlineTemplate substitution="true">
+            	if [ "${instance-WLP_USER}" = $(whoami) ]; then
+            	    ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --stop
+            	else
+            	    su -s ${instance-WLP_USER} -c "${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-wlp-provisioning.sh --stop"
+            	fi
+            	</inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+        	</template>
+    	</step>
+
+    	<step name="stopServer_console">
+        	<title>Stop the Server from Console</title>
+        	<description>Issue a stop command for the server. If the command fails, issue a cancel</description>
+
+	        <step name="issue_stop">
+	        	<title>Issue stop command</title>
+	        	<description>Issue a stop command for the server.</description>
+	        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+		        <approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+				<condition>
+	         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+	         		<description>Only perform check if previous step has completed</description>
+	         		<targetStateSet>
+	       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	       				<extendStateExpression>
+	        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+	        				<targetState>Skipped</targetState>
+	       				</extendStateExpression>
+	      			</targetStateSet>
+	     		</condition>
+	     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+	        	<weight>1</weight>
+	        	<autoEnable>true</autoEnable>
+	        	<rest>
+					<httpMethod>PUT</httpMethod>
+					<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+					<requestBody substitution="true">
+	  {
+	    "cmd" : "STOP ${_workflow-softwareServiceInstanceName}",
+	    "unsol-key" : "DUMMY",
+        "unsol-detect-sync" : "Y",
+        "unsol-detect-timeout" : "10",
+        "system" : "${_workflow-systemName}"
+	  }
+					</requestBody>
+					<expectedStatusCode>200</expectedStatusCode>
+				</rest>
+	    	</step>
+
+	    	<step name="check_status">
+	        	<title>Check Server Status</title>
+	        	<description>Check to see if the server job is still running</description>
+	        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+		        <approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+				<condition>
+	         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+	         		<description>Only perform check if previous step has completed</description>
+	         		<targetStateSet>
+	       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	       				<extendStateExpression>
+	        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+	        				<targetState>Skipped</targetState>
+	       				</extendStateExpression>
+	      			</targetStateSet>
+	     		</condition>
+	     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+	        	<weight>1</weight>
+	        	<autoEnable>true</autoEnable>
+	        	<rest>
+					<httpMethod>PUT</httpMethod>
+					<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+					<requestBody substitution="true">
+	  {
+	    "cmd" : "d a,${_workflow-softwareServiceInstanceName}",
+		"sol-key" : "NOT FOUND",
+		"system" : "${_workflow-systemName}"
+	  }
+					</requestBody>
+					<expectedStatusCode>200</expectedStatusCode>
+					<propertyMapping mapTo="SERVER_STOP_STATUS">["sol-key-detected"]</propertyMapping>
+				</rest>
+	    	</step>
+
+	    	<step name="issue_cancel">
+	        	<title>Issue Cancel Command</title>
+	        	<description>Cancel the server if it is still running</description>
+	        	<runAsUser substitution="true">$!{instance-CONSOLE_RUN_AS_ID}</runAsUser>
+		        <approver substitution="true">$!{instance-CONSOLE_APPROVAL_ID}</approver>
+				<condition>
+	         		<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+	         		<description>Only perform check if previous step has completed</description>
+	         		<targetStateSet>
+	       				<description>Set state to Skipped if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	       				<extendStateExpression>
+	        				<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+	        				<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE"]]></expression>
+	        				<targetState>Skipped</targetState>
+	       				</extendStateExpression>
+	       				<extendStateExpression>
+                            <description>Only execute it SERVER_STOP_STATUS is false</description>
+                            <expression><![CDATA[ ${instance-SERVER_STOP_STATUS} != "false"]]></expression>
+                            <targetState>Skipped</targetState>
+                        </extendStateExpression>
+	      			</targetStateSet>
+	     		</condition>
+	     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+	        	<weight>1</weight>
+	        	<autoEnable>true</autoEnable>
+	        	<rest>
+					<httpMethod>PUT</httpMethod>
+					<uriPath substitution="true">/zosmf/restconsoles/consoles/${instance-CONSOLE_NAME}</uriPath>
+					<requestBody substitution="true">
+	  {
+	    "cmd" : "C ${_workflow-softwareServiceInstanceName}",
+	    "system" : "${_workflow-systemName}"
+	  }
+					</requestBody>
+					<expectedStatusCode>200</expectedStatusCode>
+				</rest>
+	    	</step>
+    	</step>
+    </step>
+
+    <step name="returnNetworkResources">
+    	<title>Return Network Resources</title>
+        <description>Return allocated network resources back to Config Assistant</description>
+
+	    <step name="returnDVIPA">
+	  	    <title>Return DVIPA</title>
+	        <description>Invoke RESTful API to return IP address back to pool.</description>
+	     	<condition>
+	            <expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+			    <description>Check that the copyScript stepState is Complete</description>
+	               <targetStateSet>
+					<description>Set state to Skipped if IP_ADDRESS_ID is not set</description>
+					<extendStateExpression>
+						<description>Skipped if IP_ADDRESS_ID is null</description>
+						<expression><![CDATA[ ${instance_IP_ADDRESS_ID} == null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skipped if IP_ADDRESS_ID is null string</description>
+						<expression><![CDATA[ ${instance_IP_ADDRESS_ID} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			<instructions substitution="false">
+	    	Execute step to return the IP address back to z/OS Communications Server.
+	       	</instructions>
+	       	<weight>10</weight>
+	       	<skills>REST</skills>
+	       	<autoEnable>true</autoEnable>
+			<rest>
+				<httpMethod>POST</httpMethod>
+				<uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/ip/actions/release</uriPath>
+				<requestBody substitution="true">
+ {
+  "template-uuid":"${_workflow-templateID}",
+  "template-name":"${_workflow-templateName}",
+  "tenant-id":"${_workflow-tenantID}",
+  "network-parms" :
+        {
+           "ip-id":"${instance-IP_ADDRESS_ID}"
+        }
+}
+				</requestBody>
+				<expectedStatusCode>204</expectedStatusCode>
+			</rest>
+	    </step>
+
+	    <step name="returnHTTPPort">
+	  	    <title>Return HTTP Port</title>
+	        <description>Invoke RESTful API to return HTTP port back to pool.</description>
+	     	<condition>
+	            <expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+			    <description>Check that the copyScript stepState is Complete</description>
+	               <targetStateSet>
+					<description>Set state to Skipped if HTTP_PORT_ID is not set.</description>
+					<extendStateExpression>
+						<description>Skipped if HTTP_PORT_ID is null</description>
+						<expression><![CDATA[ ${instance_HTTP_PORT_ID} == null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skipped if HTTP_PORT_ID is null string</description>
+						<expression><![CDATA[ ${instance_HTTP_PORT_ID} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+			<instructions substitution="false">
+	    	Execute step to return the HTTP port back to z/OS Communications Server.
+	       	</instructions>
+	       	<weight>10</weight>
+	       	<skills>REST</skills>
+	       	<autoEnable>true</autoEnable>
+			<rest>
+				<httpMethod>POST</httpMethod>
+				<uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+				<requestBody substitution="true">
+
+{
+
+  "template-uuid" : "${_workflow-templateID}",
+  "template-name" : "${_workflow-templateName}",
+  "tenant-id" : "${_workflow-tenantID}",
+  "network-parms" :
+        {
+           "port-id" : "${instance-HTTP_PORT_ID}"
+        }
+  }
+
+                </requestBody>
+				<expectedStatusCode>204</expectedStatusCode>
+			</rest>
+	    </step>
+
+	    <step name="returnHTTPSPort">
+	  	    <title>Return HTTPS Port</title>
+	        <description>Invoke RESTful API to return HTTPS port back to pool.</description>
+	        <condition>
+	            <expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+			    <description>Check that the copyScript stepState is Complete</description>
+	               <targetStateSet>
+					<description>Set state to Skipped if HTTPS_PORT_ID is not set.</description>
+					<extendStateExpression>
+						<description>Skipped if HTTPS_PORT_ID is null</description>
+						<expression><![CDATA[ ${instance_HTTPS_PORT_ID} == null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skipped if HTTPS_PORT_ID is null string</description>
+						<expression><![CDATA[ ${instance_HTTPS_PORT_ID} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+	     	<instructions substitution="false">
+	    	Execute step to return the HTTPS port back to z/OS Communications Server.
+	       	</instructions>
+	       	<weight>10</weight>
+	       	<skills>REST</skills>
+	       	<autoEnable>true</autoEnable>
+			<rest>
+				<httpMethod>POST</httpMethod>
+				<uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+				<requestBody substitution="true">
+
+{
+
+  "template-uuid" : "${_workflow-templateID}",
+  "template-name" : "${_workflow-templateName}",
+  "tenant-id" : "${_workflow-tenantID}",
+  "network-parms" :
+        {
+           "port-id" : "${instance-HTTPS_PORT_ID}"
+        }
+  }
+
+                </requestBody>
+				<expectedStatusCode>204</expectedStatusCode>
+			</rest>
+	    </step>
+	</step>
+
+	<step name="deprovisionWLMResources">
+	<title>Deprovision WLM Resources</title>
+	<description>Remove wlm classification rule from WLM service definition
+	</description>
+
+		<step name="removeClassificationRule">
+		<title>remove Classification Rule</title>
+		<description>Make a REST call to remove Classification Rule</description>
+		<condition>
+				<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+				<description>Check that the copyScript stepState is Complete</description>
+				<targetStateSet>
+					<description>Check the Classification Rule id</description>
+					<extendStateExpression>
+						<description>Skipped if CLASSIFICATION_RULE_ID is null</description>
+						<expression><![CDATA[${instance_CLASSIFICATION_RULE_ID} == null]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+					<extendStateExpression>
+						<description>Skipped if CLASSIFICATION_RULE_ID is null string</description>
+						<expression><![CDATA[${instance_CLASSIFICATION_RULE_ID} == ""]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+		</condition>
+		<instructions substitution="false">
+		Execute step to remove Classification Rule from WLM Service Definition
+		</instructions>
+		<weight>10</weight>
+		<skills>REST</skills>
+		<autoEnable>true</autoEnable>
+		<rest>
+			<httpMethod>POST</httpMethod>
+			<uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/wlm/clrule/actions/remove</uriPath>
+			<requestBody substitution="true">
+      {
+        "template-uuid" : "${_workflow-templateID}",
+        "template-name" : "${_workflow-templateName}",
+        "tenant-id" : "${_workflow-tenantID}",
+        "registry-id" : "${_workflow-registryID}",
+        "wlm-parms" :
+        {
+         "cl-rule-id" : "${instance-CLASSIFICATION_RULE_ID}"
+        }
+      }
+			</requestBody>
+			<expectedStatusCode>204</expectedStatusCode>
+		</rest>
+		</step>
+
+	</step>
+
+    <step name="deprovisionLibertyServer">
+        <title>Deprovision the Liberty Server</title>
+        <description>Submit script to deprovision a Liberty server.</description>
+
+        <step name="deleteAndUnmountZFS">
+	        <title>Delete and unmount ZFS</title>
+	        <description>If created, delete and unmount the ZFS</description>
+	        <runAsUser substitution="true">$!{instance-MOUNT_RUN_AS_ID}</runAsUser>
+	        <approver substitution="true">$!{instance-MOUNT_APPROVAL_ID}</approver>
+			<condition>
+			    <expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+			    <description>Check that the copyScript stepState is Complete</description>
+                <targetStateSet>
+					<description>Check if we created a ZFS</description>
+					<extendStateExpression>
+						<description>Skip if WLP_CREATE_ZFS is not TRUE</description>
+						<expression><![CDATA[ ${instance_WLP_CREATE_ZFS} != "TRUE"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+	        <instructions substitution="true">Run commands to delete the SAF certificate and keyring.</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+	          <fileTemplate substitution="true">templates/wlp-delete-zfs.jcl</fileTemplate>
+	          <submitAs>JCL</submitAs>
+	      	</template>
+		</step>
+
+        <step name="deleteInstanceDirectory">
+	       <title>Delete Instance Directory</title>
+	       <description>Delete the directory for this server instance</description>
+			<instructions substitution="false">Submitting script to delete server.</instructions>
+	       <weight>1</weight>
+	       <autoEnable>true</autoEnable>
+	       <template>
+	           <inlineTemplate substitution="true">
+	           if [ -d "${instance-WLP_USER_DIR}" ]; then
+	               rm -R ${instance-WLP_USER_DIR}
+	           fi
+	           </inlineTemplate>
+	           <submitAs>shell-JCL</submitAs>
+	       </template>
+	   </step>
+
+
+    </step>
+
+    <step name="deleteSAFKeyring">
+	        <title>Delete SAF Certificate and Keyring</title>
+	        <description>If created, delete the unique SAF certificate and keyring</description>
+	        <runAsUser substitution="true">$!{instance-SECURITY_RUN_AS_ID}</runAsUser>
+	        <approver substitution="true">$!{instance-SECURITY_APPROVAL_ID}</approver>
+			<condition>
+			    <expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+			    <description>Check that the copyScript stepState is Complete</description>
+                <targetStateSet>
+					<description>Check if we are using SAF certificates</description>
+					<extendStateExpression>
+						<description>Only delete certificate and keyring if requested</description>
+						<expression><![CDATA[ ${instance_WLP_ENABLE_SSL_SAF_CERTIFICATES} != "TRUE"]]></expression>
+						<targetState>Skipped</targetState>
+					</extendStateExpression>
+				</targetStateSet>
+			</condition>
+	        <instructions substitution="true">Run rexx commands to delete the SAF certificate and keyring.</instructions>
+	        <weight>1</weight>
+	        <autoEnable>true</autoEnable>
+	        <template>
+          <fileTemplate substitution="true">templates/wlp-delete-ssl-keyring.rexx</fileTemplate>
+          <submitAs>TSO-REXX-JCL</submitAs>
+      	</template>
+	</step>
+
+	<step name="deleteServerProc">
+         <title>Delete Server Proc</title>
+         <description>Delete the server proc</description>
+    		<runAsUser substitution="true">$!{instance-PROCLIB_RUN_AS_ID}</runAsUser>
+	        <approver substitution="true">$!{instance-PROCLIB_APPROVAL_ID}</approver>
+         <condition>
+         	<expression><![CDATA[${copyScript.stepState}=="Complete"]]></expression>
+         	<description>Check that the copyScript stepState is Complete</description>
+         	<targetStateSet>
+       	<description>Check if we are starting as a started task</description>
+       	<extendStateExpression>
+        	<description>Skip if START_SERVER_AS_STARTED_TASK does not equal TRUE</description>
+        	<expression><![CDATA[ ${instance_START_SERVER_AS_STARTED_TASK} != "TRUE" ]]></expression>
+        	<targetState>Skipped</targetState>
+       	</extendStateExpression>
+      	</targetStateSet>
+     	</condition>
+     	<instructions substitution="false">deleteProcs</instructions>
+         <weight>5</weight>
+         <autoEnable>true</autoEnable>
+         <template>
+           <fileTemplate substitution="true">templates/wlp-delete-server-proc.jcl</fileTemplate>
+         <submitAs>JCL</submitAs>
+       </template>
+    </step>
+
+    <step name="removeSAFSecurityProfiles">
+        <title>Remove SAF Security Profiles</title>
+        <description>Remove SAF security profiles created by this workflow</description>
+        <runAsUser substitution="true">$!{instance-SECURITY_RUN_AS_ID}</runAsUser>
+	    <approver substitution="true">$!{instance-SECURITY_APPROVAL_ID}</approver>
+        <instructions substitution="true">Delete the appropriate SAF profiles created by this workflow</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">templates/wlp-authorized-services-teardown.rexx</fileTemplate>
+            <submitAs>TSO-REXX-JCL</submitAs>
+        </template>
+    </step>
+
+    <step name="removeTempFiles">
+        <title>Remove Temp Files</title>
+        <description>Remove the temp files created by this workflow</description>
+        <instructions substitution="true">Remove the files copied to ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}-*</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+		<template>
+	    	<inlineTemplate substitution="true">
+           	rm ${instance-TEMP_DIR}/wlp-${instance-WLP_USER}-${_workflow-softwareServiceInstanceName}*
+           	if [ -f ${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-user ]; then
+	        	rm ${instance-TEMP_DIR}/wlp-${_workflow-softwareServiceInstanceName}-user
+	        fi
+           	if [ -f ${instance-TEMP_DIR}/${_workflow-softwareServiceInstanceName}.jcl ]; then
+           		rm ${instance-TEMP_DIR}/${_workflow-softwareServiceInstanceName}.jcl
+           	fi
+           	</inlineTemplate>
+           	<submitAs>shell-JCL</submitAs>
+       	</template>
+    </step>
+
+</workflow>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
+<server>
+
+    <!-- Enable features -->
+    <featureManager>
+        <feature>jsp-2.2</feature>
+		<feature>osgiconsole-1.0</feature>
+		<feature>servlet-3.0</feature>
+		<feature>appSecurity-2.0</feature>
+		<feature>localConnector-1.0</feature>
+        <feature>restConnector-1.0</feature>
+        <feature>zosSecurity-1.0</feature>
+    </featureManager>
+
+    <httpEndpoint id="defaultHttpEndpoint" host="${ip.address}"
+                  httpPort="${http.port}"
+                  httpsPort="${https.port}">
+                  <tcpOptions soReuseAddr="true" />
+    </httpEndpoint>
+
+    <remoteFileAccess>
+            <writeDir>${wlp.user.dir}</writeDir>
+            <writeDir>${wlp.user.dir}/servers</writeDir>
+            <writeDir>${wlp.user.dir}/servers/${wlp.instance.name}</writeDir>
+            <writeDir>${wlp.user.dir}/servers/${wlp.instance.name}/logs</writeDir>
+    </remoteFileAccess>
+
+    <safRegistry id="saf" />
+    <safAuthorization id="safAuth" />
+    <safCredentials profilePrefix="${wlp.instance.name}" unauthenticatedUser="${unauthenticated.user}"/>
+
+    <include location="keystore.xml" optional="false" />
+    <include location="datasource.xml" optional="true" />
+
+</server>

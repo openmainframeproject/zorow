@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-RACF-RESETPW</workflowID>
+        <workflowDescription>This workflow can be used to reset the password and resume a userID.</workflowDescription>
+        <workflowVersion>0.1</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="racf-user" scope="instance" visibility="private">
+        <label>Please enter userID</label>
+        <abstract>This userID will have their password reset and resumed.</abstract>
+        <description>d</description>
+        <category>RACF</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>USERID</validationType>
+        </string>
+    </variable>
+    <variable name="racf-pw" scope="instance" visibility="private">
+        <label>Please enter the desired password</label>
+        <abstract>This is the new password for the userID.</abstract>
+        <description>d</description>
+        <category>RACF</category>
+        <password>
+            <minLength>1</minLength>
+            <maxLength>8</maxLength>
+        </password>
+    </variable>
+    <atCreate name="racf-user" scope="instance" required="true" prompt="true"/>
+    <atCreate name="racf-pw" scope="instance" required="true" prompt="true"/>
+    <step name="RACF-RESETPW" optional="false">
+        <title>RACF Reset Password Step</title>
+        <description>This step will reset the password for a given userID.</description>
+        <variableValue name="racf-user" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="racf-pw" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">This step can be used interactively or be triggered from a service userID.</instructions>
+        <weight>1</weight>
+        <skills>RACF</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">/*REXX*/
+ADDRESS TSO "ALU $racf-user PASSWORD($racf-pw) RESUME"
+IF RC=0 THEN SAY "RACFRX01I - Password Reset Succeeded."
+ELSE SAY "RACFRX01E - Command did not succeed."
+EXIT</inlineTemplate>
+            <submitAs maxRc="0">TSO-REXX</submitAs>
+            <successPattern>RACFRX01I.*</successPattern>
+            <failedPattern>RACFRX01E.*</failedPattern>
+        </template>
+    </step>
+</workflow>

@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
+<workflow>
+    <autoTakeOwnership>false</autoTakeOwnership>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">Provision IIB</workflowID>
+        <workflowDescription>Deprovision IIB</workflowDescription>
+        <workflowVersion>0.1</workflowVersion>
+        <vendor>NdG</vendor>
+        <Configuration>
+            <productID>5655-Y04</productID>
+            <productName>IIB zOS</productName>
+            <productVersion>V5.3</productVersion>
+        </Configuration>
+    </workflowInfo>
+    <variable name="IIB_RUNASUSER" scope="instance" visibility="public">
+        <label>IIB_RUNASUSER</label>
+        <abstract>IIB_RUNASUSER</abstract>
+        <description>IB Broker name</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+        </string>
+    </variable>
+    <variable name="IIB_BROKER_NAME" scope="instance" visibility="private">
+        <label>IIB_BROKER_NAME</label>
+        <abstract>IB Broker name</abstract>
+        <description>IB Broker name</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+        </string>
+    </variable>
+    <variable name="IIB_BROKER_NAME_LC" scope="instance" visibility="private">
+        <label>IIB_BROKER_NAME_LC</label>
+        <abstract>IB Broker name lower case</abstract>
+        <description>IB Broker name lower case</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+        </string>
+    </variable>
+    <variable name="IIB_QMGR_NAME" scope="instance" visibility="private">
+        <label>IIB_QMGR_NAME</label>
+        <abstract>Queue Manager name</abstract>
+        <description>Queue Manager name for this Broker</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>4</minLength>
+            <maxLength>4</maxLength>
+        </string>
+    </variable>
+    <variable name="IIB_LPAR_NAME" scope="instance" visibility="private">
+        <label>IIB_LPAR_NAME</label>
+        <abstract>LPAR name for this broker</abstract>
+        <description>LPAR name for this Broker</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>4</minLength>
+            <maxLength>4</maxLength>
+        </string>
+    </variable>
+    <variable name="IIB_USS_BIN" scope="instance" visibility="private">
+        <label>IIB_USS_BIN</label>
+        <abstract>IIB USS bin directory</abstract>
+        <description>IIB USS bin directory</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+            <default>/usr/lpp/mqsi/V9R0M0/bin/</default>
+        </string>
+    </variable>
+    <variable name="IIB_HOME_DIR" scope="instance" visibility="private">
+        <label>IIB_HOME_DIR</label>
+        <abstract>IIB user home directory</abstract>
+        <description>IIB user home directory</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </string>
+    </variable>
+    <variable name="IIB_WORK_DIR" scope="instance" visibility="private">
+        <label>IIB_WORK_DIR</label>
+        <abstract>IIB work directory</abstract>
+        <description>IIB work directory</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </string>
+    </variable>
+    <variable name="IIB_STCUSER" scope="instance" visibility="private">
+        <label>IIB_STCUSER</label>
+        <abstract>IB broker stc</abstract>
+        <description>IB broker stc usr.</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+        </string>
+    </variable>
+    <variable name="IIB_DBSRV_NAME" scope="instance" visibility="private">
+        <label>IIB_DBSRV_NAME</label>
+        <abstract>IB DB SRV name</abstract>
+        <description>IB database server name.</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+            <default>$$dbsrv</default>
+        </string>
+    </variable>
+    <variable name="IIB_MQ_DS_PREFIX" scope="instance" visibility="private">
+        <label>IIB_MQ_DS_PREFIX</label>
+        <abstract>Dataset prefix MQ datasets</abstract>
+        <description>Dataset prefix MQ datasets
+xxx.SCSQLOAD.</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </string>
+    </variable>
+    <variable name="IIB_DSNAOINI" scope="instance" visibility="private">
+        <label>IIB_DSNAOINI</label>
+        <abstract>DSNAOINI member for DB2 connection</abstract>
+        <description>DSNAOINI member for DB2 connection</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>8</maxLength>
+        </string>
+    </variable>
+    <variable name="IIB_CURRENTSQLID" scope="instance" visibility="private">
+        <label>IIB_CURRENTSQLID</label>
+        <abstract>CURRENTSQLID for IIB DB2 SQL</abstract>
+        <description>CURRENTSQLID for IIB DB2 SQL</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>8</maxLength>
+        </string>
+    </variable>
+    <variable name="ZOSMF_INSTALL_USER" scope="instance" visibility="private">
+        <label>ZOSMF_INSTALL_USER</label>
+        <abstract>installation user</abstract>
+        <description>installation user used as runas</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </string>
+    </variable>
+    <variable name="ZOSMF_RACF_USER" scope="instance" visibility="private">
+        <label>ZOSMF_RACF_USER</label>
+        <abstract>ZOSMF_RACF_USER</abstract>
+        <description>ZOSMF_RACF_USERZOSMFZOSMF_RACF_USER_RACF_USER</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </string>
+    </variable>
+    <variable name="ZOSMF_PROCLIB" scope="instance" visibility="private">
+        <label>ZOSMF_PROCLIB</label>
+        <abstract>ZOSMF_PROCLIB</abstract>
+        <description>ZOSMF_PROCLIB</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <variable name="ZOSMF_PARMLIB" scope="instance" visibility="private">
+        <label>ZOSMF_PARMLIB</label>
+        <abstract>ZOSMF_PARMLIB</abstract>
+        <description>ZOSMF_PARMLIB</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>1</minLength>
+            <maxLength>1000000</maxLength>
+        </string>
+    </variable>
+    <variable name="IIB_WAS_USER" scope="instance" visibility="public">
+        <label>IIB_WAS_USER</label>
+        <abstract>IIB_WAS_USER</abstract>
+        <description>IIB_WAS_USER</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <variable name="IIB_XDBC_USER" scope="instance" visibility="private">
+        <label>IIB_XDBC_USER</label>
+        <abstract>IIB_XDBC_USER</abstract>
+        <description>IIB_XDBC_USER</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <variable name="IIB_BROKER_PORT_ID" scope="instance" visibility="public">
+        <label>IIB_BROKER_PORT_ID</label>
+        <abstract>IIB_BROKER_PORT_ID</abstract>
+        <description>IIB_BROKER_PORT_ID</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <variable name="IIB_PLEX" scope="instance" visibility="public">
+        <label>IIB_PLEX</label>
+        <abstract>IIB_PLEX</abstract>
+        <description>IIB_PLEX</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <variable name="IIB_WORK_DIR_SYMLINK" scope="instance" visibility="private">
+        <label>IIB_WORK_DIR_SYMLINK</label>
+        <abstract>IIB_WORK_DIR_SYMLINK</abstract>
+        <description>IIB_WORK_DIR_SYMLINK</description>
+        <category>IIB</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <variable name="RABO_SYSPLEXHA" scope="instance" visibility="private">
+        <label>RABO_SYSPLEXHA</label>
+        <abstract>RABO_SYSPLEXHA</abstract>
+        <description>RABO_SYSPLEXHA</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <minLength>2</minLength>
+            <maxLength>3</maxLength>
+        </string>
+    </variable>
+    <variable name="ADDITIONAL_MEMBER" scope="instance" visibility="private">
+        <label>ADDITIONAL_MEMBER</label>
+        <abstract>ADDITIONAL_MEMBER</abstract>
+        <description>ADDITIONAL_MEMBER</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false"/>
+    </variable>
+    <atCreate name="ZOSMF_PROCLIB" scope="instance" required="true" prompt="false"/>
+    <step name="setVariables" optional="false">
+        <title>Specify IIB parameters</title>
+        <description>Sets the parameters required for the IIB.</description>
+        <variableValue name="IIB_BROKER_NAME" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="IIB_BROKER_NAME_LC" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="IIB_QMGR_NAME" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="IIB_USS_BIN" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="IIB_HOME_DIR" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="IIB_WORK_DIR" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="IIB_DBSRV_NAME" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="IIB_STCUSER" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="ZOSMF_RACF_USER" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="IIB_RUNASUSER" scope="instance" noPromptIfSet="true" required="true"/>
+        <instructions>Specify the parameters required for IIB.</instructions>
+        <weight>1</weight>
+        <skills>IIB administration</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+    </step>
+    <step name="StopBroker" optional="false">
+        <title>Stop the Broker</title>
+        <description>Stop the Broker</description>
+        <prereqStep name="setVariables"/>
+        <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
+        <instructions substitution="false">Generated instruction text for step: StopBroker
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <skills>IIB administration</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="false" substitution="true">jcl/StopBroker.jcl</fileTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="Wait" optional="false">
+        <title>Wait for stop broker</title>
+        <description>Allow time for the broker to stop.</description>
+        <instructions substitution="false">Generated instruction text for step: Wait
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="false">sleep 60</inlineTemplate>
+            <submitAs maxRc="0">shell-JCL</submitAs>
+        </template>
+    </step>
+    <step name="DeleteBroker" optional="false">
+        <title>Delete Broker</title>
+        <description>Delete Broker
+
+Run under Broker userID</description>
+        <prereqStep name="StopBroker"/>
+        <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
+        <variableValue name="IIB_BROKER_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">Generated instruction text for step: DeleteBrokerQueues
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <skills>IIB Administration</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="false" substitution="true">jcl/DeleteBrokerQueues.jcl</fileTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+        </template>
+    </step>
+    <step name="DeleteBrokerMountpointandFS" optional="false">
+        <title>Delete Broker mountpoint and Filesystem</title>
+        <description>Delete Broker mountpoint and Filesystem</description>
+        <prereqStep name="DeleteBroker"/>
+        <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
+        <instructions substitution="false">Generated instruction text for step: DeleteBrokerMountpointandFS
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <skills>IIB Administration</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="false" substitution="true">jcl/DeleteMountpointAndBrokerFS.jcl</fileTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+        </template>
+    </step>
+    <step name="DeleteHomeDir" optional="false">
+        <title>Delete Broker user home directory</title>
+        <description>Delete Broker user home directory</description>
+        <prereqStep name="DeleteBrokerMountpointandFS"/>
+        <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
+        <instructions substitution="false">Generated instruction text for step: DeleteHomeDir
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <skills>IIB administration</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <fileTemplate filePathSubstitution="false" substitution="true">jcl/Deletehomedir.jcl</fileTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+        </template>
+    </step>
+    <step name="returnTCPIPPort" optional="false">
+        <title>Return ORB Listener port</title>
+        <description>Invoke RESTful API to return port back to pool</description>
+        <prereqStep name="DeleteHomeDir"/>
+        <instructions substitution="false">Execute step to return the port back to z/OS Communications Server.</instructions>
+        <weight>10</weight>
+        <skills>REST</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <rest>
+            <httpMethod>POST</httpMethod>
+            <uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/release</uriPath>
+            <requestBody substitution="true">
+        {
+          "template-uuid" : "${_workflow-templateID}",
+          "template-name" : "${_workflow-templateName}",
+          "tenant-id"     : "${_workflow-tenantID}",
+          "network-parms" :
+          {
+            "port-id" : "${instance-IIB_BROKER_PORT_ID}"
+          }
+        }
+      </requestBody>
+            <expectedStatusCode>204</expectedStatusCode>
+        </rest>
+    </step>
+    <step name="DeleteSymlinksforBrokerF" optional="false">
+        <title>DeleteSymlinksforBrokerF</title>
+        <description>Create symlinks for broker file system</description>
+        <prereqStep name="returnTCPIPPort"/>
+        <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
+        <instructions substitution="false">Generated instruction text for step: CreateSymlinksforBrokerFS
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">//S1     EXEC USSBATCH,SU=Y
+//STDOUT  DD SYSOUT=*
+//STDERR  DD SYSOUT=*
+//* create directories if they do not yet exist
+//* then create symbolic link
+//SYSIN   DD *
+
+ls -alF /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}
+rm /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}
+ls -alF /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}
+
+/*
+</inlineTemplate>
+            <submitAs maxRc="1">JCL</submitAs>
+        </template>
+    </step>
+    <step name="DeleteSymlinksforBrokerFA" optional="true">
+        <title>DeleteSymlinksforBrokerF Additional Member</title>
+        <description>Delete symlinks for broker file system</description>
+        <prereqStep name="returnTCPIPPort"/>
+        <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
+        <condition>
+            <expression>${DeleteSymlinksforBrokerF.returnCode} == "0001"</expression>
+            <description></description>
+            <targetStateSet>
+                <extendStateExpression>
+                    <description></description>
+                    <expression>${instance-RABO_SYSPLEXHA} == "YES"</expression>
+                    <targetState>ready</targetState>
+                </extendStateExpression>
+                <extendStateExpression>
+                    <description></description>
+                    <expression>${instance-RABO_SYSPLEXHA} == "NO"</expression>
+                    <targetState>skipped</targetState>
+                </extendStateExpression>
+            </targetStateSet>
+        </condition>
+        <instructions substitution="false">Generated instruction text for step: CreateSymlinksforBrokerFS
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">//S1     EXEC USSBATCH,SU=Y
+//STDOUT  DD SYSOUT=*
+//STDERR  DD SYSOUT=*
+//* create directories if they do not yet exist
+//* then create symbolic link
+//SYSIN   DD *
+ls -alF /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}
+rm /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}
+ls -alF /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}
+
+/*
+</inlineTemplate>
+            <submitAs maxRc="1">JCL</submitAs>
+        </template>
+    </step>
+    <step name="RACFDeleteDefinitions" optional="false">
+        <title>RACFDeleteDefinitions</title>
+        <description>Define and Authorize things to RACF</description>
+        <prereqStep name="returnTCPIPPort"/>
+        <runAsUser substitution="true">${instance-ZOSMF_INSTALL_USER}</runAsUser>
+        <variableValue name="IIB_XDBC_USER" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="IIB_BROKER_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="IIB_STCUSER" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="IIB_WAS_USER" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions substitution="false">Generated instruction text for step: AuthorizeRunAsUser
+Update this field with your own text</instructions>
+        <weight>1</weight>
+        <skills>IIB</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">//RACFDEFS EXEC PGM=IKJEFT01,REGION=0M
+//* Group definitions are prereq to this workflow
+//SYSTSPRT DD SYSOUT=*
+//* The following definitions must be made
+//SYSTSIN  DD *
+## set variables
+#set ($IIB_STCUSER = "${instance-IIB_BROKER_NAME}U")
+
+deluser $IIB_STCUSER
+/*
+//
+//RACFDEFS EXEC PGM=IKJEFT01,REGION=0M
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD *
+deluser ${instance-IIB_XDBC_USER}
+deluser ${instance-IIB_WAS_USER}
+/*</inlineTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+            <maxLrecl>120</maxLrecl>
+        </template>
+    </step>
+</workflow>

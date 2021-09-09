@@ -1,0 +1,634 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="./workflow_v1.xsd">
+
+<!--
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+This workflow shows how a REST API step can be used to create
+an entry in the Software Configuration Registry (SCR).
+
+There are 7 steps defined:
+
+Step 1: "get_information" obtains information from the user that will
+be used to create the registry entry.
+
+Step 2: "create_entry" uses a rest step to issue a POST request to create the
+entry in the Software Configuration Registry.
+
+Step 3: "display_object_name" displays the object-name of the newly
+created registry entry.
+
+Step 4: "get_object_id" uses a rest step to issue a GET request to obtain the
+object id of the newly created entry.
+
+Step 5: "display_object_id" displays the obtained object id.
+
+Step 6: "get_variables" uses a rest step to issue a GET request to obtain the
+variables from the newly created entry.
+
+Step 7: "display_variables" displays the values of the variables that were
+retrieved from the newly created registry entry.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+	<workflowInfo>
+		<workflowID>CreateScrEntryDB2zSubsystem</workflowID>
+		<workflowDescription>Create a registry entry representing a DB2 subsystem on zOS.</workflowDescription>
+		<workflowVersion>1.0</workflowVersion>
+		<vendor>IBM</vendor>
+		<!--  these should match the values from the provisioning workflow -->
+		<Configuration>
+			<productID>5740XYR00</productID>
+			<productName>DB2 for z/OS</productName>
+			<productVersion>B10</productVersion>
+		 </Configuration>
+	</workflowInfo>
+
+<!--
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Workflow variables are defined here.
+
+These are the workflow variables that will be used by the workflow
+steps.
+
+There are 2 categories of workflow variables defined:
+  1.  SCR - these specify values for the fields in the registry entry
+            to be created.
+  2.  Variables - these specify the variables that will be set in the
+            registry entry for the software instance.
+			To customize the variables:
+			- Modify the variable definition section to define the variables needed,
+			  along with their appropriate default values, as well as output variables
+			  to hold the values retrieved when the variables are retrieved.
+			- Update the "get_information" section to reference the variables
+			  based on the modification.
+			- Update the "variables" array in the "create_entry" section to
+              reference the variables based on the modification.
+			- Update the "get_variables" step to retrieve the variable values.
+			- Update the "display_variables" step to display the variable values.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+    <!--  SCR - fields for the registry entry to be created. -->
+
+	<variable name="external_name">
+		<label>external_name</label>
+		<abstract>This is the external name of the entry created in the Software Configuration Registry.</abstract>
+		<description>The unique(?) external name for the registry entry.</description>
+		<category>SCR</category>
+		<string>
+	    </string>
+	</variable>
+
+	<variable name="object_name">
+		<label>object_name</label>
+		<abstract>This is the object name of the entry created in the Software Configuration Registry.</abstract>
+		<description>The unique object name for the registry entry.</description>
+		<category>SCR</category>
+		<string>
+	    </string>
+	</variable>
+
+	<variable name="object_id">
+		<label>object_id</label>
+		<abstract>This is the object id of the entry created in the Software Configuration Registry.</abstract>
+		<description>The unique object id for the registry entry.</description>
+		<category>SCR</category>
+		<string>
+	    </string>
+	</variable>
+
+	<variable name="type">
+		<label>type</label>
+		<abstract>Type</abstract>
+		<description>The type of software.</description>
+		<category>SCR</category>
+		<string>
+			<regularExpression>^[a-zA-Z]{1}[a-zA-Z0-9_-]{0,7}$</regularExpression>
+			<errorMessage>Must be 1-8 characters, starting with alpha, remainder can be alpha, numeric, hypen, or underscore.</errorMessage>
+			<default>DB2</default>
+		</string>
+	</variable>
+
+	<variable name="system">
+		<label>system</label>
+		<abstract>System</abstract>
+		<description>The name of the system where the software is provisioned.</description>
+		<category>SCR</category>
+		<string>
+			<maxLength>8</maxLength>
+			<default>SYS1</default>
+		</string>
+	</variable>
+
+	<variable name="sysplex">
+		<label>sysplex</label>
+		<abstract>Sysplex</abstract>
+		<description>The name of the sysplex where the software is provisioned.</description>
+		<category>SCR</category>
+		<string>
+			<maxLength>8</maxLength>
+			<default>PLEX1</default>
+		</string>
+	</variable>
+
+	<variable name="owner">
+		<label>owner</label>
+		<abstract>Owner</abstract>
+		<description>The userid or group name of the owner of the software.</description>
+		<category>SCR</category>
+		<string>
+			<maxLength>8</maxLength>
+			<default>DB2ADDS</default>
+		</string>
+	</variable>
+
+	<variable name="provider">
+		<label>provider</label>
+		<abstract>Provider</abstract>
+		<description>The userid or group name of the provider of the software.</description>
+		<category>SCR</category>
+		<string>
+			<maxLength>8</maxLength>
+			<default>DB2ADDS</default>
+		</string>
+	</variable>
+
+	<variable name="description">
+		<label>description</label>
+		<abstract>Description</abstract>
+		<description>The description of the software provisioned.</description>
+		<category>SCR</category>
+		<string multiLine="true">
+			<maxLength>256</maxLength>
+			<default>The software registry entry for the DB2 instance.</default>
+		</string>
+	</variable>
+
+	<variable name="state">
+		<label>state</label>
+		<abstract>State</abstract>
+		<description>The state of the provisioning.</description>
+		<category>SCR</category>
+		<string valueMustBeChoice="true">
+			<choice>being-provisioned</choice>
+			<choice>provisioned</choice>
+			<choice>being-deprovisioned</choice>
+			<choice>deprovisioned</choice>
+			<choice>provisioning-failed</choice>
+			<choice>deprovisioning-failed</choice>
+			<default>provisioned</default>
+		</string>
+	</variable>
+
+	<!--  Variables - variables that will be set in the registry entry created. -->
+
+	<variable name="subsystemName">
+		<label>subsystemName</label>
+		<abstract>Name of the DB2 subsystem</abstract>
+		<description>Specifies the name of the DB2 subsystem.</description>
+		<category>Variables</category>
+		<string>
+			<maxLength>4</maxLength>
+			<default>DB2A</default>
+		</string>
+	</variable>
+
+	<variable name="location">
+		<label>location</label>
+		<abstract>The DB2 location name</abstract>
+		<description>Specifies the DB2 location name.</description>
+		<category>Variables</category>
+		<string>
+			<maxLength>16</maxLength>
+			<default>POUGHKEEPSIE</default>
+		</string>
+	</variable>
+
+	<variable name="hostName">
+		<label>hostName</label>
+		<abstract>Host name of the DB2 subsystem</abstract>
+		<description>The host name of the DB2 subsystem</description>
+		<category>Variables</category>
+		<string>
+			<default>localhost</default>
+		</string>
+	</variable>
+
+	<variable name="portNumber">
+		<label>portNumber</label>
+		<abstract>Connection port for the DB2 subsystem</abstract>
+		<description>The connection port for the DB2 subsystem.</description>
+		<category>Variables</category>
+		<string>
+			<default>446</default>
+		</string>
+	</variable>
+
+	<variable name="userName">
+		<label>userName</label>
+		<abstract>User name of the DB2 subsystem</abstract>
+		<description>User name of the DB2 subsystem</description>
+		<category>Variables</category>
+		<string>
+			<default>DefaultUser</default>
+		</string>
+	</variable>
+
+	<variable name="password">
+		<label>password</label>
+		<abstract>Password of the DB2 subsystem</abstract>
+		<description>Password of the DB2 subsystem</description>
+		<category>Variables</category>
+		<string>
+			<default>DefaultPassword</default>
+		</string>
+	</variable>
+
+	<variable name="jdbcDriverPath">
+		<label>jdbcDriverPath</label>
+		<abstract>The path to the JDBC driver and the JDBC license.</abstract>
+		<description>The path to the JCBC driver and the JDBC license for DB2 for z/OS.
+		The application server needs to load the driver and the license from this path
+		and use them to connect to DB2 for z/OS</description>
+		<category>Variables</category>
+		<string>
+			<default>/usr/lpp/db2/db2b10/jdbc</default>
+		</string>
+	</variable>
+
+	<variable name="HLQ">
+		<label>HLQ</label>
+		<abstract>The High Level Qualifier for the SDSNLOD2 and SDSNLOAD datasets</abstract>
+		<description>The High Level Qualifier for the SDSNLOD2 and SDSNLOAD datasets</description>
+		<category>Variables</category>
+		<string>
+			<default>DB2HLQ</default>
+		</string>
+	</variable>
+
+	<!--  Output variables - variable values retrieved from the registry entry after being created. -->
+
+	<variable name="db2_subsystemName">
+		<label>db2_subsystemName</label>
+		<abstract>The subsystemName from the instance in the registry</abstract>
+		<description>This is the value of the subsystemName variable obtained from the entry in the SCR.</description>
+		<category>Output Variables</category>
+		<string>
+	    </string>
+	</variable>
+
+	<variable name="db2_location">
+		<label>db2_location</label>
+		<abstract>The location from the instance in the registry</abstract>
+		<description>This is the value of the location variable obtained from the entry in the SCR.</description>
+		<category>Output Variables</category>
+		<string>
+	    </string>
+	</variable>
+
+	<variable name="db2_hostName">
+		<label>db2_hostName</label>
+		<abstract>The hostName from the instance in the registry</abstract>
+		<description>This is the value of the hostName variable obtained from the entry in the SCR.</description>
+		<category>Output Variables</category>
+		<string>
+	    </string>
+	</variable>
+
+	<variable name="db2_portNumber">
+		<label>db2_portNumber</label>
+		<abstract>The portNumber from the instance in the registry</abstract>
+		<description>This is the value of the portNumber variable obtained from the entry in the SCR.</description>
+		<category>Output Variables</category>
+		<string>
+	    </string>
+	</variable>
+
+	<variable name="db2_userName">
+		<label>db2_userName</label>
+		<abstract>The userName from the instance in the registry</abstract>
+		<description>This is the value of the userName variable obtained from the entry in the SCR.</description>
+		<category>Output Variables</category>
+		<string>
+	    </string>
+	</variable>
+
+	<variable name="db2_password">
+		<label>db2_password</label>
+		<abstract>The password from the instance in the registry</abstract>
+		<description>This is the value of the password variable obtained from the entry in the SCR.</description>
+		<category>Output Variables</category>
+		<string>
+	    </string>
+	</variable>
+
+	<variable name="db2_jdbcDriverPath">
+		<label>db2_jdbcDriverPath</label>
+		<abstract>This jdbcDriverPath from the instance in the registry</abstract>
+		<description>This is the value of the jdbcDriverPath variable obtained from the entry in the SCR.</description>
+		<category>Output Variables</category>
+		<string>
+	    </string>
+	</variable>
+
+	<variable name="db2_HLQ">
+		<label>db2_HLQ</label>
+		<abstract>The High Level Qualifier for the SDSNLOD2 and SDSNLOAD datasets</abstract>
+		<description>The High Level Qualifier for the SDSNLOD2 and SDSNLOAD datasets</description>
+		<category>Variables</category>
+		<string>
+			<default>DB2HLQ</default>
+		</string>
+	</variable>
+
+
+<!--
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Step "get_information" will prompt the user for information about the
+registry entry to create.  This includes the variable names, values, and visibility.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+	<step name="get_information">
+		<title>Collect the information to be used to create the registry entry.</title>
+		<description>
+			Get the information for the registry entry that will be used to
+			create the new registry entry.
+		</description>
+
+		<variableValue name="type" required="true"/>
+		<variableValue name="system" required="true"/>
+		<variableValue name="sysplex" required="true"/>
+		<variableValue name="owner" required="true"/>
+		<variableValue name="provider" required="true"/>
+		<variableValue name="description" required="true"/>
+		<variableValue name="state" required="true"/>
+
+		<!-- Instructions:
+
+			List each of the variables here that will represent the properties of the provisioned software.
+			If the variable requires a value, use the required="true" attribute.
+		-->
+
+		<variableValue name="subsystemName" required="true"/>
+		<variableValue name="location" required="true"/>
+		<variableValue name="hostName" required="true"/>
+		<variableValue name="portNumber" required="true"/>
+		<variableValue name="userName" required="true"/>
+		<variableValue name="password" required="true"/>
+		<variableValue name="jdbcDriverPath" required="true"/>
+		<variableValue name="HLQ" required="true"/>
+
+		<instructions>
+			Click Finish to store the information to be used when the registry entry is created.
+			Click Back to make changes.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+	</step>
+
+<!--
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Step "create_entry" will create an entry in the registry by invoking the
+registry's REST API.  It will return a HTTP status code of 201 if
+successfully created.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+	<step name="create_entry">
+		<title>Create the new entry in the registry.</title>
+		<description>
+			Invoke RESTful API to create the new registry entry.
+		</description>
+		<prereqStep name="get_information"/>
+		<instructions substitution="false">
+			Click Finish to perform the request to create the entry in the registry.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+		<rest>
+			<httpMethod>POST</httpMethod>
+			<uriPath>/zosmf/provisioning/rest/1.0/scr</uriPath>
+			<requestBody substitution="true">
+				{
+					"system" : "${instance-system}",
+					"sysplex" : "${instance-sysplex}",
+					"registry-type" : "general",
+					"external-name" : "${instance-subsystemName}",
+					"type" : "${instance-type}",
+					"vendor" : "IBM",
+					"version" : "B10",
+					"description" : "${instance-description}",
+					"owner" : "${instance-owner}",
+					"provider" : "${instance-provider}",
+					"state" : "${instance-state}",
+					"actions" : [ { "name": "deprovision", "type": "instructions", "instructions" : "perform this action to deprovision" } ],
+					"variables" :
+						[
+							{ "name": "subsystemName", "value": "${instance-subsystemName}", "visibility": "public" },
+							{ "name": "location", "value": "${instance-location}", "visibility": "public" },
+							{ "name": "hostName", "value": "${instance-hostName}", "visibility": "public" },
+							{ "name": "portNumber", "value": "${instance-portNumber}", "visibility": "public" },
+							{ "name": "userName", "value": "${instance-userName}", "visibility": "public" },
+							{ "name": "password", "value": "${instance-password}", "visibility": "public" },
+							{ "name": "jdbcDriverPath", "value": "${instance-jdbcDriverPath}", "visibility": "public" },
+							{ "name": "HLQ", "value": "${instance-HLQ}", "visibility": "public" }
+						]
+				}
+			</requestBody>
+			<expectedStatusCode>201</expectedStatusCode>
+			<propertyMapping mapTo="object_name">["object-name"]</propertyMapping>
+			<!-- propertyMapping mapTo="external_name">["external-name"]</propertyMapping> -->
+		</rest>
+	</step>
+
+<!--
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Step "display_object_name" will display the unique object-name for the
+newly created entry in the registry.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+	<step name="display_object_name">
+		<title>Display the object name of the new entry.</title>
+		<description>
+			This will display the object-name of the newly created registry entry.
+		</description>
+		<prereqStep name="create_entry"/>
+		<variableValue name="object_name" noPromptIfSet="true"/>
+		<!-- variableValue name="external_name" noPromptIfSet="true"/> -->
+		<instructions substitution="false">
+			Click Back to display the new entry's object name.
+			Click Finish to complete this step.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+	</step>
+
+
+<!--
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Step "get_object_id" will use a rest step to issue a GET request to determine the
+object id of the newly created registry entry.  The JSON payload returned will be
+like the following:
+
+{
+ "scr-list":
+ [
+  {
+         "system":"sys1",
+         "sysplex":"plex1",
+         "type":"DB2",
+         "vendor":"IBM",
+         "state":"provisioned",
+         "object-id":"1c9aff61-f2d6-4e94-b2c5-31f33eae84bf",
+         "object-name":"DB2_2",
+         "last-modified-by-user":"ZOSMFAD"
+  }
+ ]
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+	<step name="get_object_id">
+		<title>Get the object id of the registry entry from the object name.</title>
+		<description>
+			Invoke RESTful API to determine the object id of the registry entry.
+		</description>
+		<prereqStep name="create_entry"/>
+		<instructions substitution="false">
+			Click Finish to perform the request to get the registry entry object id.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+		<rest>
+			<httpMethod>GET</httpMethod>
+			<uriPath>/zosmf/provisioning/rest/1.0/scr/</uriPath>
+			<queryParameters substitution="true">object-name=${instance-object_name}</queryParameters>
+			<expectedStatusCode>200</expectedStatusCode>
+			<propertyMapping mapTo="object_id">["scr-list"][0]["object-id"]</propertyMapping>
+		</rest>
+	</step>
+
+
+<!--
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Step "display_object_id" will display the unique object-id for the
+newly created entry in the registry.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+	<step name="display_object_id">
+		<title>Display the object id of the new entry.</title>
+		<description>
+			This will display the object-id of the newly created registry entry.
+		</description>
+		<prereqStep name="get_object_id"/>
+		<variableValue name="object_id" noPromptIfSet="true"/>
+		<instructions substitution="false">
+			Click Back to display the new entry's object id.
+			Click Finish to complete this step.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+	</step>
+
+
+<!--
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Step "get_variables" will use a rest step to issue a GET request to obtain the
+variables in the newly created registry entry. The JSON payload returned will be
+like the following:
+
+{
+    "variables":
+	 {
+	   "var1":"val1",
+	   "var2":"val2"
+	 }
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+	<step name="get_variables">
+		<title>Get the values of the variables in the registry entry using the object id of the entry.</title>
+		<description>
+			Invoke RESTful API to fetch the variables in the registry entry.
+		</description>
+		<prereqStep name="get_object_id"/>
+		<instructions substitution="false">
+			Click Finish to perform the request to get the registry entry variable values.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+		<rest>
+			<httpMethod>GET</httpMethod>
+			<uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${instance-object_id}/key-value-variables/</uriPath>
+			<expectedStatusCode>200</expectedStatusCode>
+			<propertyMapping mapTo="db2_subsystemName">["variables"]["subsystemName"]</propertyMapping>
+			<propertyMapping mapTo="db2_location">["variables"]["location"]</propertyMapping>
+            <propertyMapping mapTo="db2_hostName">["variables"]["hostName"]</propertyMapping>
+            <propertyMapping mapTo="db2_portNumber">["variables"]["portNumber"]</propertyMapping>
+            <propertyMapping mapTo="db2_userName">["variables"]["userName"]</propertyMapping>
+            <propertyMapping mapTo="db2_password">["variables"]["password"]</propertyMapping>
+            <propertyMapping mapTo="db2_jdbcDriverPath">["variables"]["jdbcDriverPath"]</propertyMapping>
+            <propertyMapping mapTo="db2_HLQ">["variables"]["HLQ"]</propertyMapping>
+		</rest>
+	</step>
+
+
+<!--
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Step "display_variables" will display the variables retrieved from the
+newly created entry in the registry.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+
+	<step name="display_variables">
+		<title>Display the variables retrieved from the new entry.</title>
+		<description>
+			This will display the variable values retrieved from the new entry.
+		</description>
+		<prereqStep name="get_variables"/>
+		<variableValue name="db2_subsystemName" noPromptIfSet="true"/>
+		<variableValue name="db2_location" noPromptIfSet="true"/>
+		<variableValue name="db2_hostName" noPromptIfSet="true"/>
+		<variableValue name="db2_portNumber" noPromptIfSet="true"/>
+		<variableValue name="db2_userName" noPromptIfSet="true"/>
+		<variableValue name="db2_password" noPromptIfSet="true"/>
+		<variableValue name="db2_jdbcDriverPath" noPromptIfSet="true"/>
+		<variableValue name="db2_HLQ" noPromptIfSet="true"/>
+		<instructions substitution="false">
+			Click Back to display the new entry's variable values.
+			Click Finish to complete this step.
+		</instructions>
+		<weight>10</weight>
+		<skills>SCR</skills>
+	</step>
+
+</workflow>

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow>
+    <autoTakeOwnership>true</autoTakeOwnership>
+    <workflowSettingInfo>
+        <variablesSetting isInstanceVariableWithoutPrefix="true"></variablesSetting>
+    </workflowSettingInfo>
+    <workflowInfo>
+        <workflowID scope="none" isCallable="sysplex">IBM-MF-AUTO-ZOS-DASDINIT</workflowID>
+        <workflowDescription>IBM-MF-AUTO-ZOS-DASDINIT</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>IBM-MF-AUTO</vendor>
+        <General/>
+    </workflowInfo>
+    <variable name="init-ucb" scope="instance" visibility="private">
+        <label>Device Address(UCB)</label>
+        <abstract>Please enter the device address</abstract>
+        <description>UCB</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <regularExpression>[0-9a-fA-F]{3}([0-9a-fA-F]{1})?</regularExpression>
+            <errorMessage>Please enter the HEX address of the UCB. You can code addresses that are 3 or 4 chars in length</errorMessage>
+        </string>
+    </variable>
+    <variable name="init-rc" scope="instance" visibility="private">
+        <label>Retry Count</label>
+        <abstract>Please enter the number of retries for the vary-offline step</abstract>
+        <description>Please</description>
+        <category>General</category>
+        <integer>
+            <minValue>1</minValue>
+            <maxValue>10</maxValue>
+            <default>3</default>
+        </integer>
+    </variable>
+    <variable name="init-vol" scope="instance" visibility="private">
+        <label>Volume Serial</label>
+        <abstract>Please enter the VOLSER of the disk for verification</abstract>
+        <description>Please enter the VOLSER of the disk for verification</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <validationType>VOLSER</validationType>
+        </string>
+    </variable>
+    <atCreate name="init-rc" scope="instance" required="true" prompt="true"/>
+    <atCreate name="init-ucb" scope="instance" required="true" prompt="true"/>
+    <atCreate name="init-vol" scope="instance" required="true" prompt="true"/>
+    <step name="VARYOFF" optional="false">
+        <title>Vary Offline</title>
+        <description>&lt;h3&gt;Step to Vary a DASD Pack Offline&lt;/h3&gt;
+&lt;h6&gt;This step can be used to bring a UCB Off&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+
+The step will vary a device offline and check if the device was &lt;br&gt;
+successfully brought offline, it will attempt to retry as many  &lt;br&gt;
+times as defined on the retry limit variable &lt;br&gt;&lt;br&gt;
+
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</description>
+        <variableValue name="init-ucb" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="init-rc" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="init-vol" scope="instance" noPromptIfSet="true" required="true"/>
+        <instructions substitution="false">&lt;h3&gt;Step to Vary a DASD Pack Offline&lt;/h3&gt;
+&lt;h6&gt;This step can be used to bring a UCB Off&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+
+The step will vary a device offline and check if the device was &lt;br&gt;
+successfully brought offline, it will attempt to retry as many  &lt;br&gt;
+times as defined on the retry limit variable &lt;br&gt;&lt;br&gt;
+
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <skills>z/OS Base</skills>
+        <autoEnable>false</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">/*rexx*/ 
+/*retry limit*/ 
+rl=${init-rc}
+erc=0 
+/*guarantee uppercase*/ 
+ucb=translate('${init-ucb}') 
+do i=1 to rl 
+   call syscmd 'v '||ucb||',offline' 
+   if pos('OFFLINE',line.1) &gt; 0 then do 
+      erc = 0 
+      say 'DASDINIT01I - UCB OFFLINE' 
+      say line.1 
+      leave 
+   end 
+   else do 
+      say 'DASDINIT01W - UCB NOT OFFLINE - RETRYING '||i||' of '||rl 
+      erc = 8 
+   end 
+end 
+if erc=8 then say "DASDINIT01E - UCB COULD NOT BE VARIED OFFLINE" 
+exit erc
+                                                                       
+syscmd: 
+  parse arg cmd 
+  x=msg('off') 
+  'CONSOLE DEACTIVATE' 
+  x=msg('off') 
+  'CONSOLE NAME('SYSVAR(SYSUID)||'@) ACTIVATE' 
+  'CONSOLE SYSCMD('cmd')' 
+  msgs = GETMSG('line.','SOL',,,10) 
+  'CONSOLE DEACTIVATE' 
+  return </inlineTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+        </template>
+    </step>
+    <step name="DASDINIT" optional="false">
+        <title>Format/Init DASD Pack</title>
+        <description>&lt;h3&gt;Step to INIT / Format a DASD Pack&lt;/h3&gt;
+&lt;h6&gt;This step can be used to format a DASD pack&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+
+The DASD will be initialized with the default of: &lt;br&gt;&lt;br&gt;
+
+VTOC(0,1,59) and INDEX(4,0,15) &lt;br&gt;&lt;br&gt;
+
+You can edit the JCL to add more devices and change the &lt;br&gt;
+defaults if needed.
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</description>
+        <prereqStep name="VARYOFF"/>
+        <variableValue name="init-vol" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="init-ucb" scope="instance" noPromptIfSet="true" required="true"/>
+        <instructions substitution="false">&lt;h3&gt;Step to INIT / Format a DASD Pack&lt;/h3&gt;
+&lt;h6&gt;This step can be used to format a DASD pack&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+
+The DASD will be initialized with the default of: &lt;br&gt;&lt;br&gt;
+
+VTOC(0,1,59) and INDEX(4,0,15) &lt;br&gt;&lt;br&gt;
+
+You can edit the JCL to add more devices and change the &lt;br&gt;
+defaults if needed.
+&lt;br&gt;&lt;br&gt;
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <skills>z/OS, Stogage</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>true</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">//INITVOL  EXEC PGM=ICKDSF,PARM='NOREPLYU'
+//SYSPRINT DD   SYSOUT=*
+//SYSIN    DD *
+  INIT UNIT(${init-ucb}) VFY(${init-vol}) VOLID(${init-vol}) VTOC(0,1,59) INDEX(4,0,15)
+/*</inlineTemplate>
+            <submitAs maxRc="0">JCL</submitAs>
+            <maxLrecl>80</maxLrecl>
+        </template>
+    </step>
+    <step name="VARYON" optional="false">
+        <title>Vary Online</title>
+        <description>&lt;h3&gt;Step to Vary a DASD Pack online&lt;/h3&gt;
+&lt;h6&gt;This step can be used to bring a UCB Online&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+
+The step will vary a device Online and check if the device was &lt;br&gt;
+successfully brought Online, it will attempt to retry as many  &lt;br&gt;
+times as defined on the retry limit variable.                  &lt;br&gt; 
+
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha </description>
+        <prereqStep name="VARYOFF"/>
+        <condition>
+            <expression>${VARYOFF.returnCode} == "0000"</expression>
+            <description/>
+            <targetState>ready</targetState>
+        </condition>
+        <variableValue name="init-ucb" scope="instance" noPromptIfSet="true" required="true"/>
+        <variableValue name="init-rc" scope="instance" noPromptIfSet="true" required="true"/>
+        <instructions substitution="false">&lt;h3&gt;Step to Vary a DASD Pack online&lt;/h3&gt;
+&lt;h6&gt;This step can be used to bring a UCB Online&lt;/h6&gt;
+&lt;br&gt;&lt;br&gt;
+
+The step will vary a device Online and check if the device was &lt;br&gt;
+successfully brought Online, it will attempt to retry as many  &lt;br&gt;
+times as defined on the retry limit variable.                  &lt;br&gt; 
+
+If you have any questions please reach out to Eduardo Rocha:&lt;br&gt;
+&lt;a href="mailto:eduardor@br.ibm.com"&gt;Eduardo Rocha @IBM&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://www.linkedin.com/in/ehrocha/"&gt;Eduardo Rocha @LinkedIn&lt;/a&gt;</instructions>
+        <weight>1</weight>
+        <skills>z/OS, Storage</skills>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>true</canMarkAsFailed>
+        <template>
+            <inlineTemplate substitution="true">/*rexx*/ 
+/*retry limit*/ 
+rl=${init-rc}
+erc=0 
+/*guarantee uppercase*/ 
+ucb=translate('${init-ucb}') 
+do i=1 to rl 
+   call syscmd 'v '||ucb||',online' 
+   if pos('ONLINE',line.1) &gt; 0 then do 
+      erc = 0 
+      say 'DASDINIT02I - UCB ONLINE' 
+      say line.1 
+      leave 
+   end 
+   else do 
+      say 'DASDINIT02W - UCB NOT ONLINE - RETRYING '||i||' of '||rl 
+      erc = 8 
+   end 
+end 
+if erc=8 then say "DASDINIT02E - UCB COULD NOT BE VARIED ONLINE" 
+exit erc
+                                                                       
+syscmd: 
+  parse arg cmd 
+  x=msg('off') 
+  'CONSOLE DEACTIVATE' 
+  x=msg('off') 
+  'CONSOLE NAME('SYSVAR(SYSUID)||'@) ACTIVATE' 
+  'CONSOLE SYSCMD('cmd')' 
+  msgs = GETMSG('line.','SOL',,,10) 
+  'CONSOLE DEACTIVATE' 
+  return </inlineTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+        </template>
+    </step>
+</workflow>
