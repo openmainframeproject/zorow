@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<actionList>
+    <action name="deprovision" deprovision="true">
+        <workflow cleanAfterComplete="inherit">
+            <wfDefFile>./Deprovision_Network_Resource.xml</wfDefFile>
+            <wfVar name="PORT_ID" updateRegistry="true">$!{PORT_ID}</wfVar>
+            <wfVar name="IP_ADDRESS_ID" updateRegistry="true">$!{IP_ADDRESS_ID}</wfVar>
+            <wfVar name="APPLID_ID" updateRegistry="true">$!{APPLID_ID}</wfVar>
+        </workflow>
+    </action>
+</actionList>

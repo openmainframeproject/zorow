@@ -1,11 +1,15 @@
 //******************************************************************
+//* Copyright Contributors to the zOS-Workflow Project.            *
+//* PDX-License-Identifier: Apache-2.0                             *
+//******************************************************************
+//******************************************************************
 //*              IBM Integration Bus                               *
 //*                                                                *
 //* Sample job to create an Integration node (mqsicreatebroker).   *
 //*                                                                *
 //******************************************************************
 //* Run mqsicreatebroker command
-//* Run with Broker userID 
+//* Run with Broker userID
 //******************************************************************
 //*
 //BIPCRBK  EXEC PGM=IKJEFT1B,REGION=0M

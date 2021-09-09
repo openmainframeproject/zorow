@@ -1,3 +1,7 @@
+################################################################################
+# Copyright Contributors to the zOS-Workflow Project.                          #
+# SPDX-License-Identifier: Apache-2.0                                          #
+################################################################################
 #the mount, will fail if already mounted, or if mount point does not exist
 #TODO: how to handle mount errors and percolate with /etc/rc?
 #TODO: how to check if already mounted?
@@ -9,9 +13,9 @@
            /plex/var/mqsi/brokers/${instance-IIB_BROKER_NAME_LC}"
          retval="true"
     else # failed ? kan ok zijn als ie al gemount is
-         echo "mount failed from /etc/rc !  SYSTEM.HFS.PLEX.VAR.MQSI.${instance-IIB_BROKER_NAME} 
+         echo "mount failed from /etc/rc !  SYSTEM.HFS.PLEX.VAR.MQSI.${instance-IIB_BROKER_NAME}
                    /plex/var/mqsi/brokers/${instance-IIB_BROKER_NAME_LC}"
          retval="false"
     fi
-    
+
 echo $retval

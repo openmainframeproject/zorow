@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
 <workflow>
     <workflowInfo>
         <workflowID>WASt_Provision</workflowID>
@@ -1353,7 +1360,7 @@
            &quot;ipaddr&quot;:&quot;any4&quot;,
            &quot;system-name&quot;:&quot;${_workflow-systemName}&quot;
         }
-}	
+}
 			</requestBody>
             <expectedStatusCode>200</expectedStatusCode>
             <propertyMapping mapTo="IP_ADDRESS">[&quot;ipaddr&quot;]</propertyMapping>

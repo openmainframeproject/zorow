@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
 <workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="./workflow_v1.xsd">
 
@@ -261,7 +266,7 @@ There are 2 categories of workflow variables defined:
 			<default>/usr/lpp/db2/db2b10/jdbc</default>
 		</string>
 	</variable>
-	
+
 	<variable name="HLQ">
 		<label>HLQ</label>
 		<abstract>The High Level Qualifier for the SDSNLOD2 and SDSNLOAD datasets</abstract>
@@ -336,7 +341,7 @@ There are 2 categories of workflow variables defined:
 		<string>
 	    </string>
 	</variable>
-	
+
 	<variable name="db2_HLQ">
 		<label>db2_HLQ</label>
 		<abstract>The High Level Qualifier for the SDSNLOD2 and SDSNLOAD datasets</abstract>

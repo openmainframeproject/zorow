@@ -1,3 +1,7 @@
+//******************************************************************
+//* Copyright Contributors to the zOS-Workflow Project.            *
+//* PDX-License-Identifier: Apache-2.0                             *
+//******************************************************************
 //S1     EXEC USSBATCH,SU=Y
 //STDOUT  DD SYSOUT=*
 //STDERR  DD SYSOUT=*

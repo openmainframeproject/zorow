@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
 
 <workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                           xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
@@ -11,7 +17,7 @@
 
 <workflowInfo>
 	<workflowID>cWAS_Stop_Server</workflowID>
-	<workflowDescription>Stop stand alone cWAS app server.</workflowDescription>       
+	<workflowDescription>Stop stand alone cWAS app server.</workflowDescription>
 	<workflowVersion>1.0</workflowVersion>
 	<vendor>IBM</vendor>
 	<Configuration>
@@ -31,7 +37,7 @@
   <variable name="SERVER_ID_NUM" visibility="public">
       <label>Server ID Number</label>
       <abstract>Three digit number identifying server instance (including leading zeroes)</abstract>
-      <description>Three digit number identifying the server instance to be stopped. This number is embedded in the 
+      <description>Three digit number identifying the server instance to be stopped. This number is embedded in the
 	               server job name. For example, to stop server ZZ001S, specify 001 for the Server ID Number.</description>
       <category>User provided parameters</category>
       <string>
@@ -281,71 +287,71 @@
   </variable>
 
   <variable name="Z_CONFIG_AUTO_GID" visibility="private">
-      <label>Z_CONFIG_AUTO_GID</label>   
-      <abstract>Z_CONFIG_AUTO_GID</abstract>   
-      <description>Flag indicating whether RACF should assign GIDs automatically.</description>                                   
+      <label>Z_CONFIG_AUTO_GID</label>
+      <abstract>Z_CONFIG_AUTO_GID</abstract>
+      <description>Flag indicating whether RACF should assign GIDs automatically.</description>
       <category>Specified in properties file</category>
       <boolean/>
   </variable>
 
   <variable name="Z_CONFIG_AUTO_UID" visibility="private">
-      <label>Z_CONFIG_AUTO_UID</label>   
-      <abstract>Z_CONFIG_AUTO_UID</abstract>   
-      <description>Flag indicating whether RACF should assign GIDs automatically.</description>                                   
+      <label>Z_CONFIG_AUTO_UID</label>
+      <abstract>Z_CONFIG_AUTO_UID</abstract>
+      <description>Flag indicating whether RACF should assign GIDs automatically.</description>
       <category>Specified in properties file</category>
       <boolean/>
   </variable>
 
-  
+
   <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
   <!--     Port variables in server_group_variables.properties  -->
   <!--     and port variables returned from CA                  -->
   <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 
     <variable name="WC_adminhost_RANGE" visibility="public">
-      <label>WC_adminhost_RANGE</label>      
-      <abstract>WC_adminhost_RANGE</abstract>      
-      <description>WC_adminhost_RANGE</description>                                                                                      
+      <label>WC_adminhost_RANGE</label>
+      <abstract>WC_adminhost_RANGE</abstract>
+      <description>WC_adminhost_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
   <variable name="WC_adminhost" visibility="public">
-      <label>WC_adminhost</label>      
-      <abstract>WC_adminhost</abstract>      
-      <description>WC_adminhost</description>                                                                                            
+      <label>WC_adminhost</label>
+      <abstract>WC_adminhost</abstract>
+      <description>WC_adminhost</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="WC_adminhost_ID" visibility="public"> 
-      <label>WC_adminhost_ID</label>      
-      <abstract>WC_adminhost_ID</abstract>      
-      <description>WC_adminhost_ID</description>                                                                                         
+  <variable name="WC_adminhost_ID" visibility="public">
+      <label>WC_adminhost_ID</label>
+      <abstract>WC_adminhost_ID</abstract>
+      <description>WC_adminhost_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
   <variable name="WC_adminhost_secure_RANGE" visibility="public">
-      <label>WC_adminhost_secure_RANGE</label>      
-      <abstract>WC_adminhost_secure_RANGE</abstract>      
-      <description>WC_adminhost_secure_RANGE</description>                                                                               
+      <label>WC_adminhost_secure_RANGE</label>
+      <abstract>WC_adminhost_secure_RANGE</abstract>
+      <description>WC_adminhost_secure_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="WC_adminhost_secure" visibility="public">   
-      <label>WC_adminhost_secure</label>      
-      <abstract>WC_adminhost_secure</abstract>      
-      <description>WC_adminhost_secure</description>                                                                                     
+  <variable name="WC_adminhost_secure" visibility="public">
+      <label>WC_adminhost_secure</label>
+      <abstract>WC_adminhost_secure</abstract>
+      <description>WC_adminhost_secure</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
   <variable name="WC_adminhost_secure_ID" visibility="public">
-      <label>WC_adminhost_secure_ID</label>      
-      <abstract>WC_adminhost_secure_ID</abstract>      
-      <description>WC_adminhost_secure_ID</description>                                                                                  
+      <label>WC_adminhost_secure_ID</label>
+      <abstract>WC_adminhost_secure_ID</abstract>
+      <description>WC_adminhost_secure_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
@@ -353,15 +359,15 @@
   <variable name="IPC_CONNECTOR_ADDRESS_RANGE" visibility="public">
       <label>IPC_CONNECTOR_ADDRESS_RANGE</label>
       <abstract>IPC_CONNECTOR_ADDRESS_RANGE</abstract>
-      <description>IPC_CONNECTOR_ADDRESS_RANGE</description>                                                                             
+      <description>IPC_CONNECTOR_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
   <variable name="IPC_CONNECTOR_ADDRESS" visibility="public">
       <label>IPC_CONNECTOR_ADDRESS</label>
       <abstract>IPC_CONNECTOR_ADDRESS</abstract>
-      <description>IPC_CONNECTOR_ADDRESS</description>                                                                                   
+      <description>IPC_CONNECTOR_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
@@ -369,7 +375,7 @@
   <variable name="IPC_CONNECTOR_ADDRESS_ID" visibility="public">
       <label>IPC_CONNECTOR_ADDRESS_ID</label>
       <abstract>IPC_CONNECTOR_ADDRESS_ID</abstract>
-      <description>IPC_CONNECTOR_ADDRESS_ID</description>                                                                                
+      <description>IPC_CONNECTOR_ADDRESS_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
@@ -377,15 +383,15 @@
   <variable name="OVERLAY_TCP_LISTENER_ADDRESS_RANGE" visibility="public">
       <label>OVERLAY_TCP_LISTENER_ADDRESS_RANGE</label>
       <abstract>OVERLAY_TCP_LISTENER_ADDRESS_RANGE</abstract>
-      <description>OVERLAY_TCP_LISTENER_ADDRESS_RANGE</description>                                                                      
+      <description>OVERLAY_TCP_LISTENER_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
   <variable name="OVERLAY_TCP_LISTENER_ADDRESS" visibility="public">
       <label>OVERLAY_TCP_LISTENER_ADDRESS</label>
       <abstract>OVERLAY_TCP_LISTENER_ADDRESS</abstract>
-      <description>OVERLAY_TCP_LISTENER_ADDRESS</description>                                                                            
+      <description>OVERLAY_TCP_LISTENER_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
@@ -393,370 +399,370 @@
   <variable name="OVERLAY_TCP_LISTENER_ADDRESS_ID" visibility="public">
       <label>OVERLAY_TCP_LISTENER_ADDRESS_ID</label>
       <abstract>OVERLAY_TCP_LISTENER_ADDRESS_ID</abstract>
-      <description>OVERLAY_TCP_LISTENER_ADDRESS_ID</description>                                                                         
+      <description>OVERLAY_TCP_LISTENER_ADDRESS_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
   <variable name="OVERLAY_UDP_LISTENER_ADDRESS_RANGE" visibility="public">
-      <label>OVERLAY_UDP_LISTENER_ADDRESS_RANGE</label>           
-      <abstract>OVERLAY_UDP_LISTENER_ADDRESS_RANGE</abstract>        
-      <description>OVERLAY_UDP_LISTENER_ADDRESS_RANGE</description>                                                                      
+      <label>OVERLAY_UDP_LISTENER_ADDRESS_RANGE</label>
+      <abstract>OVERLAY_UDP_LISTENER_ADDRESS_RANGE</abstract>
+      <description>OVERLAY_UDP_LISTENER_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="OVERLAY_UDP_LISTENER_ADDRESS" visibility="public">      
-      <label>OVERLAY_UDP_LISTENER_ADDRESS</label>                 
-      <abstract>OVERLAY_UDP_LISTENER_ADDRESS</abstract>              
-      <description>OVERLAY_UDP_LISTENER_ADDRESS</description>                                                                            
+  <variable name="OVERLAY_UDP_LISTENER_ADDRESS" visibility="public">
+      <label>OVERLAY_UDP_LISTENER_ADDRESS</label>
+      <abstract>OVERLAY_UDP_LISTENER_ADDRESS</abstract>
+      <description>OVERLAY_UDP_LISTENER_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="OVERLAY_UDP_LISTENER_ADDRESS_ID" visibility="public">      
-      <label>OVERLAY_UDP_LISTENER_ADDRESS_ID</label>              
-      <abstract>OVERLAY_UDP_LISTENER_ADDRESS_ID</abstract>           
-      <description>OVERLAY_UDP_LISTENER_ADDRESS_ID</description>                                                                         
+  <variable name="OVERLAY_UDP_LISTENER_ADDRESS_ID" visibility="public">
+      <label>OVERLAY_UDP_LISTENER_ADDRESS_ID</label>
+      <abstract>OVERLAY_UDP_LISTENER_ADDRESS_ID</abstract>
+      <description>OVERLAY_UDP_LISTENER_ADDRESS_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="DAEMON_PORT_RANGE" visibility="public">                   
-      <label>DAEMON_PORT_RANGE</label>                            
-      <abstract>DAEMON_PORT_RANGE</abstract>                         
-      <description>DAEMON_PORT_RANGE</description>                                                                                       
+  <variable name="DAEMON_PORT_RANGE" visibility="public">
+      <label>DAEMON_PORT_RANGE</label>
+      <abstract>DAEMON_PORT_RANGE</abstract>
+      <description>DAEMON_PORT_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="DAEMON_PORT" visibility="public">                          
-      <label>DAEMON_PORT</label>                                  
-      <abstract>DAEMON_PORT</abstract>                               
-      <description>DAEMON_PORT</description>                                                                                             
+  <variable name="DAEMON_PORT" visibility="public">
+      <label>DAEMON_PORT</label>
+      <abstract>DAEMON_PORT</abstract>
+      <description>DAEMON_PORT</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="DAEMON_PORT_ID" visibility="public">                        
-      <label>DAEMON_PORT_ID</label>                               
-      <abstract>DAEMON_PORT_ID</abstract>                            
-      <description>DAEMON_PORT_ID</description>                                                                                          
+  <variable name="DAEMON_PORT_ID" visibility="public">
+      <label>DAEMON_PORT_ID</label>
+      <abstract>DAEMON_PORT_ID</abstract>
+      <description>DAEMON_PORT_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="DAEMON_SSL_PORT_RANGE" visibility="public">              
-      <label>DAEMON_SSL_PORT_RANGE</label>                        
-      <abstract>DAEMON_SSL_PORT_RANGE</abstract>                     
-      <description>DAEMON_SSL_PORT_RANGE</description>                                                                                   
+  <variable name="DAEMON_SSL_PORT_RANGE" visibility="public">
+      <label>DAEMON_SSL_PORT_RANGE</label>
+      <abstract>DAEMON_SSL_PORT_RANGE</abstract>
+      <description>DAEMON_SSL_PORT_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="DAEMON_SSL_PORT" visibility="public">                  
-      <label>DAEMON_SSL_PORT</label>                              
-      <abstract>DAEMON_SSL_PORT</abstract>                           
-      <description>DAEMON_SSL_PORT</description>                                                                                         
+  <variable name="DAEMON_SSL_PORT" visibility="public">
+      <label>DAEMON_SSL_PORT</label>
+      <abstract>DAEMON_SSL_PORT</abstract>
+      <description>DAEMON_SSL_PORT</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="DAEMON_SSL_PORT_ID" visibility="public">                
-      <label>DAEMON_SSL_PORT_ID</label>                           
-      <abstract>DAEMON_SSL_PORT_ID</abstract>                        
-      <description>DAEMON_SSL_PORT_ID</description>                                                                                      
+  <variable name="DAEMON_SSL_PORT_ID" visibility="public">
+      <label>DAEMON_SSL_PORT_ID</label>
+      <abstract>DAEMON_SSL_PORT_ID</abstract>
+      <description>DAEMON_SSL_PORT_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="DCS_UNICAST_ADDRESS_RANGE" visibility="public">          
-      <label>DCS_UNICAST_ADDRESS_RANGE</label>                    
-      <abstract>DCS_UNICAST_ADDRESS_RANGE</abstract>                 
-      <description>DCS_UNICAST_ADDRESS_RANGE</description>                                                                               
+  <variable name="DCS_UNICAST_ADDRESS_RANGE" visibility="public">
+      <label>DCS_UNICAST_ADDRESS_RANGE</label>
+      <abstract>DCS_UNICAST_ADDRESS_RANGE</abstract>
+      <description>DCS_UNICAST_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="DCS_UNICAST_ADDRESS" visibility="public">                  
-      <label>DCS_UNICAST_ADDRESS</label>                          
-      <abstract>DCS_UNICAST_ADDRESS</abstract>                       
-      <description>DCS_UNICAST_ADDRESS</description>                                                                                     
+  <variable name="DCS_UNICAST_ADDRESS" visibility="public">
+      <label>DCS_UNICAST_ADDRESS</label>
+      <abstract>DCS_UNICAST_ADDRESS</abstract>
+      <description>DCS_UNICAST_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="DCS_UNICAST_ADDRESS_ID" visibility="public">            
-      <label>DCS_UNICAST_ADDRESS_ID</label>                       
-      <abstract>DCS_UNICAST_ADDRESS_ID</abstract>                    
-      <description>DCS_UNICAST_ADDRESS_ID</description>                                                                                  
+  <variable name="DCS_UNICAST_ADDRESS_ID" visibility="public">
+      <label>DCS_UNICAST_ADDRESS_ID</label>
+      <abstract>DCS_UNICAST_ADDRESS_ID</abstract>
+      <description>DCS_UNICAST_ADDRESS_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="WC_defaulthost_RANGE" visibility="public">       
-      <label>WC_defaulthost_RANGE</label>                         
-      <abstract>WC_defaulthost_RANGE</abstract>                      
-      <description>WC_defaulthost_RANGE</description>                                                                                    
+  <variable name="WC_defaulthost_RANGE" visibility="public">
+      <label>WC_defaulthost_RANGE</label>
+      <abstract>WC_defaulthost_RANGE</abstract>
+      <description>WC_defaulthost_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="WC_defaulthost" visibility="public">                   
-      <label>WC_defaulthost</label>                               
-      <abstract>WC_defaulthost</abstract>                            
-      <description>WC_defaulthost</description>                                                                                          
+  <variable name="WC_defaulthost" visibility="public">
+      <label>WC_defaulthost</label>
+      <abstract>WC_defaulthost</abstract>
+      <description>WC_defaulthost</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="WC_defaulthost_ID" visibility="public">                
-      <label>WC_defaulthost_ID</label>                            
-      <abstract>WC_defaulthost_ID</abstract>                         
-      <description>WC_defaulthost_ID</description>                                                                                       
+  <variable name="WC_defaulthost_ID" visibility="public">
+      <label>WC_defaulthost_ID</label>
+      <abstract>WC_defaulthost_ID</abstract>
+      <description>WC_defaulthost_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="WC_defaulthost_secure_RANGE" visibility="public">        
-      <label>WC_defaulthost_secure_RANGE</label>                  
-      <abstract>WC_defaulthost_secure_RANGE</abstract>               
-      <description>WC_defaulthost_secure_RANGE</description>                                                                             
+  <variable name="WC_defaulthost_secure_RANGE" visibility="public">
+      <label>WC_defaulthost_secure_RANGE</label>
+      <abstract>WC_defaulthost_secure_RANGE</abstract>
+      <description>WC_defaulthost_secure_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="WC_defaulthost_secure" visibility="public">                 
-      <label>WC_defaulthost_secure</label>                        
-      <abstract>WC_defaulthost_secure</abstract>                     
-      <description>WC_defaulthost_secure</description>                                                                                   
+  <variable name="WC_defaulthost_secure" visibility="public">
+      <label>WC_defaulthost_secure</label>
+      <abstract>WC_defaulthost_secure</abstract>
+      <description>WC_defaulthost_secure</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="WC_defaulthost_secure_ID" visibility="public">           
-      <label>WC_defaulthost_secure_ID</label>                     
-      <abstract>WC_defaulthost_secure_ID</abstract>                  
-      <description>WC_defaulthost_secure_ID</description>                                                                                
+  <variable name="WC_defaulthost_secure_ID" visibility="public">
+      <label>WC_defaulthost_secure_ID</label>
+      <abstract>WC_defaulthost_secure_ID</abstract>
+      <description>WC_defaulthost_secure_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="BOOTSTRAP_ADDRESS_RANGE" visibility="public">             
-      <label>BOOTSTRAP_ADDRESS_RANGE</label>                      
-      <abstract>BOOTSTRAP_ADDRESS_RANGE</abstract>                   
-      <description>BOOTSTRAP_ADDRESS_RANGE</description>                                                                                 
+  <variable name="BOOTSTRAP_ADDRESS_RANGE" visibility="public">
+      <label>BOOTSTRAP_ADDRESS_RANGE</label>
+      <abstract>BOOTSTRAP_ADDRESS_RANGE</abstract>
+      <description>BOOTSTRAP_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="BOOTSTRAP_ADDRESS" visibility="public">                    
-      <label>BOOTSTRAP_ADDRESS</label>                            
-      <abstract>BOOTSTRAP_ADDRESS</abstract>                         
-      <description>BOOTSTRAP_ADDRESS</description>                                                                                       
+  <variable name="BOOTSTRAP_ADDRESS" visibility="public">
+      <label>BOOTSTRAP_ADDRESS</label>
+      <abstract>BOOTSTRAP_ADDRESS</abstract>
+      <description>BOOTSTRAP_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="BOOTSTRAP_ADDRESS_ID" visibility="public">                
-      <label>BOOTSTRAP_ADDRESS_ID</label>                         
-      <abstract>BOOTSTRAP_ADDRESS_ID</abstract>                      
-      <description>BOOTSTRAP_ADDRESS_ID</description>                                                                                    
+  <variable name="BOOTSTRAP_ADDRESS_ID" visibility="public">
+      <label>BOOTSTRAP_ADDRESS_ID</label>
+      <abstract>BOOTSTRAP_ADDRESS_ID</abstract>
+      <description>BOOTSTRAP_ADDRESS_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="ORB_SSL_LISTENER_ADDRESS_RANGE" visibility="public">    
-      <label>ORB_SSL_LISTENER_ADDRESS_RANGE</label>               
-      <abstract>ORB_SSL_LISTENER_ADDRESS_RANGE</abstract>            
-      <description>ORB_SSL_LISTENER_ADDRESS_RANGE</description>                                                                          
+  <variable name="ORB_SSL_LISTENER_ADDRESS_RANGE" visibility="public">
+      <label>ORB_SSL_LISTENER_ADDRESS_RANGE</label>
+      <abstract>ORB_SSL_LISTENER_ADDRESS_RANGE</abstract>
+      <description>ORB_SSL_LISTENER_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="ORB_SSL_LISTENER_ADDRESS" visibility="public">               
-      <label>ORB_SSL_LISTENER_ADDRESS</label>                     
-      <abstract>ORB_SSL_LISTENER_ADDRESS</abstract>                  
-      <description>ORB_SSL_LISTENER_ADDRESS</description>                                                                                
+  <variable name="ORB_SSL_LISTENER_ADDRESS" visibility="public">
+      <label>ORB_SSL_LISTENER_ADDRESS</label>
+      <abstract>ORB_SSL_LISTENER_ADDRESS</abstract>
+      <description>ORB_SSL_LISTENER_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="ORB_SSL_LISTENER_ADDRESS_ID" visibility="public">         
-      <label>ORB_SSL_LISTENER_ADDRESS_ID</label>                  
-      <abstract>ORB_SSL_LISTENER_ADDRESS_ID</abstract>               
-      <description>ORB_SSL_LISTENER_ADDRESS_ID</description>                                                                             
+  <variable name="ORB_SSL_LISTENER_ADDRESS_ID" visibility="public">
+      <label>ORB_SSL_LISTENER_ADDRESS_ID</label>
+      <abstract>ORB_SSL_LISTENER_ADDRESS_ID</abstract>
+      <description>ORB_SSL_LISTENER_ADDRESS_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIB_MQ_ENDPOINT_ADDRESS_RANGE" visibility="public">       
-      <label>SIB_MQ_ENDPOINT_ADDRESS_RANGE</label>                
-      <abstract>SIB_MQ_ENDPOINT_ADDRESS_RANGE</abstract>             
-      <description>SIB_MQ_ENDPOINT_ADDRESS_RANGE</description>                                                                           
+  <variable name="SIB_MQ_ENDPOINT_ADDRESS_RANGE" visibility="public">
+      <label>SIB_MQ_ENDPOINT_ADDRESS_RANGE</label>
+      <abstract>SIB_MQ_ENDPOINT_ADDRESS_RANGE</abstract>
+      <description>SIB_MQ_ENDPOINT_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="SIB_MQ_ENDPOINT_ADDRESS" visibility="public">             
-      <label>SIB_MQ_ENDPOINT_ADDRESS</label>                      
-      <abstract>SIB_MQ_ENDPOINT_ADDRESS</abstract>                   
-      <description>SIB_MQ_ENDPOINT_ADDRESS</description>                                                                                 
+  <variable name="SIB_MQ_ENDPOINT_ADDRESS" visibility="public">
+      <label>SIB_MQ_ENDPOINT_ADDRESS</label>
+      <abstract>SIB_MQ_ENDPOINT_ADDRESS</abstract>
+      <description>SIB_MQ_ENDPOINT_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIB_MQ_ENDPOINT_ADDRESS_ID" visibility="public">           
-      <label>SIB_MQ_ENDPOINT_ADDRESS_ID</label>                   
-      <abstract>SIB_MQ_ENDPOINT_ADDRESS_ID</abstract>                
-      <description>SIB_MQ_ENDPOINT_ADDRESS_ID</description>                                                                              
+  <variable name="SIB_MQ_ENDPOINT_ADDRESS_ID" visibility="public">
+      <label>SIB_MQ_ENDPOINT_ADDRESS_ID</label>
+      <abstract>SIB_MQ_ENDPOINT_ADDRESS_ID</abstract>
+      <description>SIB_MQ_ENDPOINT_ADDRESS_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIB_ENDPOINT_ADDRESS_RANGE" visibility="public">        
-      <label>SIB_ENDPOINT_ADDRESS_RANGE</label>                   
-      <abstract>SIB_ENDPOINT_ADDRESS_RANGE</abstract>                
-      <description>SIB_ENDPOINT_ADDRESS_RANGE</description>                                                                              
+  <variable name="SIB_ENDPOINT_ADDRESS_RANGE" visibility="public">
+      <label>SIB_ENDPOINT_ADDRESS_RANGE</label>
+      <abstract>SIB_ENDPOINT_ADDRESS_RANGE</abstract>
+      <description>SIB_ENDPOINT_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="SIB_ENDPOINT_ADDRESS" visibility="public">               
-      <label>SIB_ENDPOINT_ADDRESS</label>                         
-      <abstract>SIB_ENDPOINT_ADDRESS</abstract>                      
-      <description>SIB_ENDPOINT_ADDRESS</description>                                                                                    
+  <variable name="SIB_ENDPOINT_ADDRESS" visibility="public">
+      <label>SIB_ENDPOINT_ADDRESS</label>
+      <abstract>SIB_ENDPOINT_ADDRESS</abstract>
+      <description>SIB_ENDPOINT_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIB_ENDPOINT_ADDRESS_ID" visibility="public">            
-      <label>SIB_ENDPOINT_ADDRESS_ID</label>                      
-      <abstract>SIB_ENDPOINT_ADDRESS_ID</abstract>                   
-      <description>SIB_ENDPOINT_ADDRESS_ID</description>                                                                                 
+  <variable name="SIB_ENDPOINT_ADDRESS_ID" visibility="public">
+      <label>SIB_ENDPOINT_ADDRESS_ID</label>
+      <abstract>SIB_ENDPOINT_ADDRESS_ID</abstract>
+      <description>SIB_ENDPOINT_ADDRESS_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE" visibility="public"> 
-      <label>SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE</label>         
-      <abstract>SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE</abstract>      
-      <description>SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE</description>                                                                    
+  <variable name="SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE" visibility="public">
+      <label>SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE</label>
+      <abstract>SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE</abstract>
+      <description>SIB_MQ_ENDPOINT_SECURE_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="SIB_MQ_ENDPOINT_SECURE_ADDRESS" visibility="public">     
-      <label>SIB_MQ_ENDPOINT_SECURE_ADDRESS</label>               
-      <abstract>SIB_MQ_ENDPOINT_SECURE_ADDRESS</abstract>            
-      <description>SIB_MQ_ENDPOINT_SECURE_ADDRESS</description>                                                                          
+  <variable name="SIB_MQ_ENDPOINT_SECURE_ADDRESS" visibility="public">
+      <label>SIB_MQ_ENDPOINT_SECURE_ADDRESS</label>
+      <abstract>SIB_MQ_ENDPOINT_SECURE_ADDRESS</abstract>
+      <description>SIB_MQ_ENDPOINT_SECURE_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID" visibility="public">    
-      <label>SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID</label>            
-      <abstract>SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID</abstract>         
-      <description>SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID</description>                                                                       
+  <variable name="SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID" visibility="public">
+      <label>SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID</label>
+      <abstract>SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID</abstract>
+      <description>SIB_MQ_ENDPOINT_SECURE_ADDRESS_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIB_ENDPOINT_SECURE_ADDRESS_RANGE" visibility="public">   
-      <label>SIB_ENDPOINT_SECURE_ADDRESS_RANGE</label>            
-      <abstract>SIB_ENDPOINT_SECURE_ADDRESS_RANGE</abstract>         
-      <description>SIB_ENDPOINT_SECURE_ADDRESS_RANGE</description>                                                                       
+  <variable name="SIB_ENDPOINT_SECURE_ADDRESS_RANGE" visibility="public">
+      <label>SIB_ENDPOINT_SECURE_ADDRESS_RANGE</label>
+      <abstract>SIB_ENDPOINT_SECURE_ADDRESS_RANGE</abstract>
+      <description>SIB_ENDPOINT_SECURE_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="SIB_ENDPOINT_SECURE_ADDRESS" visibility="public">          
-      <label>SIB_ENDPOINT_SECURE_ADDRESS</label>                  
-      <abstract>SIB_ENDPOINT_SECURE_ADDRESS</abstract>               
-      <description>SIB_ENDPOINT_SECURE_ADDRESS</description>                                                                             
+  <variable name="SIB_ENDPOINT_SECURE_ADDRESS" visibility="public">
+      <label>SIB_ENDPOINT_SECURE_ADDRESS</label>
+      <abstract>SIB_ENDPOINT_SECURE_ADDRESS</abstract>
+      <description>SIB_ENDPOINT_SECURE_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIB_ENDPOINT_SECURE_ADDRESS_ID" visibility="public">      
-      <label>SIB_ENDPOINT_SECURE_ADDRESS_ID</label>               
-      <abstract>SIB_ENDPOINT_SECURE_ADDRESS_ID</abstract>            
-      <description>SIB_ENDPOINT_SECURE_ADDRESS_ID</description>                                                                          
+  <variable name="SIB_ENDPOINT_SECURE_ADDRESS_ID" visibility="public">
+      <label>SIB_ENDPOINT_SECURE_ADDRESS_ID</label>
+      <abstract>SIB_ENDPOINT_SECURE_ADDRESS_ID</abstract>
+      <description>SIB_ENDPOINT_SECURE_ADDRESS_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIP_DEFAULTHOST_RANGE" visibility="public">              
-      <label>SIP_DEFAULTHOST_RANGE</label>                        
-      <abstract>SIP_DEFAULTHOST_RANGE</abstract>                     
-      <description>SIP_DEFAULTHOST_RANGE</description>                                                                                   
+  <variable name="SIP_DEFAULTHOST_RANGE" visibility="public">
+      <label>SIP_DEFAULTHOST_RANGE</label>
+      <abstract>SIP_DEFAULTHOST_RANGE</abstract>
+      <description>SIP_DEFAULTHOST_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="SIP_DEFAULTHOST" visibility="public">                   
-      <label>SIP_DEFAULTHOST</label>                              
-      <abstract>SIP_DEFAULTHOST</abstract>                           
-      <description>SIP_DEFAULTHOST</description>                                                                                         
+  <variable name="SIP_DEFAULTHOST" visibility="public">
+      <label>SIP_DEFAULTHOST</label>
+      <abstract>SIP_DEFAULTHOST</abstract>
+      <description>SIP_DEFAULTHOST</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIP_DEFAULTHOST_ID" visibility="public">              
-      <label>SIP_DEFAULTHOST_ID</label>                           
-      <abstract>SIP_DEFAULTHOST_ID</abstract>                        
-      <description>SIP_DEFAULTHOST_ID</description>                                                                                      
+  <variable name="SIP_DEFAULTHOST_ID" visibility="public">
+      <label>SIP_DEFAULTHOST_ID</label>
+      <abstract>SIP_DEFAULTHOST_ID</abstract>
+      <description>SIP_DEFAULTHOST_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIP_DEFAULTHOST_SECURE_RANGE" visibility="public">        
-      <label>SIP_DEFAULTHOST_SECURE_RANGE</label>                 
-      <abstract>SIP_DEFAULTHOST_SECURE_RANGE</abstract>              
-      <description>SIP_DEFAULTHOST_SECURE_RANGE</description>                                                                            
+  <variable name="SIP_DEFAULTHOST_SECURE_RANGE" visibility="public">
+      <label>SIP_DEFAULTHOST_SECURE_RANGE</label>
+      <abstract>SIP_DEFAULTHOST_SECURE_RANGE</abstract>
+      <description>SIP_DEFAULTHOST_SECURE_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="SIP_DEFAULTHOST_SECURE" visibility="public">             
-      <label>SIP_DEFAULTHOST_SECURE</label>                       
-      <abstract>SIP_DEFAULTHOST_SECURE</abstract>                    
-      <description>SIP_DEFAULTHOST_SECURE</description>                                                                                  
+  <variable name="SIP_DEFAULTHOST_SECURE" visibility="public">
+      <label>SIP_DEFAULTHOST_SECURE</label>
+      <abstract>SIP_DEFAULTHOST_SECURE</abstract>
+      <description>SIP_DEFAULTHOST_SECURE</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SIP_DEFAULTHOST_SECURE_ID" visibility="public">           
-      <label>SIP_DEFAULTHOST_SECURE_ID</label>                    
-      <abstract>SIP_DEFAULTHOST_SECURE_ID</abstract>                 
-      <description>SIP_DEFAULTHOST_SECURE_ID</description>                                                                               
+  <variable name="SIP_DEFAULTHOST_SECURE_ID" visibility="public">
+      <label>SIP_DEFAULTHOST_SECURE_ID</label>
+      <abstract>SIP_DEFAULTHOST_SECURE_ID</abstract>
+      <description>SIP_DEFAULTHOST_SECURE_ID</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
-  <variable name="SOAP_CONNECTOR_ADDRESS_RANGE" visibility="public">      
-      <label>SOAP_CONNECTOR_ADDRESS_RANGE</label>                 
-      <abstract>SOAP_CONNECTOR_ADDRESS_RANGE</abstract>              
-      <description>SOAP_CONNECTOR_ADDRESS_RANGE</description>                                                                            
+  <variable name="SOAP_CONNECTOR_ADDRESS_RANGE" visibility="public">
+      <label>SOAP_CONNECTOR_ADDRESS_RANGE</label>
+      <abstract>SOAP_CONNECTOR_ADDRESS_RANGE</abstract>
+      <description>SOAP_CONNECTOR_ADDRESS_RANGE</description>
     		<category>Specified in properties file</category>
-      <string/> 
+      <string/>
   </variable>
 
-  <variable name="SOAP_CONNECTOR_ADDRESS" visibility="public">              
-      <label>SOAP_CONNECTOR_ADDRESS</label>                       
-      <abstract>SOAP_CONNECTOR_ADDRESS</abstract>                    
-      <description>SOAP_CONNECTOR_ADDRESS</description>                                                                                  
+  <variable name="SOAP_CONNECTOR_ADDRESS" visibility="public">
+      <label>SOAP_CONNECTOR_ADDRESS</label>
+      <abstract>SOAP_CONNECTOR_ADDRESS</abstract>
+      <description>SOAP_CONNECTOR_ADDRESS</description>
     		<category>Response from Config Assistant</category>
       <integer/>
   </variable>
 
 	<variable name="SOAP_CONNECTOR_ADDRESS_ID" visibility="public">
 		<label>SOAP_CONNECTOR_ADDRESS_ID</label>
-		<abstract>Soap port ID for the app server</abstract> 
-        <description>The ID of the allocated Soap port to use during deprovisioning</description> 
+		<abstract>Soap port ID for the app server</abstract>
+        <description>The ID of the allocated Soap port to use during deprovisioning</description>
 		<category>Response from Config Assistant</category>
 		<string/>
-	</variable>	
+	</variable>
 
   <!--++++++++++++++++++++++++++++++++++++++++++++-->
   <!--     Derived Variables                      -->
@@ -833,14 +839,14 @@
 		<category>Response from Config Assistant</category>
 		<string/>
 	</variable>
-	
+
 	<variable name="IP_ADDRESS_ID" visibility="private">
 		<label>IP_ADDRESS_ID</label>
 		<abstract>IP Address ID for the app server</abstract>
         <description>The ID of the allocated IP address to use during deprovisioning</description>
 		<category>Response from Config Assistant</category>
 		<string/>
-	</variable>	
+	</variable>
 
   <!--++++++++++++++++++++++-->
   <!--   Stop Step          -->
@@ -858,19 +864,19 @@
         <autoEnable>true</autoEnable>
   </step>
 
-  <step name="stopAppServer">   
-        <title>stopAppServer</title>   
-        <description>stopAppServer</description>   
-        <instructions substitution="false">stopAppServer</instructions>   
+  <step name="stopAppServer">
+        <title>stopAppServer</title>
+        <description>stopAppServer</description>
+        <instructions substitution="false">stopAppServer</instructions>
         <weight>5</weight>
         <autoEnable>true</autoEnable>
         <template>
             <inlineTemplate substitution="true">//STEP1       EXEC  PGM=IKJEFT1A,DYNAMNBR=20
 //SYSTSPRT    DD    SYSOUT=A
 //SYSTSIN     DD    *
-CONSOLE ACTIVATE                      
-CONSOLE SYSCMD(C ${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}DM)  
-CONSOLE DEACTIVATE   
+CONSOLE ACTIVATE
+CONSOLE SYSCMD(C ${instance-SERVER_GROUP_PREFIX}${instance-SERVER_ID_NUM}DM)
+CONSOLE DEACTIVATE
 /*
             </inlineTemplate>
             <submitAs>JCL</submitAs>

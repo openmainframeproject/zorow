@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
 <workflow>
     <autoTakeOwnership>false</autoTakeOwnership>
     <workflowInfo>
@@ -348,10 +355,10 @@ Update this field with your own text</instructions>
           "template-name" : "${_workflow-templateName}",
           "tenant-id"     : "${_workflow-tenantID}",
           "network-parms" :
-          {       
+          {
             "port-id" : "${instance-IIB_BROKER_PORT_ID}"
           }
-        }    
+        }
       </requestBody>
             <expectedStatusCode>204</expectedStatusCode>
         </rest>
@@ -374,10 +381,10 @@ Update this field with your own text</instructions>
 //* then create symbolic link
 //SYSIN   DD *
 
-ls -alF /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}                                                          
-rm /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}   
-ls -alF /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}                               
-                              
+ls -alF /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}
+rm /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}
+ls -alF /${_workflow-systemName}${instance-IIB_WORK_DIR_SYMLINK}
+
 /*
 </inlineTemplate>
             <submitAs maxRc="1">JCL</submitAs>
@@ -416,10 +423,10 @@ Update this field with your own text</instructions>
 //* create directories if they do not yet exist
 //* then create symbolic link
 //SYSIN   DD *
-ls -alF /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}                                                          
-rm /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}   
-ls -alF /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}                               
-                               
+ls -alF /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}
+rm /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}
+ls -alF /${instance-ADDITIONAL_MEMBER}${instance-IIB_WORK_DIR_SYMLINK}
+
 /*
 </inlineTemplate>
             <submitAs maxRc="1">JCL</submitAs>
@@ -446,17 +453,17 @@ Update this field with your own text</instructions>
 //SYSTSPRT DD SYSOUT=*
 //* The following definitions must be made
 //SYSTSIN  DD *
-## set variables 
+## set variables
 #set ($IIB_STCUSER = "${instance-IIB_BROKER_NAME}U")
- 
-deluser $IIB_STCUSER  
+
+deluser $IIB_STCUSER
 /*
 //
 //RACFDEFS EXEC PGM=IKJEFT01,REGION=0M
 //SYSTSPRT DD SYSOUT=*
 //SYSTSIN  DD *
-deluser ${instance-IIB_XDBC_USER} 
-deluser ${instance-IIB_WAS_USER} 
+deluser ${instance-IIB_XDBC_USER}
+deluser ${instance-IIB_WAS_USER}
 /*</inlineTemplate>
             <submitAs maxRc="0">JCL</submitAs>
             <maxLrecl>120</maxLrecl>

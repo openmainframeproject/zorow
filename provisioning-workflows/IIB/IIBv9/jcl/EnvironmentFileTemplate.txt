@@ -120,7 +120,7 @@ export MQSI_ARM_ELEMENTTYPE=
 #     (NO NEED TO CHANGE FROM DEFAULT!)
 #
 export MQSI_DB2_ALWAYS_PREPARE=NO
-export MQSI_DB2_CONVERSION=UNICODE 
+export MQSI_DB2_CONVERSION=UNICODE
 export DSNAOINI=//\'${instance-ZOSMF_PARMLIB}\(${instance-IIB_DSNAOINI}\)\'
 # *****************************************************************
 # 5. Java Settings
@@ -129,7 +129,7 @@ export DSNAOINI=//\'${instance-ZOSMF_PARMLIB}\(${instance-IIB_DSNAOINI}\)\'
 # 5.1 JAVAHOME contains the root directory of the JAVA install.
 #     e.g. JAVAHOME=/usr/lpp/java/IBM/J1.7
 #  ${instance-IIB_JAVAHOME}
-export JAVAHOME=${instance-IIB_JAVAHOME} 
+export JAVAHOME=${instance-IIB_JAVAHOME}
 # *****************************************************************
 # 6. IBM Integration Bus Settings
 # *****************************************************************
@@ -170,7 +170,7 @@ export MQSI_COMMAND_DATABASE_ECHO=1
 export MQSI_COMMAND_ZOS_MQ_ECHO=1
 export MQSI_COMMAND_ZOS_MQ_ECHO_RC=1
 export MQSI_DEPLOY_PROGRESS=1
-export STEPLIB=${instance-IIB_DB2_DS_PREFIX}.${instance-IIB_DBSRV_NAME}.SDSNEXIT:${instance-IIB_DB2_DS_PREFIX}.${instance-IIB_DBSRV_NAME}.SDSNLOAD:${instance-IIB_DB2_DS_PREFIX}.${instance-IIB_DBSRV_NAME}.SDSNLOD2   
+export STEPLIB=${instance-IIB_DB2_DS_PREFIX}.${instance-IIB_DBSRV_NAME}.SDSNEXIT:${instance-IIB_DB2_DS_PREFIX}.${instance-IIB_DBSRV_NAME}.SDSNLOAD:${instance-IIB_DB2_DS_PREFIX}.${instance-IIB_DBSRV_NAME}.SDSNLOD2
 export MQSI_COMMAND_ZOS_ERROR_RC=16
 export MQSI_FAD=7
 # *****************************************************************
@@ -178,7 +178,7 @@ export MQSI_FAD=7
 # *****************************************************************
 #
 # NO NEED TO CHANGE FROM DEFAULT!
-# path to MQ: ${instance-IIB_MQ_PATH} 
+# path to MQ: ${instance-IIB_MQ_PATH}
 CP=${instance-IIB_MQ_PATH}/java/lib/com.ibm.mq.jar
 CP=$CP:${instance-IIB_MQ_PATH}/java/lib/connector.jar
 CP=$CP:${instance-IIB_MQ_PATH}/java/lib/com.ibm.mq.commonservices.jar
@@ -212,13 +212,13 @@ export PATH=$MQSI_FILEPATH/bin
 export PATH=$PATH:/bin
 export PATH=$PATH:$JAVAHOME/bin
 export KQI_CONFIG_FILE_PATH=/u/${instance-IIB_TIV_USER_LC}/kqi/lil64
-export JAVA_HOME=${instance-IIB_JAVAHOME} 
+export JAVA_HOME=${instance-IIB_JAVAHOME}
 export TMPDIR=${instance-IIB_WORK_DIR}/tmp
 export HOME=${instance-IIB_HOME_DIR}
-export MQSI_SMF_NDNM=-1 
-export MQSI_SMF_FLNM=-1 
-RUNOPTS='XPLINK(ON),'                                                               
-RUNOPTS=$RUNOPTS'RPTOPTS(ON),'                                                           
-RUNOPTS=$RUNOPTS'STORAGE(NONE,NONE,NONE,0)'                               
-export _CEE_RUNOPTS=$RUNOPTS       
-export MQSI_FILENODES_MAXIMUM_RECORD_LENGTH=268435456      
+export MQSI_SMF_NDNM=-1
+export MQSI_SMF_FLNM=-1
+RUNOPTS='XPLINK(ON),'
+RUNOPTS=$RUNOPTS'RPTOPTS(ON),'
+RUNOPTS=$RUNOPTS'STORAGE(NONE,NONE,NONE,0)'
+export _CEE_RUNOPTS=$RUNOPTS
+export MQSI_FILENODES_MAXIMUM_RECORD_LENGTH=268435456
