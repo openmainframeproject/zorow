@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+
+<!-- 
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	This sample demonstrates how to provision an Open Liberty application in Docker 
+    container in a zCX instance.
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+
+<workflowInfo>
+	<workflowID>provisionLiberty</workflowID>
+	<workflowDescription>Sample demonstrating how to provision an Open Liberty Docker container in zCX.</workflowDescription>
+	<workflowVersion>1.0</workflowVersion>
+	<vendor>IBM</vendor>
+	<Configuration>
+		<productID>ABC123</productID>
+		<productName>Product ABC</productName>
+		<productVersion>Version 1</productVersion>
+ 	</Configuration>
+</workflowInfo>
+
+<variable name="zcx_ipv4">
+	<label>IPADDR4</label>
+	<abstract>ZCX IPV4 address.</abstract>
+	<description>A validation type of IPADDR4 allows a valid IPV4 address. See the Internet Protocol RFC for details.
+	</description>
+	<category>Network</category>
+	<string>
+		<validationType>IPADDR4</validationType>
+		<default>0.0.0.0</default>
+	</string>
+</variable>
+
+<variable name="zcx_ssh_private_key_path">
+	<label>zCXKeyPath</label>
+	<abstract>zCX SSH private key path.</abstract>
+	<description>The zCX private key path.
+	</description>
+	<category>Network</category>
+	<string>
+		<default>/home/user/.ssh/id_rsa</default>
+	</string>
+</variable>
+
+<variable name="shell_path">
+	<label>shell script file path</label>
+	<abstract>shell script file path.</abstract>
+	<description>The shell script file path.
+	</description>
+	<category>Network</category>
+	<string>
+		<default>/tmp</default>
+	</string>
+</variable>
+
+<step name="output">
+	<title>A step with an output shell script file</title>
+	<description>This step generates an output shell script file.</description>
+	<variableValue name="zcx_ipv4" required="true"/>
+	<variableValue name="shell_path" required="true"/>
+	<instructions>
+		In this example step, the docker commands are written to the output shell script file.
+       	</instructions>
+	<weight>5</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template>
+       		<inlineTemplate substitution="true">
+#!/bin/sh
+docker pull open-liberty:21.0.0.2-full-java8-openj9
+docker run -d -p ${instance-zcx_ipv4}:9080:9080 --name liberty-21.0.0.2 --restart unless-stopped open-liberty:21.0.0.2-full-java8-openj9
+       		</inlineTemplate>
+       		
+		<saveAsUnixFile substitution="true">${instance-shell_path}/start_liberty.sh</saveAsUnixFile>
+       	</template>
+</step>
+
+<step name="provision_liberty">
+	<title>Provision a liberty application in docker container in zCX instance</title>
+	<description>This step involves submitting a shell-JCL job to provision and start a liberty application in docker container in zCX instance automatically.</description>
+	<variableValue name="zcx_ipv4" required="true"/>
+	<variableValue name="zcx_ssh_private_key_path" required="true"/> 
+	<variableValue name="shell_path" required="true"/> 
+	<instructions substitution="false">In this example step, you will execute a ssh command to provision a Docker container in zCX and run an Open Liberty application in it. </instructions>
+	<weight>3</weight>
+	<skills>System Programmer</skills>
+	<autoEnable>true</autoEnable>
+	<template>      		
+       <inlineTemplate substitution="true">
+       	  ssh admin@${instance-zcx_ipv4} -p 8022 -i ${instance-zcx_ssh_private_key_path} &lt; ${instance-shell_path}/start_liberty.sh
+       </inlineTemplate>
+       		<submitAs>shell-JCL</submitAs>
+       	</template>
+</step>
+
+</workflow>
