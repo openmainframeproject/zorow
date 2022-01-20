@@ -44,3 +44,4 @@ More advanced concepts are illustrated in the following samples.
 | workflow_sample_wizards_upgrade.xml| Shows the use of the workflow upgrade function. It upgrades the workflow that is created in the sample file workflow_sample_wizards.xml.
 | workflow_sample_dataset.xml | Shows the use of REST steps to manipulate with z/OS data set.
 | workflow_sample_smpe_report_missingfix.xml| Workflow to run an SMP REPORT MISSINGFIX command.  This is a sample step that can be used for running an SMP/E REPORT MISSINGFIX for any FIXCAT.
+| workflow_sample_load_image.xml| Shows the use of images that are encoded in Base64 string in a workflow.
