@@ -1,0 +1,32 @@
+################################################################################
+# Copyright Contributors to the zOS-Workflow Project.                          #
+# SPDX-License-Identifier: Apache-2.0                                          #
+################################################################################
+{
+  "ServiceId": "IBM5655S2801",
+  "ServiceName": "SCA Samples",
+  "MetaValidationItemVersion": 1.0,
+  "Vendor": "IBM",
+  "SecurityValidationItems": [
+    {
+      "ItemID": "IBM5655S2801I00001000",
+      "ItemType": "PROGRAMMABLE",
+      "ItemCategory": "SCA Samples service",
+      "ResourceProfile": "IRR.DIGTCERT.LISTRING",
+      "ResourceClass": "FACILITY",
+      "WhoNeedsAccess": "<User to Access Cert>",
+      "LevelOfAccessRequired": "READ",
+      "ItemDescription": "Allows the user to use access to the certificate keyring."
+    },
+    {
+      "ItemID": "IBM5655S2801I00002000",
+      "ItemType": "PROGRAMMABLE",
+      "ItemCategory": "SCA Samples service",
+      "ResourceProfile": "CEA.SIGNAL.ENF83",
+      "ResourceClass": "SERVAUTH",
+      "WhoNeedsAccess": "<User of the Service>",
+      "LevelOfAccessRequired": "READ",
+      "ItemDescription": "Allows the user to notification service."
+    }
+  ]
+}

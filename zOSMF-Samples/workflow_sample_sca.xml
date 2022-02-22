@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+ 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+ 
+<!-- 
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+	This sample demonstrates the use of Security Configuration Assistant REST API in Workflow, 
+    user can use the security description JSON file named sca_sample_security.json 
+    together with this sample XML during execution.
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+    <workflowInfo>
+        <workflowID scope="none">ValidateSecuritySetupWithSCA</workflowID>
+        <workflowDescription>Validate security setup with Security Configuration Assistant REST API</workflowDescription>
+        <workflowVersion>1.0</workflowVersion>
+        <vendor>ibm</vendor>
+        <General/>
+    </workflowInfo>
+
+    <variable name="json_file" scope="instance" visibility="public">
+        <label>JSON Security Descriptor file</label>
+        <abstract>JSON Security Descriptor file</abstract>
+        <description>The absolute path of JSON Security Descriptor file</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <default>/u/river/sca_sample_security.json</default>
+        </string>
+    </variable>
+
+    <variable name="user_name" scope="instance" visibility="public">
+        <label>The user name to be validated</label>
+        <abstract>The user name to be validated</abstract>
+        <description>The user name to be validated</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="false">
+            <default>IZUSVR3</default>
+        </string>
+    </variable>
+
+    <variable name="SecurityValidationItems" scope="instance" visibility="public">
+        <label>SCA returned response data</label>
+        <abstract>SCA returned response data</abstract>
+        <description>Response data returned by SCA</description>
+        <category>General</category>
+        <string valueMustBeChoice="false" multiLine="true">
+        </string>
+    </variable>
+    
+    <step name="ValidateSecuritySetupDefinedInStaticJSON" optional="false">
+        <title>Validate SAF Resources defined in static JSON file</title>
+        <description/>
+        <variableValue name="json_file" required="true"/>
+        <variableValue name="user_name" required="true"/>
+        <instructions substitution="false">Validate SAF Resources defined in static JSON file with SCA REST API</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <canMarkAsFailed>false</canMarkAsFailed>
+        <rest>
+            <httpMethod>POST</httpMethod>
+            <uriPath substitution="true">/zosmf/config/security/v1/validate/descriptor?userid=${instance-user_name}</uriPath>
+            <requestBody substitution="true">
+                {
+                    "path":"${instance-json_file}"
+                }
+            </requestBody>
+            <expectedStatusCode>200</expectedStatusCode>
+            <propertyMapping mapTo="SecurityValidationItems">["resourceItems"]</propertyMapping>
+        </rest>
+    </step>
+</workflow>
