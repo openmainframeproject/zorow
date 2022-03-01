@@ -53,6 +53,10 @@
         </string>
     </variable>
     
+<!-- 
+	This step invokes Security Configuration Assistant REST API to valide SAF resources defined in static JSON file.
+    The "status" property in the JSON content of the response body indicates if the validation is passed or failed.
+-->
     <step name="ValidateSecuritySetupDefinedInStaticJSON" optional="false">
         <title>Validate SAF Resources defined in static JSON file</title>
         <description/>
