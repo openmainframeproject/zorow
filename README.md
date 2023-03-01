@@ -1,3 +1,5 @@
+**NOTICE: This project is in [Emeritus status](https://tac.openmainframeproject.org/process/lifecycle.html#emeritus-stage) and no longer maintained**
+
 ![](https://github.com/openmainframeproject/artwork/blob/master/projects/zorow/zorow-color.svg)
 ![GitHub](https://img.shields.io/github/license/openmainframeproject/zorow)
 
