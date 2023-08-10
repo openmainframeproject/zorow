@@ -1,0 +1,699 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">
+                    <!ENTITY image_properties SYSTEM "extensions/image_properties.xml">
+                    ]> 
+                    
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- EKMF Web Provisioning : Provision a new server                   -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>ekmfweb_Provision</workflowID>
+      <workflowDescription>Provision an EKMF Web server.</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+        <!-- Build timestamp 2021.05.09.21.03.24 -->
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>EKMF Web</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>EKMFServer</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	&image_properties;
+
+    <!--+++++++++++++++++++++++-->
+    <!--   Validation Steps    -->
+    <!--+++++++++++++++++++++++-->  
+    <step name="createVariables" optional="false">
+        <title>Create variable names</title>
+        <description>Generate variable names in case they are supposed to be temporary</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_ZFS}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_ZFS}</approver>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+                # Create a properties file to populate instance variables with useful user information
+
+                #if(${instance-EKMF_WEB_STC} &amp;&amp; ${instance-EKMF_WEB_STC} != "")
+                    export THIS_STC=${instance-EKMF_WEB_STC}
+                #else
+                    export THIS_STC=${_workflow-softwareServiceInstanceName}
+                #end
+                echo "EKMF_WEB_STC ${THIS_STC}" > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+
+                # Create a properties file to populate instance variables with useful user information
+                # This is read by the output element in the workflow step.
+                echo "EKMF_TEMPLATE_VALIDATION_PASSED true" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+ 
+                #if(${instance-EKMF_OAUTH_CLIENT_ID} &amp;&amp; ${instance-EKMF_OAUTH_CLIENT_ID} != "")
+                    echo "EKMF_OAUTH_CLIENT_ID ${instance-EKMF_OAUTH_CLIENT_ID}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    openid=$(openssl rand -hex 16)
+                    echo "EKMF_OAUTH_CLIENT_ID ${openid}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                #if(${instance-EKMF_OAUTH_CLIENT_ID_OPENAPI} &amp;&amp; ${instance-EKMF_OAUTH_CLIENT_ID_OPENAPI} != "")
+                    echo "EKMF_OAUTH_CLIENT_ID_OPENAPI ${instance-EKMF_OAUTH_CLIENT_ID_OPENAPI}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    openid=$(openssl rand -hex 16)
+                    echo "EKMF_OAUTH_CLIENT_ID_OPENAPI ${openid}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                #if(${instance-EKMF_KEY_PREFIX} &amp;&amp; ${instance-EKMF_KEY_PREFIX} != "")
+                    echo "EKMF_KEY_PREFIX ${instance-EKMF_KEY_PREFIX}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_KEY_PREFIX GENERATE.${THIS_STC}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                echo "EKMF_SERVER_DIRECTORY ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${THIS_STC}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+
+                chmod 744 ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+            <output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties</output>
+        </template>
+    </step>
+    <step name="validateConsoleAPI" optional="false">
+        <title>Validating console commands can be issued</title>
+        <description>Issue a command via the console API to ensure basic commands can be executed.</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_CONSOLE}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_CONSOLE}</approver>
+        <condition>
+             <expression><![CDATA["1" == "1"]]></expression>
+             <description>Should the step be executed based on the VALIDATE_PARAMETERS setting</description>
+             <targetStateSet>
+                 <description>Only validate if VALIDATE_PARAMETERS is YES</description>
+                 <extendStateExpression>
+                     <description>Only validate if VALIDATE_PARAMETERS is YES</description>
+                     <expression><![CDATA[ ${instance-VALIDATE_PARAMETERS} == "NO"]]></expression>
+                     <targetState>Skipped</targetState>
+                 </extendStateExpression>
+             </targetStateSet>
+        </condition>
+        <variableValue name="EKMF_WEB_STC" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions>Execute console API to check if its set up correctly</instructions>
+        <weight>1</weight>
+        <skills>z/OS administration</skills>
+        <autoEnable>true</autoEnable>
+        <rest>
+            <httpMethod>PUT</httpMethod>
+            <uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+            <requestBody substitution="true">
+                { 
+                  "cmd" : "d a,${instance-EKMF_WEB_STC}",
+                  "sol-key" : "NOT FOUND",
+                  "system" : "${_workflow-systemName}"
+                  
+                }
+            </requestBody>
+            <expectedStatusCode>200</expectedStatusCode>
+            <propertyMapping mapTo="EKMF_REST_STATUS">["sol-key-detected"]</propertyMapping>
+        </rest>
+    </step>
+	
+    <!--++++++++++++++++++++++-->
+    <!--   Provision Steps    -->
+    <!--++++++++++++++++++++++-->  
+
+    <step name="allocateNetworkResources">
+    <title>Allocate Network Resources</title>
+    <description>Allocate ports for the new server using REST calls to the CA.</description>
+
+		<step name="allocateHTTPPort">
+	        <title>Allocate HTTP Port</title>
+	        <description>Make a REST call to allocate HTTP port</description>
+            <condition>
+                <expression><![CDATA["1" == "1"]]></expression>
+                <description>Always perform</description>
+                <targetStateSet>
+                    <description>Only allocate dynamic port if requested</description>
+                    <extendStateExpression>
+                        <description>Skip if a port has been defined</description>
+                        <expression><![CDATA[ ${instance-EKMF_HTTP_PORT} != undefined && ${instance-EKMF_HTTP_PORT} != ""]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition> 
+			<instructions substitution="false">
+	        Execute step to allocate HTTP port from z/OS Communications Server.
+	        </instructions>
+	        <weight>10</weight>
+	        <skills>REST</skills>
+	        <autoEnable>true</autoEnable>
+			<rest>
+				<httpMethod>POST</httpMethod>
+				<uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/obtain</uriPath>
+				<requestBody substitution="true">
+				 {
+                    "template-uuid" : "${_workflow-templateID}",
+                    "template-name" : "${_workflow-templateName}",
+                    "tenant-id" : "${_workflow-tenantID}",
+                    "network-parms" :
+                        {   
+                            "name" : "${instance-EKMF_WEB_STC}",
+                            "intent":"exclusive",
+                            "job-name" : "${instance-EKMF_WEB_STC}",        
+                            "system-name" : "${_workflow-systemName}"
+                        }
+                 } 
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="EKMF_HTTP_PORT">["port"]</propertyMapping>
+				<propertyMapping mapTo="EKMF_HTTP_PORT_ID">["id"]</propertyMapping>
+			</rest>
+		</step>
+
+		<step name="allocateHTTPSPort">
+	        <title>Allocate HTTPS Port</title>
+	        <description>Make a REST call to allocate HTTPS port</description>
+            <condition>
+                <expression><![CDATA["1" == "1"]]></expression>
+                <description>Always perform</description>
+                <targetStateSet>
+                    <description>Only allocate dynamic port if requested</description>
+                    <extendStateExpression>
+                        <description>Skip if a port has been defined</description>
+                        <expression><![CDATA[ ${instance-EKMF_HTTPS_PORT} != undefined && ${instance-EKMF_HTTPS_PORT} != ""]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition> 
+			<instructions substitution="false">
+	        Execute step to allocate HTTPS port from z/OS Communications Server.
+	        </instructions>
+	        <weight>10</weight>
+	        <skills>REST</skills>
+	        <autoEnable>true</autoEnable>
+			<rest>
+				<httpMethod>POST</httpMethod>
+				<uriPath substitution="true">/zosmf/resource-mgmt/rest/1.0/rdp/network/port/actions/obtain</uriPath>
+				<requestBody substitution="true">
+				 {
+                    "template-uuid" : "${_workflow-templateID}",
+                    "template-name" : "${_workflow-templateName}",
+                    "tenant-id" : "${_workflow-tenantID}",
+                    "network-parms" :
+                        {   
+                            "name" : "${instance-EKMF_WEB_STC}",
+                            "intent":"exclusive",
+                            "job-name" : "${instance-EKMF_WEB_STC}",        
+                            "system-name" : "${_workflow-systemName}"
+                        }
+                 } 
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="EKMF_HTTPS_PORT">["port"]</propertyMapping>
+				<propertyMapping mapTo="EKMF_HTTPS_PORT_ID">["id"]</propertyMapping>
+			</rest>
+		</step>
+
+	</step>
+	
+
+    <step name="createDirectories">
+        <title>Create and mount directories</title>
+        <description>Create the directories required by the new EKMF Web server</description>
+
+        <step name="createServerDir">
+            <title>Create server directory</title>
+            <description>Submit script to create the EKMF Web server directory</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+            <variableValue name="EKMF_ZFS_MOUNTPOINT" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                                                
+                    if [ ! -d "${instance-EKMF_ZFS_MOUNTPOINT}/servers/" ]; then
+                        mkdir ${instance-EKMF_ZFS_MOUNTPOINT}/servers/
+                        if [ $? -gt 0 ]; then 
+                            echo "ERROR: Could not create directory" >&amp;2;
+                            exit "2"; 
+                        fi
+                    fi
+
+                </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+
+        <step name="createZFS">
+            <title>Create zFS datasets</title>
+            <description>If requested, create and mount a new ZFS</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_ZFS}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_ZFS}</approver>
+            <variableValue name="EKMF_WEB_STC" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_ZFS_MOUNTPOINT" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_ZOS_VSAM_VOLUME" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_ZFS_DATACLASS" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_FILE_SYSTEM_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="WLP_OUTPUT_DIR" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit JCL to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+            <fileTemplate substitution="true">jcl/create-zfs.jcl</fileTemplate>
+            <submitAs>JCL</submitAs>
+            </template>
+        </step>
+        
+        <step name="MountZFS" optional="false">
+            <title>Mount zFS filesystem</title>
+            <description>This step runs a script to mount the zFS dataset within the directory specified by the templates EKMF_ZFS_MOUNTPOINT property. The job is run under the userid specified by the templates EKMF_ADMIN_ZFS property.</description>
+            <prereqStep name="createZFS"/>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_ZFS}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_ZFS}</approver>
+            <instructions>Execute the mount zFS script to mount the zFS dataset (MountZFS.script)</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">scripts/mount-zfs.script</fileTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+        
+
+    </step>
+	
+    <step name="configureEkmfWebServer">
+        <title>Configure the EKMF Web server</title>
+        <description>Configure the new EKMF Web server.</description>
+
+        <step name="substituteServerEnv">
+		    <title>Substitute server.env</title>
+	        <description>replace values in server.env with template variable values</description>
+	        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+	        <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+            <variableValue name="EKMF_TLS_KEY_STORE_KEY_RING" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_TLS_TRUST_STORE_KEY_RING" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_TLS_KEY_STORE_SERVER_CERT" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_LOCATION" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_PRODUCT_PATH" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_LIBPATH" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_HTTP_PORT" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_HTTPS_PORT" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_WEB_UNAUTHENTICATED_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_OAUTH_CLIENT_ID" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_OAUTH_CLIENT_ID_OPENAPI" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_OIDC_PROVIDER_CERT" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+   		         <inlineTemplate substitution="true">
+                    sed "s#JAVA_HOME=.*#JAVA_HOME=${instance-JAVA_HOME}#g;
+                        #if(${instance-WLP_OUTPUT_DIR} &amp;&amp; ${instance-WLP_OUTPUT_DIR} != "")
+                            s#^[ \#]*WLP_OUTPUT_DIR=.*#WLP_OUTPUT_DIR=${instance-WLP_OUTPUT_DIR}#g;
+                        #end
+                        #if(${instance-ENABLE_MTLS_VIA_HTTPS_PORT} &amp;&amp; ${instance-ENABLE_MTLS_VIA_HTTPS_PORT} != "")
+                            s#^[ \#]*TLS_CLIENT_AUTHENTICATION_SUPPORTED=.*#TLS_CLIENT_AUTHENTICATION_SUPPORTED=${instance-ENABLE_MTLS_VIA_HTTPS_PORT}#g;
+                        #end
+                        s#^[ \#]*TLS_KEY_STORE_KEY_RING=.*#TLS_KEY_STORE_KEY_RING=${instance-EKMF_TLS_KEY_STORE_KEY_RING}#g;
+                        s#^[ \#]*TLS_TRUST_STORE_KEY_RING=.*#TLS_TRUST_STORE_KEY_RING=${instance-EKMF_TLS_TRUST_STORE_KEY_RING}#g;
+                        s#^[ \#]*TLS_KEY_STORE_SERVER_CERT=.*#TLS_KEY_STORE_SERVER_CERT=${instance-EKMF_TLS_KEY_STORE_SERVER_CERT}#g;
+                        s#^[ \#]*EKMF_API_DB_NAME=.*#EKMF_API_DB_NAME=${instance-DB_LOCATION}#g;
+                        s#^[ \#]*DATA_SET_DB_NAME=.*#DATA_SET_DB_NAME=${instance-DB_LOCATION}#g;
+                        s#^[ \#]*DB_CURRENT_SCHEMA=.*#DB_CURRENT_SCHEMA=${instance-DB_CURRENT_SCHEMA}#g;
+                        s#^[ \#]*DB2_PRODUCT_PATH=.*#DB2_PRODUCT_PATH=${instance-DB2_PRODUCT_PATH}#g;
+                        s#^[ \#]*LIBPATH=.*#LIBPATH=${instance-DB2_LIBPATH}#g;
+                        s#^[ \#]*HTTP_PORT=.*#HTTP_PORT=${instance-EKMF_HTTP_PORT}#g;
+                        s#^[ \#]*HTTPS_PORT=.*#HTTPS_PORT=${instance-EKMF_HTTPS_PORT}#g;
+                        s#^[ \#]*SAF_UNAUTHENTICATED_USER_ID=.*#SAF_UNAUTHENTICATED_USER_ID=${instance-EKMF_WEB_UNAUTHENTICATED_USER}#g;
+                        s#^[ \#]*EKMF_OAUTH_CLIENT_ID=.*#EKMF_OAUTH_CLIENT_ID=${instance-EKMF_OAUTH_CLIENT_ID}#g;
+                        s#^[ \#]*EKMF_OAUTH_CLIENT_ID_OPENAPI=.*#EKMF_OAUTH_CLIENT_ID_OPENAPI=${instance-EKMF_OAUTH_CLIENT_ID_OPENAPI}#g;
+                        s#^[ \#]*OIDC_PROVIDER_TRUST_ALIAS_NAME=.*#OIDC_PROVIDER_TRUST_ALIAS_NAME=${instance-EKMF_OIDC_PROVIDER_CERT}#g;
+                        s#^[ \#]*OIDC_PROVIDER_KEY_ALIAS_NAME=.*#OIDC_PROVIDER_KEY_ALIAS_NAME=${instance-EKMF_OIDC_PROVIDER_CERT}#g" ${instance-EKMF_INSTALL_DIR}/server.env > ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}/server.env;
+
+                    # TODO: temporary manual variable add, remove for the future
+                    #if(${instance-ENABLE_MTLS_VIA_HTTPS_PORT} &amp;&amp; ${instance-ENABLE_MTLS_VIA_HTTPS_PORT} != "")
+                        echo TLS_CLIENT_AUTHENTICATION_SUPPORTED=${instance-ENABLE_MTLS_VIA_HTTPS_PORT} >> ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}/server.env;
+                    #end
+                    echo DB_MODE=DB2 >> ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}/server.env;
+                    echo HOST=winmvs3n.hursley.ibm.com >> ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}/server.env;
+                    echo INSTANCE_ID=00000000-0000-0000-0000-000000000000 >> ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}/server.env;
+                    echo DEFAULT_VAULT_ID=00000000-0000-0000-0000-000000000000 >> ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}/server.env;
+
+                    </inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+        	</template>
+        </step>
+
+        <step name="substituteJvmOptions">
+		    <title>Substitute jvm.options</title>
+	        <description>replace values in jvm.options with template variable values</description>
+	        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+	        <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+            <variableValue name="EKMF_ANGEL_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_JCC_SSID" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+   		         <inlineTemplate substitution="true">
+                    sed "s#-Djava.util.prefs.userRoot=.*#-Djava.util.prefs.userRoot=${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}/preferences#g;
+                        #if(${instance-EKMF_ANGEL_NAME} &amp;&amp; ${instance-EKMF_ANGEL_NAME} != "")
+                            s#^[ \#]*-Dcom.ibm.ws.zos.core.angelName=.*#-Dcom.ibm.ws.zos.core.angelName=${instance-EKMF_ANGEL_NAME}#g;
+                        #end
+                        s#^[ \#]*-Ddb2.jcc.ssid=.*#-Ddb2.jcc.ssid=${instance-DB2_JCC_SSID}#g" ${instance-EKMF_INSTALL_DIR}/jvm.options > ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}/jvm.options;
+             	 </inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+        	</template>
+        </step>
+
+        <step name="setDirectoryPermissions">
+            <title>Set Directory Permissions</title>
+            <description>Remove read and execute access for all users to the zFS file system and set group access if required</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+            <variableValue name="EKMF_WEB_TASK_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_WEB_TASK_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Remove access to all users from ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+              <inlineTemplate substitution="true">
+                export JAVA_HOME="${instance-JAVA_HOME}"
+                extattr +p $JAVA_HOME/bin/java
+    
+                echo "Ensure read and write access to ${instance-WLP_OUTPUT_DIR}/${instance-EKMF_WEB_STC}"
+                chmod -R u+rw ${instance-WLP_OUTPUT_DIR}/${instance-EKMF_WEB_STC}
+                echo "Changing ownership of ${instance-WLP_OUTPUT_DIR}/${instance-EKMF_WEB_STC}"
+                #if(${instance-EKMF_WEB_TASK_GROUP} != "" &amp;&amp; ${instance-EKMF_WEB_TASK_GROUP})               
+                    chown -R ${instance-EKMF_WEB_TASK_USER}:${instance-EKMF_WEB_TASK_GROUP} ${instance-WLP_OUTPUT_DIR}/${instance-EKMF_WEB_STC}
+                #else
+                    chown -R ${instance-EKMF_WEB_TASK_USER} ${instance-WLP_OUTPUT_DIR}/${instance-EKMF_WEB_STC}
+                #end
+    
+                #if(${instance-EKMF_WEB_TASK_GROUP} != "" &amp;&amp; ${instance-EKMF_WEB_TASK_GROUP})
+                    echo "Ensure that ${instance-EKMF_WEB_TASK_GROUP} has read access to ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}"
+                    chown -R ${instance-EKMF_WEB_TASK_USER}:${instance-EKMF_WEB_TASK_GROUP} ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}
+                    chmod -R 770 ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}
+                #else
+                    echo "Ensure that ${instance-EKMF_WEB_TASK_USER} has read access to ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}"
+                    chown -R ${instance-EKMF_WEB_TASK_USER} ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}
+                    chmod -R 700 ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}
+                #end
+    
+                if [ $? -eq 1 ]; then 
+                    echo "chmod returned 1"
+                    echo "Verify if this is due to EKMF_INSTALL_DIR read-only".
+                fi
+                if [ $? -gt 1 ]; then 
+                    echo "ERROR: Could not chmod directory" >&amp;2;
+                    exit "8"; 
+                fi
+    
+              </inlineTemplate>
+              <submitAs>shell-JCL</submitAs>
+               </template>
+        </step>
+
+        <step name="createSymLinks">
+            <title>Create SymLinks to EKMF instal directory</title>
+            <description>Submit script to create symbolig links to the EKMF Web installation diretory. </description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+
+                    # Create symlinks to the installation folder of EKMF Web
+                    cd ${instance-EKMF_ZFS_MOUNTPOINT}/servers/${instance-EKMF_WEB_STC}
+                    ln -s ${instance-EKMF_INSTALL_DIR}/EkmfWeb.properties EkmfWeb.properties
+                    ln -s ${instance-EKMF_INSTALL_DIR}/apps apps
+
+                    if [ -d "${instance-EKMF_INSTALL_DIR}/includes" ] 
+                    then
+                        ln -s ${instance-EKMF_INSTALL_DIR}/includes includes; 
+                    fi
+                    if [ -d "${instance-EKMF_INSTALL_DIR}/configDropins" ] 
+                    then
+                        ln -s ${instance-EKMF_INSTALL_DIR}/configDropins configDropins; 
+                    fi
+
+                    ln -s ${instance-EKMF_INSTALL_DIR}/resources resources
+                    ln -s ${instance-EKMF_INSTALL_DIR}/server.xml server.xml			    
+                    ln -s ${instance-WLP_OUTPUT_DIR}/${instance-EKMF_WEB_STC} output
+                </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+
+    	<step name="createServerProc">
+            <title>Create Server Proc</title>
+            <description>Create the server proc</description>
+       		<runAsUser substitution="true">$!{instance-EKMF_ADMIN_TSO}</runAsUser>
+       		<approver substitution="true">$!{instance-EKMF_APPROVER_TSO}</approver>
+            <variableValue name="EKMF_ZOS_PROCLIB" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+               <!-- <condition>
+            	<expression><![CDATA[${createEkmfWebServer.stepState}=="Complete"]]></expression>
+            	<description>Only perform check if server has been created</description>
+        	</condition> -->
+        	<instructions substitution="true">Submit JCL to execute step</instructions>
+            <weight>5</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+               <fileTemplate substitution="true">jcl/create-server-proc.jcl</fileTemplate>
+               <submitAs>JCL</submitAs>
+               <maxLrecl>80</maxLrecl>
+          </template>
+        </step>
+    </step>
+
+    <step name="configureSecurity">
+    	<title>Configure Security for EKMF Web</title>
+    	<description>Configure security for EKMF Web and related resources</description>
+
+        <step name="configureSAFSecurityProfiles">
+            <title>Configure SAF Security</title>
+            <description>Configure the new EKMF Web server for z/OS authentication to the angel</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SECURITY}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_SECURITY}</approver>
+            <variableValue name="EKMF_WEB_TASK_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_WEB_TASK_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_WEB_UNAUTHENTICATED_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_WEB_UNAUTHENTICATED_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_KEY_ADMIN" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_KEY_ADMIN_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit rexx exec to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">extensions/defineSecurity.rexx</fileTemplate>
+                <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+                <maxLrecl>1024</maxLrecl>
+            </template>
+        </step>
+
+        <step name="additionalSecuritySetup">
+            <title>Additional Security Setup</title>
+            <description>Specifying additional security settings</description>
+            <step name="defineRoles">
+                <title>Define security roles</title>
+                <description>Define EJB roles required to operate EKMF Web and grant access</description>
+                <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SECURITY}</runAsUser>
+                <approver substitution="true">$!{instance-EKMF_APPROVER_SECURITY}</approver>
+                <instructions>Executes a REXX program to create EJB roles and grant access</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">extensions/defineRoles.rexx</fileTemplate>
+                    <submitAs maxRc="4">TSO-REXX-JCL</submitAs>
+                    <maxLrecl>1024</maxLrecl>
+                </template>
+            </step>
+            <step name="defineKeyAccess">
+                <title>Key prefix creation</title>
+                <description>Create entry in CSFKEYS class and grant access</description>
+                <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SECURITY}</runAsUser>
+                <approver substitution="true">$!{instance-EKMF_APPROVER_SECURITY}</approver>
+                <variableValue name="EKMF_KEY_PREFIX" scope="instance" noPromptIfSet="false" required="false"/>
+                <instructions>Executes a REXX program to create the key prefix</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">extensions/defineKeyAccess.rexx</fileTemplate>
+                    <submitAs maxRc="4">TSO-REXX-JCL</submitAs>
+                    <maxLrecl>1024</maxLrecl>
+                </template>
+            </step>
+            <step name="defineIcsfAccess">
+                <title>Define access to ICSF</title>
+                <description>Define the profiles in the CSFSERV class and grant access</description>
+                <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SECURITY}</runAsUser>
+                <approver substitution="true">$!{instance-EKMF_APPROVER_SECURITY}</approver>
+                <instructions>Executes a REXX program to create profiles and grant access</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">extensions/defineIcsfAccess.rexx</fileTemplate>
+                    <submitAs maxRc="4">TSO-REXX-JCL</submitAs>
+                    <maxLrecl>1024</maxLrecl>
+                </template>
+            </step>
+        </step>
+
+	</step>
+  
+    <step name="startServer">
+        <title>Start the server</title>
+        <description>Start the server</description>
+
+        <step name="startServer_console">
+        	<title>Start the server from console</title>
+        	<description>Start the server from the console</description>
+        	<runAsUser substitution="true">$!{instance-EKMF_ADMIN_CONSOLE}</runAsUser>
+	        <approver substitution="true">$!{instance-EKMF_APPROVER_CONSOLE}</approver>
+	        <condition>
+      			<expression><![CDATA["1" == "1"]]></expression>
+				<description>Should the step be executed, based on the START_INSTANCE setting</description>
+				<targetStateSet>
+					<description/>
+	      			<extendStateExpression>
+	      				<description>Skip if START_INSTANCE == false</description>
+	            		<expression><![CDATA[ ${instance-START_INSTANCE} == "false"]]></expression>
+	      				<targetState>Skipped</targetState>
+	      			</extendStateExpression>
+				</targetStateSet>
+			</condition>
+     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+        	<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<rest>
+				<httpMethod>PUT</httpMethod>
+				<uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+				<requestBody substitution="true">
+				  {
+				    "cmd" : "START ${instance-EKMF_WEB_STC},PARMS='${instance-EKMF_WEB_STC}'",
+				    "unsol-key" : "CWWKF0011I: The ${instance-EKMF_WEB_STC} server is ready",
+                    "unsol-detect-sync" : "Y",
+				    "unsol-detect-timeout" : "120",
+				    "detect-time" : "120",
+				    "system" : "${_workflow-systemName}"
+				    
+				  }	
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="EKMF_REST_STATUS">["status"]</propertyMapping>
+			</rest>
+    	</step>
+    	
+    	<step name="CheckStartup" optional="false">
+            <title>Checking the rest status from the start command</title>
+            <description>Check the REST Status from the start command</description>
+            <prereqStep name="startServer_console"/>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_TSO}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_TSO}</approver>
+            <condition>
+                <expression><![CDATA[${startServer_console.stepState} == "Complete" || ${startServer_console.stepState} == "Skipped"]]></expression>
+                <description>Should the step be executed based on the EKMF_REST_STATUS setting</description>
+                <targetStateSet>
+                    <description>Check to see whether this step should be skipped</description>
+                    <extendStateExpression>
+                        <description>Only execute it EKMF_REST_STATUS is not detected</description>
+                        <expression><![CDATA[ ${instance-EKMF_REST_STATUS} == "detected"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+	      			<extendStateExpression>
+	      				<description>Skip if START_INSTANCE == false</description>
+	            		<expression><![CDATA[ ${instance-START_INSTANCE} == "false"]]></expression>
+	      				<targetState>Skipped</targetState>
+	      			</extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions>Execute simple Rexx command to always return a bad returncode</instructions>
+            <weight>1</weight>
+            <skills>z/OS Administration</skills>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                    exit 8
+                </inlineTemplate>
+                <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            </template>
+        </step> 
+    </step>
+
+    <step name="setMoreVariables" optional="false">
+        <title>Set remaining variable names</title>
+        <description>Set the remaining variable values</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_ZFS}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_ZFS}</approver>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+                # Create a properties file to populate instance variables with useful user information
+
+
+                host=$(hostname | tr [:upper:] [:lower:])
+                if [ $? -gt 0 ]; then
+                    echo "ERROR: Could not query hostname" >&amp;2;
+                    exit "11"; 
+                fi
+                echo "EKMF_ADDRESS https://$host:${instance-EKMF_HTTPS_PORT}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                if [ $? -gt 0 ]; then 
+                    echo "ERROR: Could not create properties file" >&amp;2;
+                    exit "7"; 
+                fi 
+
+                currentversion=$(iconv -t IBM037 -f utf-8 ${instance-EKMF_SERVER_DIRECTORY}/EkmfWeb.properties | grep com.ibm.websphere.productVersion | sed -E 's/.*=([^\$])/\1/')
+
+                echo "EKMF_SERVER_VERSION $currentversion" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+            <output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties</output>
+        </template>
+    </step>
+
+
+    <step name="cleanUpVariables">
+        <title>Clean up variables</title>
+        <description>Submit script to clean up temp variables</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+            
+                #Remove temporary files
+                rm ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                if [ $? -gt 0 ]; then 
+                    echo "no temp file needed to be deleted"
+                fi
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+        </template>
+    </step>
+
+</workflow>

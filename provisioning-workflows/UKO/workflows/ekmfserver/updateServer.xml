@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">
+                    <!ENTITY step_stop_ekmfweb SYSTEM "steps/stop_ekmfweb.xml">
+                    ]> 
+                    
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- EKMF Web Provisioning : Update a new server                   -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>ekmfweb_Update</workflowID>
+      <workflowDescription>Update an EKMF Web server.</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+        <!-- Build timestamp 2021.05.09.21.03.24 -->
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>EKMF Web</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>EKMFServer</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	<atCreate name="EKMF_INSTALL_DIR" scope="instance" prompt="true" required="false"/>
+	<atCreate name="START_INSTANCE" scope="instance" prompt="true" required="false"/>
+    
+    <!--++++++++++++++++++++++-->
+    <!--   Stop the server    -->
+    <!--++++++++++++++++++++++-->  
+
+     &step_stop_ekmfweb;
+
+    <!--++++++++++++++++++++++++++-->
+    <!--  Update the server dir   -->
+    <!--++++++++++++++++++++++++++-->  
+	
+    <step name="updateDirectories">
+        <title>Update config files and directories</title>
+        <description>Update files and directories required by the new EKMF Web server</description>
+
+        <step name="backupServerDir">
+            <title>Backup server directory</title>
+            <description>Submit script to backup the EKMF Web server directory</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+            <variableValue name="EKMF_SERVER_DIRECTORY" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                    # Get the current version
+                    currentversion=$(iconv -t IBM037 -f utf-8 ${instance-EKMF_SERVER_DIRECTORY}/EkmfWeb.properties | grep com.ibm.websphere.productVersion | sed -E 's/.*=([^\$])/\1/')
+
+                    # create backup directory
+                    mkdir ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey};
+
+                    # move everything into backup directory
+                    mv ${instance-EKMF_SERVER_DIRECTORY}/EkmfWeb.properties ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/EkmfWeb.properties;
+                    mv ${instance-EKMF_SERVER_DIRECTORY}/apps ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/apps;
+
+                    if [ -d "${instance-EKMF_SERVER_DIRECTORY}/includes" ] 
+                    then
+                        mv ${instance-EKMF_SERVER_DIRECTORY}/includes ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/includes; 
+                    fi
+                    
+                    if [ -d "${instance-EKMF_SERVER_DIRECTORY}/configDropins" ] 
+                    then
+                        mv ${instance-EKMF_SERVER_DIRECTORY}/configDropins ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/configDropins; 
+                    fi
+
+
+                    mv ${instance-EKMF_SERVER_DIRECTORY}/resources ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/resources;
+                    mv ${instance-EKMF_SERVER_DIRECTORY}/server.xml ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/server.xml;		    
+                    mv ${instance-EKMF_SERVER_DIRECTORY}/server.env ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/server.env;			    
+                    mv ${instance-EKMF_SERVER_DIRECTORY}/jvm.options ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/jvm.options;			    
+
+                    # Create a migration log
+                    echo "Current EKMF Version is: $currentversion" > ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+
+        <step name="substituteJvmOptions">
+		    <title>Substitute jvm.options</title>
+	        <description>replace values in jvm.options with template variable values</description>
+	        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+	        <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+            <variableValue name="EKMF_INSTALL_DIR" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+   		         <inlineTemplate substitution="true">
+
+                    #extract all name=value pairs that are not commented out from old file
+                    sed '/^[[:blank:]]*#/d;/^$/d' ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/jvm.options > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options; 
+
+                    echo "********************************************" >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "Parameters from jvm.options to be migrated: " >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    cat ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    # set the number of lines
+                    lines=$(sed -n '$='  ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options; ); 
+                    echo "********************************************" >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "Number of parameters to be transferred:" ${lines} >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    sedstring="";
+                    nottransfered="";
+                    transferred="";
+
+                    i=0;
+                    while  [ i -lt ${lines} ] 
+                    do
+                        let i=i+1;
+                        # echo "i:$i";
+                        ekmfvariable=$(sed "${i}q;d"  ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options   | sed -E 's/([^=]*)=(.*)/\1/');
+                        ekmfvalue=$(sed "${i}q;d"  ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options   | sed -E 's/([^=]*)=(.*)/\2/');
+                        echo  "$ekmfvariable is $ekmfvalue";
+                        sedstring="${sedstring} s#^[ \#]*${ekmfvariable}=.*#${ekmfvariable}=${ekmfvalue}#g;";
+                    
+                        # remove leading -D so grep command does not break
+                        grepstring=$(echo $ekmfvariable | cut -c3-);
+
+                        #check whether the extracted variable is contained in the latest jvm.options
+                        if !(grep -Fq "${grepstring}=" ${instance-EKMF_INSTALL_DIR}/jvm.options)
+                        then
+                            nottransfered="${nottransfered}\n$ekmfvariable";
+                        else
+                            transfered="${transfered}\n$ekmfvariable";
+                            # create rest string to update variables
+                            echo "{\"name\":\"$ekmfvariable\",\"value\":\"$ekmfvalue\",\"visibility\":\"public\"}," >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties;
+                        fi
+
+                    done
+                    
+                    # echo "sedstring: $sedstring";
+                    sed -e "$sedstring" ${instance-EKMF_INSTALL_DIR}/jvm.options > ${instance-EKMF_SERVER_DIRECTORY}/jvm.options;
+                    echo "The following variable(s) have been transferred: $transfered\n" >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+
+                    if ["$nottransfered" = ""]
+                    then
+                        echo "All parameters were transferred" >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    else
+                        echo "The following variable(s) can NOT be transferred automatically: $nottransfered \nVerify whether they still exist in the new version." >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    fi     
+
+                </inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+                <!-- <output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties</output> -->
+        	</template>
+        </step>
+
+        <step name="substituteServerEnv">
+		    <title>Substitute server.env</title>
+	        <description>replace values in server.env with template variable values</description>
+	        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+	        <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+   		         <inlineTemplate substitution="true">
+
+                    #extract all name=value pairs that are not commented out from old file
+                    sed '/^[[:blank:]]*#/d;/^$/d' ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/server.env > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env; 
+
+                    echo "********************************************" >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "Parameters from server.env to be migrated: " >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    cat ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+
+                    # set the number of lines
+                    lines=$(sed -n '$='  ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env; ); 
+                    echo "********************************************" >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "Number of parameters to be transferred:" ${lines} >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    sedstring="";
+                    nottransfered="";
+                    transferred="";
+
+
+                    i=0;
+                    while  [ i -lt ${lines} ] 
+                    do
+                        let i=i+1;
+                        # echo "i:$i";
+                        ekmfvariable=$(sed "${i}q;d"  ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env  | sed -E 's/([^=]*)=(.*)/\1/');
+                        ekmfvalue=$(sed "${i}q;d"  ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env  | sed -E 's/([^=]*)=(.*)/\2/');
+                        sedstring="${sedstring} s#^[ \#]*${ekmfvariable}=.*#${ekmfvariable}=${ekmfvalue}#g;";
+                    
+                        #check whether the extracted variable is contained in the latest server.env
+                        if !(grep -Fq "${ekmfvariable}=" ${instance-EKMF_INSTALL_DIR}/server.env)
+                        then
+                            nottransfered="${nottransfered}\n$ekmfvariable";
+                        else
+                            transfered="${transfered}\n$ekmfvariable";
+                            # create rest string to update variables
+                            echo "{\"name\":\"$ekmfvariable\",\"value\":\"$ekmfvalue\",\"visibility\":\"public\"}," >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties;
+                        fi
+                    done
+                    
+                    # echo "sedstring: $sedstring";
+                    sed -e "$sedstring" ${instance-EKMF_INSTALL_DIR}/server.env > ${instance-EKMF_SERVER_DIRECTORY}/server.env;
+                    echo "The following variable(s) have been transferred: $transfered\n" >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+
+                    if ["$nottransfered" = ""]
+                    then
+                        echo "All parameters were transferred" >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    else
+                        echo "The following variable(s) can NOT be transferred automatically: $nottransfered \nVerify whether they still exist in the new version." >> ${instance-EKMF_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    fi     
+
+                    # this line is to be removed once TLS_CLIENT_AUTHENTICATION_SUPPORTED has been added to server.env after V2.1.0.6
+                    #if(${instance-ENABLE_MTLS_VIA_HTTPS_PORT} &amp;&amp; ${instance-ENABLE_MTLS_VIA_HTTPS_PORT} != "")
+                        echo TLS_CLIENT_AUTHENTICATION_SUPPORTED=${instance-ENABLE_MTLS_VIA_HTTPS_PORT} >> ${instance-EKMF_SERVER_DIRECTORY}/server.env;
+                    #end
+
+                    currentversion=$(iconv -t IBM037 -f utf-8 ${instance-EKMF_INSTALL_DIR}/EkmfWeb.properties | grep com.ibm.websphere.productVersion | sed -E 's/.*=([^\$])/\1/')
+
+                    echo "{\"name\":\"EKMF_SERVER_VERSION\",\"value\":\"$currentversion\",\"visibility\":\"public\"}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties;
+
+                    </inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+                <!-- <output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties</output> -->
+        	</template>
+        </step>
+
+        <step name="setDirectoryPermissions">
+            <title>Set Directory Permissions</title>
+            <description>Ensure the new jvm.options and server.env files can be accessed</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+            <variableValue name="EKMF_WEB_TASK_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_WEB_TASK_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Execute the script to transfer ownership of jvm.options and server.env in ${instance-EKMF_SERVER_DIRECTORY} to ${instance-EKMF_WEB_TASK_USER}</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+              <inlineTemplate substitution="true">
+                    
+                #if(${instance-EKMF_WEB_TASK_GROUP} != "" &amp;&amp; ${instance-EKMF_WEB_TASK_GROUP})
+                    echo "Ensure that ${instance-EKMF_WEB_TASK_GROUP} has read access to ${instance-EKMF_SERVER_DIRECTORY}/server.env and jvm.options"
+                    chown ${instance-EKMF_WEB_TASK_USER}:${instance-EKMF_WEB_TASK_GROUP} ${instance-EKMF_SERVER_DIRECTORY}/server.env
+                    chmod 770 ${instance-EKMF_SERVER_DIRECTORY}/server.env
+                    chown ${instance-EKMF_WEB_TASK_USER}:${instance-EKMF_WEB_TASK_GROUP} ${instance-EKMF_SERVER_DIRECTORY}/jvm.options
+                    chmod 770 ${instance-EKMF_SERVER_DIRECTORY}/jvm.options
+                #else
+                    echo "Ensure that ${instance-EKMF_WEB_TASK_USER} has read access to ${instance-EKMF_SERVER_DIRECTORY}/server.env and jvm.options"
+                    chown ${instance-EKMF_WEB_TASK_USER} ${instance-EKMF_SERVER_DIRECTORY}/server.env
+                    chmod 700 ${instance-EKMF_SERVER_DIRECTORY}/server.env
+                    chown ${instance-EKMF_WEB_TASK_USER} ${instance-EKMF_SERVER_DIRECTORY}/jvm.options
+                    chmod 700 ${instance-EKMF_SERVER_DIRECTORY}/jvm.options
+                #end
+    
+                if [ $? -gt 1 ]; then 
+                    echo "ERROR: Could not chmod directory" >&amp;2;
+                    exit "8"; 
+                fi
+    
+              </inlineTemplate>
+              <submitAs>shell-JCL</submitAs>
+               </template>
+        </step>
+
+        <step name="createSymLinks">
+            <title>Create SymLinks to EKMF install directory</title>
+            <description>Submit script to create symbolig links to the EKMF Web installation diretory. </description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+
+                    # Create symlinks to the updated installation folder of EKMF Web
+                    cd ${instance-EKMF_SERVER_DIRECTORY}
+                    ln -s ${instance-EKMF_INSTALL_DIR}/EkmfWeb.properties EkmfWeb.properties
+                    ln -s ${instance-EKMF_INSTALL_DIR}/apps apps
+
+                    if [ -d "${instance-EKMF_INSTALL_DIR}/includes" ] 
+                    then
+                        ln -s ${instance-EKMF_INSTALL_DIR}/includes includes; 
+                    fi
+                    if [ -d "${instance-EKMF_INSTALL_DIR}/configDropins" ] 
+                    then
+                        ln -s ${instance-EKMF_INSTALL_DIR}/configDropins configDropins; 
+                    fi
+                    
+                    ln -s ${instance-EKMF_INSTALL_DIR}/resources resources
+                    ln -s ${instance-EKMF_INSTALL_DIR}/server.xml server.xml			    
+
+                </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+
+    </step>
+	  
+    <step name="startServer">
+        <title>Start the server</title>
+        <description>Start the server</description>
+
+        <step name="startServer_console">
+        	<title>Start the server from console</title>
+        	<description>Start the server from the console</description>
+        	<runAsUser substitution="true">$!{instance-EKMF_ADMIN_CONSOLE}</runAsUser>
+	        <approver substitution="true">$!{instance-EKMF_APPROVER_CONSOLE}</approver>
+	        <condition>
+      			<expression><![CDATA["1" == "1"]]></expression>
+				<description>Should the step be executed, based on the START_INSTANCE setting</description>
+				<targetStateSet>
+					<description/>
+	      			<extendStateExpression>
+	      				<description>Skip if START_INSTANCE == false</description>
+	            		<expression><![CDATA[ ${instance-START_INSTANCE} == "false"]]></expression>
+	      				<targetState>Skipped</targetState>
+	      			</extendStateExpression>
+				</targetStateSet>
+			</condition>
+            <variableValue name="START_INSTANCE" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_WEB_STC" scope="instance" noPromptIfSet="false" required="false"/>
+     		<instructions substitution="false">Submitting script to stop the server.</instructions>
+        	<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<rest>
+				<httpMethod>PUT</httpMethod>
+				<uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+				<requestBody substitution="true">
+				  {
+				    "cmd" : "START ${instance-EKMF_WEB_STC},PARMS='${instance-EKMF_WEB_STC}'",
+				    "unsol-key" : "CWWKF0011I: The ${instance-EKMF_WEB_STC} server is ready",
+                    "unsol-detect-sync" : "Y",
+				    "unsol-detect-timeout" : "120",
+				    "detect-time" : "120",
+				    "system" : "${_workflow-systemName}"
+				    
+				  }	
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="EKMF_REST_STATUS">["status"]</propertyMapping>
+			</rest>
+    	</step>
+    	
+    	<step name="CheckStartup" optional="false">
+            <title>Checking the rest status from the start command</title>
+            <description>Check the REST Status from the start command</description>
+            <prereqStep name="startServer_console"/>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_TSO}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_TSO}</approver>
+            <condition>
+                <expression><![CDATA[${startServer_console.stepState} == "Complete" || ${startServer_console.stepState} == "Skipped"]]></expression>
+                <description>Should the step be executed based on the EKMF_REST_STATUS setting</description>
+                <targetStateSet>
+                    <description>Check to see whether this step should be skipped</description>
+                    <extendStateExpression>
+                        <description>Only execute it EKMF_REST_STATUS is not detected</description>
+                        <expression><![CDATA[ ${instance-EKMF_REST_STATUS} == "detected"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+	      			<extendStateExpression>
+	      				<description>Skip if START_INSTANCE == false</description>
+	            		<expression><![CDATA[ ${instance-START_INSTANCE} == "false"]]></expression>
+	      				<targetState>Skipped</targetState>
+	      			</extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions>Execute simple Rexx command to always return a bad returncode</instructions>
+            <weight>1</weight>
+            <skills>z/OS Administration</skills>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                    exit 8
+                </inlineTemplate>
+                <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            </template>
+        </step> 
+    </step>
+
+    <!--I can't make the rest update work with a file as part of the body 
+
+        <step name="UpdateInstance" optional="false">
+        <title>Update instance variables</title>
+        <description>Make REST API call to update instance variables</description>
+        <instructions>Call REST API to update instance variable</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <rest>
+            <httpMethod>PUT</httpMethod>
+            <uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${_workflow-parentRegistryID}/variables</uriPath>
+            <requestBody substitution="true">
+                #set ($restbody = ${(cat ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties)})
+                {
+   					"variables":[
+                       ${restbody}
+   					]
+				}
+            </requestBody>
+            <expectedStatusCode>204</expectedStatusCode>
+        </rest>
+    </step> 
+-->
+
+    <step name="cleanUpVariables">
+        <title>Clean up variables</title>
+        <description>Submit script to clean up temp variables</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+            
+                #Remove temporary files
+                rm ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                if [ $? -gt 0 ]; then 
+                    echo "no temp file needed to be deleted"
+                fi
+
+                ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env
+                if [ $? -gt 0 ]; then 
+                    echo "no temp server.env needed to be deleted"
+                fi
+
+                ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options
+                if [ $? -gt 0 ]; then 
+                    echo "no temp jvm.options needed to be deleted"
+                fi
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+        </template>
+    </step>
+
+</workflow>

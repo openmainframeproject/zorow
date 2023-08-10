@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">
+                    <!ENTITY image_properties SYSTEM "extensions/image_properties.xml">
+                    ]> 
+                    
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- EKMF Web Provisioning : Provision a new database                     -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>ekmfdb_Provision</workflowID>
+      <workflowDescription>Provision an EKMF database</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+        <!-- Build timestamp 2021.05.09.21.03.24 -->
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>EKMF Web</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>EKMFDb</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	&image_properties;
+
+    <!--+++++++++++++++++++++++-->
+    <!--   Validation Steps    -->
+    <!--+++++++++++++++++++++++-->  
+
+    <step name="createVariables" optional="false">
+        <title>Create variable names</title>
+        <description>Generate variable names in case they are supposed to be temporary</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_ZFS}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_ZFS}</approver>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+
+                #if(${instance-DB2_GENERATION_PREFIX} &amp;&amp; ${instance-DB2_GENERATION_PREFIX} != "")
+                    export THIS_INSTANCE=${instance-DB2_GENERATION_PREFIX}
+                #else
+                    export THIS_INSTANCE=${_workflow-softwareServiceInstanceName}
+                #end
+
+                # Create a properties file to populate instance variables with useful user information
+                # This is read by the output element in the workflow step.
+
+                echo "DB2_GENERATION_PREFIX ${THIS_INSTANCE}" > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+
+                echo "EKMF_TEMPLATE_VALIDATION_PASSED true" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+
+                #if(${instance-DB2_TEMP_HLQ} &amp;&amp; ${instance-DB2_TEMP_HLQ} != "")
+                    echo "DB2_TEMP_HLQ ${instance-DB2_TEMP_HLQ}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "DB2_TEMP_HLQ ${instance-EKMF_FILE_SYSTEM_HLQ}.${THIS_INSTANCE}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                #if(${instance-EKMF_API_DB_NAME} &amp;&amp; ${instance-EKMF_API_DB_NAME} != "")
+                    echo "EKMF_API_DB_NAME ${instance-EKMF_API_DB_NAME}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_API_DB_NAME ${THIS_INSTANCE}WE" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                #if(${instance-DATA_SET_DB_NAME} &amp;&amp; ${instance-DATA_SET_DB_NAME} != "")
+                    echo "DATA_SET_DB_NAME ${instance-DATA_SET_DB_NAME}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "DATA_SET_DB_NAME ${THIS_INSTANCE}PE" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+                chmod 744 ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+            <output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties</output>
+        </template>
+    </step>
+	
+    <!--++++++++++++++++++++++-->
+    <!--   Provision Steps    -->
+    <!--++++++++++++++++++++++-->  
+
+    <step name="databaseSetup">
+		<title>Set up the database</title>
+		<description>Create and configure the EKMF database</description>
+
+        <step name="createDatabase">
+            <title>Create the Db2 database</title>
+            <description>Create the EKMF Web databases and transfer ownership</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_DB}</approver>
+            <variableValue name="EKMF_API_DB_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DATA_SET_DB_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_PROGRAM" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_PLAN" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_RUNLIB" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_JCC_SSID" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_FILE_SYSTEM_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/create-database.jcl</fileTemplate>
+                <submitAs maxRc="0">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+        <step name="createDDLFromFile" optional="false">
+            <title>Create DDL from files</title>
+            <description>Create the DDL to be executed</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_ZFS}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_ZFS}</approver>
+            <condition>
+                <expression>"1"=="1"</expression>
+                <description>Skip this step if the DDLs come from a data set</description>
+                <targetStateSet>
+                    <description>Skip this step if the DDLs come from a data set</description>
+                    <extendStateExpression>
+                        <description>Skip the step when data set is selected</description>
+                        <expression>${instance-DB_INSTALL_FROM_FILE_OR_DATASET} == null || ${instance-DB_INSTALL_FROM_FILE_OR_DATASET} == "DATASET"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_INSTALL_DIR" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_API_DB_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DATA_SET_DB_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_CODEPAGE" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_BUFFERPOOL" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_STOGROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+
+                    cd ${instance-EKMF_INSTALL_DIR}/resources/db_definitions;
+                    # retrieve the numbers from the codepage to select the correct sub folder
+                    subfolder=$(echo ${instance-DB_CODEPAGE} | sed -E 's/[^[:digit:]]*([:digit:]*)/\1/' )
+                    cd ${subfolder};
+
+                    # replacing the default values in the ddls
+                    sedstring="s/DKMGWEB/${instance-EKMF_API_DB_NAME}/g;"
+                    sedstring="${sedstring} s/DKMGPE1/${instance-DATA_SET_DB_NAME}/g;"
+                    sedstring="${sedstring} s/BP8K0/${instance-DB_BUFFERPOOL}/g;"
+                    sedstring="${sedstring} s/GKMG0001/${instance-DB_STOGROUP}/g"
+
+                    tempversion="";
+                    echo "SET CURRENT SQLID = '${instance-DB_CURRENT_SCHEMA}' ;" > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl;
+                    for i in `ls  *.ddl | xargs echo`; do
+                        tempversion=$(echo $i | cut -c 1-6);
+
+                        #check whether the current ddl contains database creation
+                        if (grep -Fq "CREATE DATABASE" $i)
+                        then
+                            echo "$i contains database creation and will not be added";
+                        else
+                            echo "DDL added to list of updates: $i"
+                            sed -e "$sedstring" $i >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl
+                            echo "COMMIT;" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl;   
+                        fi
+
+                    done; 
+                    echo "Database version will be: $tempversion"
+                    echo "EKMF_DB_VERSION $tempversion" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+
+                </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+                <output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties</output>
+            </template>
+        </step>
+
+        <step name="createDdlListFromDataset" optional="false">
+            <title>Create list of DDLs from a data set</title>
+            <description>Create the list of DDLs to be executed</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_ZFS}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_ZFS}</approver>
+            <condition>
+                <expression>"1"=="1"</expression>
+                <description>Skip this step if the DDLs come from files</description>
+                <targetStateSet>
+                    <description>Skip this step if the DDLs come from files</description>
+                    <extendStateExpression>
+                        <description>Skip the step when data set is selected</description>
+                        <expression>${instance-DB_INSTALL_FROM_FILE_OR_DATASET} == "FILE"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <variableValue name="EKMF_DB_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                    filelist=$(sed -En 's/(\/\/[^\*]).*&amp;SQL\((.*)\).*/\2/gp' "//'${instance-EKMF_DB_HLQ}(${instance-EKMF_DB_MEMBER})'")
+                    echo $filelist > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.files
+                </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+        
+        <step name="createDDLFromDataset" optional="false">
+            <title>Create DDL from data set</title>
+            <description>Create the DDL to be executed</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_ZFS}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_ZFS}</approver>
+            <condition>
+                <expression>"1"=="1"</expression>
+                <description>Skip this step if the DDLs come from files</description>
+                <targetStateSet>
+                    <description>Skip this step if the DDLs come from files</description>
+                    <extendStateExpression>
+                        <description>Skip the step when data set is selected</description>
+                        <expression>${instance-DB_INSTALL_FROM_FILE_OR_DATASET} == "FILE"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_DB_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="EKMF_API_DB_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DATA_SET_DB_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_CODEPAGE" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_BUFFERPOOL" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_STOGROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">scripts/createDdl.sh</fileTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+
+
+        <step name="executeDDL">
+            <title>Execute DDLs for Db2 database</title>
+            <description>Execute the Db2 DDLs to create tables</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_DB}</approver>
+            <!-- <variableValue name="DB_PROGRAM" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_PLAN" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_RUNLIB" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_JCC_SSID" scope="instance" noPromptIfSet="false" required="false"/> -->
+            <variableValue name="DB2_TEMP_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/update-database.jcl</fileTemplate>
+                <submitAs maxRc="0">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+        
+        <step name="configureDatabaseAccess">
+            <title>Configure Access to the Db2 database</title>
+            <description>Configure the new EKMF Web server to be able to access the required tables</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_DB}</approver>
+            <variableValue name="EKMF_WEB_TASK_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/database-grant-access.jcl</fileTemplate>
+                <submitAs maxRc="4">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+    </step>
+
+
+    <!-- <step name="databaseVersion">
+		<title>Update the database</title>
+		<description>Update the EKMF database</description>
+
+        <step name="retrieveExistingVersion">
+            <title>Retrieve current version</title>
+            <description>Retrieves the current version from the Db2 database</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_DB}</approver>
+            <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/get-database-version.jcl</fileTemplate>
+                <submitAs maxRc="0">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+        <step name="UpdateDatabaseVersion" optional="false">
+            <title>Update EKMF Db version</title>
+            <description>Make REST API call to update database version</description>
+            <prereqStep name="checkStatus"/>
+            <instructions>Call REST API to update instance variable</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <rest>
+                <httpMethod>PUT</httpMethod>
+                <uriPath substitution="true">/zosmf/provisioning/rest/1.0/scr/${_workflow-parentRegistryID}/variables</uriPath>
+                <requestBody substitution="true">
+                    {
+                        "variables":[
+                            {"name":"EKMF_DB_VERSION","value":"@${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.version","visibility":"public"}
+                        ]
+                    }
+                </requestBody>
+                <expectedStatusCode>204</expectedStatusCode>
+            </rest>
+        </step> 
+    </step>  -->
+
+    <step name="cleanUpVariables">
+        <title>Clean up variables</title>
+        <description>Submit script to clean up temp variables</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+            
+                #Remove temporary files
+                rm ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                if [ $? -gt 0 ]; then 
+                    echo "no temp property file needed to be deleted"
+                fi
+
+                <!-- rm ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl
+                if [ $? -gt 0 ]; then 
+                    echo "no temp ddl needed to be deleted"
+                fi -->
+                
+                rm ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.version
+                if [ $? -gt 0 ]; then 
+                    echo "no temp version needed to be deleted"
+                fi
+
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+        </template>
+    </step>
+	
+</workflow>

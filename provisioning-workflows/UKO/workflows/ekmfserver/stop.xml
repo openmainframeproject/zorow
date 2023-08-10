@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">
+                    <!ENTITY step_stop_ekmfweb SYSTEM "steps/stop_ekmfweb.xml">
+                    <!ENTITY step_stop_agent SYSTEM "steps/stop_agent.xml">
+                    ]> 
+                    
+<!--                                                        
+/***********************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                 */
+/* SPDX-License-Identifier: Apache-2.0                                 */
+/***********************************************************************/                                            
+--> 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- EKMF Web Provisioning : Stop server                              -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>ekmfweb_Stop</workflowID>
+      <workflowDescription>Stop an EKMF Web server.</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+        <!-- Build timestamp 2021.05.09.21.03.24 -->
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>EKMF Web</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>EKMFWEB</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	
+	
+    <!--++++++++++++++++++++++-->
+    <!--   Stop the Server    -->
+    <!--++++++++++++++++++++++-->
+    &step_stop_ekmfweb;
+      
+</workflow>

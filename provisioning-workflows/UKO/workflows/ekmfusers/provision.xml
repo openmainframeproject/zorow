@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY image_properties SYSTEM "extensions/image_properties.xml">
+                    <!ENTITY variables SYSTEM "variable_imports.xml">
+                    ]> 
+                    
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- EKMF Web Provisioning : Provision user ids and groups                -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>ekmfusers_Provision</workflowID>
+      <workflowDescription>Provision user ids required for EKMF Web</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>EKMF Web</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>EKMFUsers</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	&image_properties;
+
+    <!--+++++++++++++++++++++++-->
+    <!--   Validation Steps    -->
+    <!--+++++++++++++++++++++++-->  
+    <step name="createVariables" optional="false">
+        <title>Create variable names</title>
+        <description>Generate variable names in case they are supposed to be temporary</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_ZFS}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_ZFS}</approver>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+
+                #if(${instance-USERID_GENERATION_PREFIX} &amp;&amp; ${instance-USERID_GENERATION_PREFIX} != "")
+                    export THIS_INSTANCE=${instance-USERID_GENERATION_PREFIX}
+                #else
+                    export THIS_INSTANCE=${_workflow-softwareServiceInstanceName}
+                #end
+
+                echo "USERID_GENERATION_PREFIX ${THIS_INSTANCE}" > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+
+                # Create a properties file to populate instance variables with useful user information
+                # This is read by the output element in the workflow step.
+                echo "EKMF_TEMPLATE_VALIDATION_PASSED true" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+
+                #if(${instance-EKMF_WEB_TASK_USER} &amp;&amp; ${instance-EKMF_WEB_TASK_USER} != "")
+                    echo "EKMF_WEB_TASK_USER ${instance-EKMF_WEB_TASK_USER}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_WEB_TASK_USER ${THIS_INSTANCE}WU" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+                #if(${instance-EKMF_WEB_TASK_GROUP} &amp;&amp; ${instance-EKMF_WEB_TASK_GROUP} != "")
+                    echo "EKMF_WEB_TASK_GROUP ${instance-EKMF_WEB_TASK_GROUP}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_WEB_TASK_GROUP ${THIS_INSTANCE}WG" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                #if(${instance-EKMF_AGENT_TASK_USER} &amp;&amp; ${instance-EKMF_AGENT_TASK_USER} != "")
+                    echo "EKMF_AGENT_TASK_USER ${instance-EKMF_AGENT_TASK_USER}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_AGENT_TASK_USER ${THIS_INSTANCE}AU" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+                #if(${instance-EKMF_AGENT_TASK_GROUP} &amp;&amp; ${instance-EKMF_AGENT_TASK_GROUP} != "")
+                    echo "EKMF_AGENT_TASK_GROUP ${instance-EKMF_AGENT_TASK_GROUP}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_AGENT_TASK_GROUP ${THIS_INSTANCE}AG" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                #if(${instance-EKMF_CLIENT_USER} &amp;&amp; ${instance-EKMF_CLIENT_USER} != "")
+                    echo "EKMF_CLIENT_USER ${instance-EKMF_CLIENT_USER}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_CLIENT_USER ${THIS_INSTANCE}CU" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+                #if(${instance-EKMF_CLIENT_GROUP} &amp;&amp; ${instance-EKMF_CLIENT_GROUP} != "")
+                    echo "EKMF_CLIENT_GROUP ${instance-EKMF_CLIENT_GROUP}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_CLIENT_GROUP ${THIS_INSTANCE}CG" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                #if(${instance-EKMF_WEB_UNAUTHENTICATED_USER} &amp;&amp; ${instance-EKMF_WEB_UNAUTHENTICATED_USER} != "")
+                    echo "EKMF_WEB_UNAUTHENTICATED_USER ${instance-EKMF_WEB_UNAUTHENTICATED_USER}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_WEB_UNAUTHENTICATED_USER ${THIS_INSTANCE}UU" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+                #if(${instance-EKMF_WEB_UNAUTHENTICATED_GROUP} &amp;&amp; ${instance-EKMF_WEB_UNAUTHENTICATED_GROUP} != "")
+                    echo "EKMF_WEB_UNAUTHENTICATED_GROUP ${instance-EKMF_WEB_UNAUTHENTICATED_GROUP}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_WEB_UNAUTHENTICATED_GROUP ${THIS_INSTANCE}UG" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                #if(${instance-EKMF_KEY_ADMIN} &amp;&amp; ${instance-EKMF_KEY_ADMIN} != "")
+                    echo "EKMF_KEY_ADMIN ${instance-EKMF_KEY_ADMIN}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_KEY_ADMIN ${THIS_INSTANCE}KA" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+                #if(${instance-EKMF_KEY_ADMIN_GROUP} &amp;&amp; ${instance-EKMF_KEY_ADMIN_GROUP} != "")
+                    echo "EKMF_KEY_ADMIN_GROUP ${instance-EKMF_KEY_ADMIN_GROUP}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_KEY_ADMIN_GROUP ${THIS_INSTANCE}KG" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                #if(${instance-DB_CURRENT_SCHEMA} &amp;&amp; ${instance-DB_CURRENT_SCHEMA} != "")
+                    echo "DB_CURRENT_SCHEMA ${instance-DB_CURRENT_SCHEMA}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "DB_CURRENT_SCHEMA ${THIS_INSTANCE}DB" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+                #if(${instance-EKMF_KEY_PREFIX} &amp;&amp; ${instance-EKMF_KEY_PREFIX} != "")
+                    echo "EKMF_KEY_PREFIX ${instance-EKMF_KEY_PREFIX}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #else
+                    echo "EKMF_KEY_PREFIX GENERATE.${THIS_INSTANCE}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                #end
+
+
+                chmod 744 ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+            <output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties</output>
+        </template>
+    </step>
+	
+    <!--++++++++++++++++++++++-->
+    <!--   Provision Steps    -->
+    <!--++++++++++++++++++++++-->  
+	
+
+    <step name="configureSAFSecurityProfiles">
+        <title>Configure SAF Security</title>
+        <description>Define users and groups</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SECURITY}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_SECURITY}</approver>
+        <instructions substitution="true">Submit rexx exec to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">extensions/defineSecurity.rexx</fileTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>1024</maxLrecl>
+        </template>
+    </step>
+
+    <step name="cleanUpVariables">
+        <title>Clean up variables</title>
+        <description>Submit script to clean up temp variables</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SERVER}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_SERVER}</approver>
+        <instructions substitution="true">Submit shell script to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <inlineTemplate substitution="true">
+            
+                #Remove temporary files
+                rm ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                if [ $? -gt 0 ]; then 
+                    echo "no temp file needed to be deleted"
+                fi
+            </inlineTemplate>
+            <submitAs>shell-JCL</submitAs>
+        </template>
+    </step>
+
+</workflow>

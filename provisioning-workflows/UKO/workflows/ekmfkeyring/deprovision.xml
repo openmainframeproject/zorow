@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">
+                    ]> 
+                    
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">    
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+<!-- 
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+ 	+  EKMF Web Deprovision: Deprovision user ids and groups                          +
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+-->
+
+  <workflowInfo>
+      <workflowID>ekmfeyring_Deprovision</workflowID>
+      <workflowDescription>Deprovision EKMF Web keyring(s) and certificate(s).</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>EKMF Web</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>EKMFKeyring</softwareType>
+      </Provisioning>
+  </workflowInfo>
+
+  <!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+
+    <!--++++++++++++++++++++++-->
+    <!--   Deprovision Steps  -->
+    <!--++++++++++++++++++++++-->
+    <step name="deleteSAFKeyring">
+        <title>Delete SAF Certificate and Keyring</title>
+        <description>If created, delete the unique SAF certificate and keyring</description>
+        <runAsUser substitution="true">$!{instance-EKMF_ADMIN_SECURITY}</runAsUser>
+        <approver substitution="true">$!{instance-EKMF_APPROVER_SECURITY}</approver>
+        <instructions>Executes a REXX program to delete the SAF certificate and keyring.</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">extensions/deleteKeyring.rexx</fileTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>1024</maxLrecl>
+        </template>
+    </step>
+
+</workflow>

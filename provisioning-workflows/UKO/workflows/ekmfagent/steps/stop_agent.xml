@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+    <step name="stopAgent_console">
+        <title>Stop the agent from the console</title>
+        <description>Issue a stop command for the agent. If the command fails, issue a cancel</description>
+
+        <step name="issue_stop_agent">
+            <title>Issue stop command to the agent</title>
+            <description>Issue a stop command for the agent.</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_CONSOLE}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_CONSOLE}</approver>
+            <condition>
+               <expression><![CDATA["1" == "1"]]></expression>
+               <description>Only execute if validation has been passed</description>
+               <targetStateSet>
+                   <description>Only execute if validation has been passed</description>
+                   <extendStateExpression>
+                       <description>Skip if EKMF_TEMPLATE_VALIDATION_PASSED is false</description>
+                       <expression><![CDATA[ ${instance-EKMF_TEMPLATE_VALIDATION_PASSED} == "false" && ${instance-VALIDATE_PARAMETERS} == "YES" ]]></expression>
+                       <targetState>Skipped</targetState>
+                   </extendStateExpression>
+               </targetStateSet>
+            </condition>
+            <instructions substitution="false">Submitting script to stop the agent.</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <rest>
+                <httpMethod>PUT</httpMethod>
+                <uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+                <requestBody substitution="true">
+                  {
+                    "cmd" : "STOP ${instance-EKMF_AGENT_STC}",
+                    "unsol-key" : "DUMMY",
+                    "unsol-detect-sync" : "Y",
+                    "unsol-detect-timeout" : "${instance-EKMF_STOP_TIMEOUT}",
+                    "detect-time" : "${instance-EKMF_STOP_TIMEOUT}",
+                    "system" : "${_workflow-systemName}"
+                  }
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+            </rest>
+        </step>
+
+        <step name="check_status_agent">
+            <title>Check if agent has stopped</title>
+            <description>Check to see if the agent job is still running</description>
+            <prereqStep name="issue_stop_agent"/>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_CONSOLE}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_CONSOLE}</approver>
+            <condition>
+               <expression><![CDATA["1" == "1"]]></expression>
+               <description>Should the step be executed if an APPLID has been set</description>
+               <targetStateSet>
+                   <description>Only execute if an validation has been passed</description>
+                   <extendStateExpression>
+                       <description>Skip if EKMF_TEMPLATE_VALIDATION_PASSED is false</description>
+                       <expression><![CDATA[ ${instance-EKMF_TEMPLATE_VALIDATION_PASSED} == "false" && ${instance-VALIDATE_PARAMETERS} == "YES" ]]></expression>
+                       <targetState>Skipped</targetState>
+                   </extendStateExpression>
+               </targetStateSet>
+            </condition>
+            <instructions substitution="false">Submitting script to stop the agent.</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <rest>
+                <httpMethod>PUT</httpMethod>
+                <uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+                <requestBody substitution="true">
+                  {
+                    "cmd" : "d a,${instance-EKMF_AGENT_STC}",
+                    "sol-key" : "NOT FOUND",
+                    "system" : "${_workflow-systemName}"
+
+                  }
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+                <propertyMapping mapTo="AGENT_REST_STATUS">["sol-key-detected"]</propertyMapping>
+            </rest>
+        </step>
+
+        <step name="issue_cancel_agent">
+            <title>Issue cancel command to the agent</title>
+            <description>Cancel the agent if it is still running</description>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_CONSOLE}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_CONSOLE}</approver>
+            <condition>
+                <expression><![CDATA[${check_status_agent.stepState}=="Complete" || ${check_status_agent.stepState} == "Skipped"]]></expression>
+                <description>Only perform check if previous step has completed</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if AGENT_REST_STATUS does not equal FALSE</description>
+                    <extendStateExpression>
+                           <description>Only execute it AGENT_REST_STATUS is false</description>
+                           <expression><![CDATA[ ${instance-AGENT_REST_STATUS} != "false"]]></expression>
+                           <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                    <extendStateExpression>
+                        <description>Skip if EKMF_TEMPLATE_VALIDATION_PASSED is false</description>
+                        <expression><![CDATA[ ${instance-EKMF_TEMPLATE_VALIDATION_PASSED} == "false" && ${instance-VALIDATE_PARAMETERS} == "YES" ]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions substitution="false">Submitting script to stop the agent.</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <rest>
+                <httpMethod>PUT</httpMethod>
+                <uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+                <requestBody substitution="true">
+                  {
+                    "cmd" : "CANCEL ${instance-EKMF_AGENT_STC}",
+                    "unsol-key" : "DUMMY",
+                    "unsol-detect-sync" : "Y",
+                    "unsol-detect-timeout" : "${instance-EKMF_STOP_TIMEOUT}",
+                    "detect-time" : "${instance-EKMF_STOP_TIMEOUT}",
+                    "system" : "${_workflow-systemName}"
+                  }
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+            </rest>
+        </step>
+
+        <step name="check_cancel_agent" optional="false">
+            <title>Check if agent has stopped</title>
+            <description>Check agent status after cancel request</description>
+            <prereqStep name="issue_cancel_agent"/>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_CONSOLE}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_CONSOLE}</approver>
+            <condition>
+                <expression><![CDATA[${check_status_agent.stepState}=="Complete" || ${check_status_agent.stepState} == "Skipped"]]></expression>
+                <description>Only perform check if previous step has completed</description>
+                <targetStateSet>
+                    <description>Set state to Skipped if AGENT_REST_STATUS does not equal FALSE</description>
+                    <extendStateExpression>
+                           <description>Only execute it AGENT_REST_STATUS is false</description>
+                           <expression><![CDATA[ ${instance-AGENT_REST_STATUS} != "false"]]></expression>
+                           <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                    <extendStateExpression>
+                        <description>Skip if EKMF_TEMPLATE_VALIDATION_PASSED is false</description>
+                        <expression><![CDATA[ ${instance-EKMF_TEMPLATE_VALIDATION_PASSED} == "false" && ${instance-VALIDATE_PARAMETERS} == "YES" ]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions>Execute check request using the Console API</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <rest>
+                <httpMethod>PUT</httpMethod>
+                <uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+                <requestBody substitution="true">
+                  {
+                    "cmd" : "d a,${instance-EKMF_AGENT_STC}",
+                    "sol-key" : "NOT FOUND",
+                    "system" : "${_workflow-systemName}"
+
+                  }
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+                <propertyMapping mapTo="AGENT_REST_STATUS">["sol-key-detected"]</propertyMapping>
+            </rest>
+        </step>
+
+        <step name="stop_failed_agent" optional="false">
+            <title>Fail if agent has not stopped</title>
+            <description>This step will deliberately fail unless it is skipped because the agent has stopped</description>
+            <prereqStep name="check_cancel_agent"/>
+            <runAsUser substitution="true">$!{instance-EKMF_ADMIN_CONSOLE}</runAsUser>
+            <approver substitution="true">$!{instance-EKMF_APPROVER_CONSOLE}</approver>
+            <condition>
+                <expression><![CDATA[${check_cancel_agent.stepState} == "Complete" || ${check_cancel_agent.stepState} == "Skipped"]]></expression>
+                <description>Should the step be executed based on the AGENT_REST_STATUS setting</description>
+                <targetStateSet>
+                    <description>Check to see whether this step should be skipped</description>
+                    <extendStateExpression>
+                           <description>Only execute if AGENT_REST_STATUS is false</description>
+                           <expression><![CDATA[ ${instance-AGENT_REST_STATUS} != "false"]]></expression>
+                           <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                    <extendStateExpression>
+                        <description>Skip if EKMF_TEMPLATE_VALIDATION_PASSED is false</description>
+                        <expression><![CDATA[ ${instance-EKMF_TEMPLATE_VALIDATION_PASSED} == "false" && ${instance-VALIDATE_PARAMETERS} == "YES" ]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions>Execute simple Rexx command to always return a bad returncode</instructions>
+            <weight>1</weight>
+            <skills>z/OS Administration</skills>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                    exit 8
+                </inlineTemplate>
+                <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            </template>
+        </step>
+    </step>

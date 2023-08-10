@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+
+-->
+
+<!--  Define which variables in the template can be passed in when the
+      template is run via the z/OSMF REST API. Any variable that is
+      passed on the REST API replaces the value of the variable
+      defined in the template.
+
+      Therefore, it makes sense to restrict some variables to the
+      template, which is what gets approved. However, to enable
+      different EKMF Web instances to be provisioned with different
+      configurations, based on the same z/OSMF template, it
+      is necessary to allow a subset of the variables to
+      be set.
+
+      The file can be modified to suit the needs of your business. -->
+
+	<!-- <atCreate name="DB2_TEMP_HLQ" scope="instance" prompt="true" required="false"/> -->
+	<atCreate name="EKMF_WEB_TASK_USER" scope="instance" prompt="true" required="false"/>
+	<atCreate name="DB_CURRENT_SCHEMA" scope="instance" prompt="true" required="false"/>
+	<atCreate name="DB_INSTALL_FROM_FILE_OR_DATASET" scope="instance" prompt="true" required="false"/>
+	<atCreate name="EKMF_INSTALL_DIR" scope="instance" prompt="true" required="false"/>
+	<atCreate name="EKMF_DB_HLQ" scope="instance" prompt="true" required="false"/>
+     	<atCreate name="EKMF_DB_MEMBER" scope="instance" prompt="true" required="false"/>
