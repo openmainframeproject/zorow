@@ -89,7 +89,7 @@
                 </targetStateSet>
             </condition>
             <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
-            <variableValue name="DB2_FILE_INSTALL_PATH" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_FILE_INSTALL_PATH" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_UKO" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_DATASET_ENCRYPTION_STATUS" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_CODEPAGE" scope="instance" noPromptIfSet="false" required="false"/>
@@ -100,12 +100,22 @@
             <autoEnable>true</autoEnable>
             <template>
                 <inlineTemplate substitution="true">
-
-                    cd ${instance-DB2_FILE_INSTALL_PATH}/resources/db_definitions;
+                    echo "Changing to the path in the file system where the ddls are located."
+                    cd ${instance-DB_FILE_INSTALL_PATH}/resources/db_definitions;
+                    if [ $? -gt 0 ]; then
+                        echo "ERROR: the directory containing the ddls does not exist under" ${instance-DB_FILE_INSTALL_PATH}
+                        echo "installation is cancelled"
+                        exit "11"; 
+                    fi 
                     # retrieve the numbers from the codepage to select the correct sub folder
                     subfolder=$(echo ${instance-DB_CODEPAGE} | sed -E 's/[^[:digit:]]*([:digit:]*)/\1/' )
+                    echo "changing to the subfolder with code page" ${instance-DB_CODEPAGE}
                     cd ${subfolder};
-
+                    if [ $? -gt 0 ]; then
+                        echo "ERROR: no ddls exist for this codepage."
+                        echo "installation is cancelled"
+                        exit "11"; 
+                    fi 
                     # replacing the default values in the ddls
                     sedstring="s/DKMGWEB/${instance-DB_NAME_UKO}/g;"
                     sedstring="${sedstring} s/DKMGPE1/${instance-DB_NAME_DATASET_ENCRYPTION_STATUS}/g;"
@@ -154,13 +164,13 @@
                     </extendStateExpression>
                 </targetStateSet>
             </condition>
-            <variableValue name="UKO_DATASET_INSTALL_PATH" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_DATASET_INSTALL_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
             <instructions substitution="true">Submit shell script to execute step</instructions>
             <weight>1</weight>
             <autoEnable>true</autoEnable>
             <template>
                 <inlineTemplate substitution="true">
-                    filelist=$(sed -En 's/(\/\/[^\*]).*&amp;SQL\((.*)\).*/\2/gp' "//'${instance-UKO_DATASET_INSTALL_PATH}(${instance-UKO_DB_MEMBER})'")
+                    filelist=$(sed -En 's/(\/\/[^\*]).*&amp;SQL\((.*)\).*/\2/gp' "//'${instance-DB_DATASET_INSTALL_HLQ}(${instance-DB_DATASET_INSTALL_MEMBER})'")
                     echo $filelist > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.files
                 </inlineTemplate>
                 <submitAs>shell-JCL</submitAs>
@@ -185,7 +195,7 @@
                 </targetStateSet>
             </condition>
             <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
-            <variableValue name="UKO_DATASET_INSTALL_PATH" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_DATASET_INSTALL_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_UKO" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_DATASET_ENCRYPTION_STATUS" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_CODEPAGE" scope="instance" noPromptIfSet="false" required="false"/>

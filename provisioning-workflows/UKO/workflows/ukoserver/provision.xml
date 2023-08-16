@@ -611,7 +611,7 @@
                     exit "7"; 
                 fi 
 
-                currentversion=$(iconv -t IBM037 -f utf-8 ${instance-UKO_SERVER_DIRECTORY}/EkmfWeb.properties | grep com.ibm.websphere.productVersion | sed -E 's/.*=([^\$])/\1/')
+                currentversion=$(iconv -t IBM037 -f utf-8 ${instance-UKO_ZFS_MOUNTPOINT}/servers/${instance-UKO_SERVER_STC_NAME}/EkmfWeb.properties | grep com.ibm.websphere.productVersion | sed -E 's/.*=([^\$])/\1/')
 
                 echo "UKO_SERVER_VERSION $currentversion" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
             </inlineTemplate>

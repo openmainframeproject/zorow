@@ -41,12 +41,12 @@ sedstring="${sedstring} s/BP8K0/${instance-DB_BUFFERPOOL}/g;"
 # creating the list of DDLs
 #########################################
 
-#sed -En 's/(\/\/[^\*]).*&SQL\((.*)\).*/\2/gp' "//'ARNOLD.KMG.JCL(${instance-UKO_DB_MEMBER})'""
-# sed -En 's/(\/\/[^\*]).*&SQL\((.*)\).*/\2/gp' ./${instance-UKO_DB_MEMBER}
+#sed -En 's/(\/\/[^\*]).*&SQL\((.*)\).*/\2/gp' "//'ARNOLD.KMG.JCL(${instance-DB_DATASET_INSTALL_MEMBER})'""
+# sed -En 's/(\/\/[^\*]).*&SQL\((.*)\).*/\2/gp' ./${instance-DB_DATASET_INSTALL_MEMBER}
 
 for i in `cat ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.files`; do
   # copy the current DDL
-  cp "//'${instance-UKO_DATASET_INSTALL_PATH}($i)'" ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.tmp.ddl
+  cp "//'${instance-DB_DATASET_INSTALL_HLQ}($i)'" ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.tmp.ddl
   # convert the current DDL
   iconv -f IBM-037 -t ${instance-DB_CODEPAGE} ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.tmp.ddl > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.conv.ddl
   #check whether the current ddl contains database creation

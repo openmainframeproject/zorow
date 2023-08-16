@@ -15,7 +15,10 @@
   <abstract>WebSphere Liberty installation directory</abstract>
   <description>The path to the WebSphere Liberty install directory.</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
+    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
+  </string>
 </variable>
 
 <variable name="WLP_OUTPUT_DIR" visibility="public">
@@ -23,7 +26,10 @@
   <abstract>WebSphere Liberty output directory</abstract>
   <description>The path to the WebSphere Liberty output directory for logs and messages.</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
+    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
+  </string>
 </variable>
 
 <variable name="JAVA_HOME" visibility="private">
@@ -31,7 +37,10 @@
   <abstract>Java home path</abstract>
   <description>The path to the Java home directory.</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
+    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
+  </string>
 </variable>
 
 <variable name="UKO_INSTALL_DIR" visibility="public">
@@ -39,7 +48,10 @@
   <abstract>UKO installation directory</abstract>
   <description>The path to the UKO install directory.</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
+    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
+  </string>
 </variable>
 
 <variable name="TEMP_DIR" visibility="private">
@@ -48,6 +60,8 @@
   <description>The path to a temp directory for files created and removed at runtime</description>
   <category>String Variables</category>
   <string>
+    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
+    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
     <default>/tmp</default>
   </string>
 </variable>
@@ -290,7 +304,9 @@
   <abstract>The PROCLIB dataset</abstract>
   <description>The PROCLIB dataset</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>
 
 <variable name="UKO_ZOS_PARMLIB" visibility="private">
@@ -298,7 +314,9 @@
   <abstract>The PARMLIB dataset</abstract>
   <description>The PARMLIB dataset</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>
 
 <variable name="UKO_REST_STATUS" scope="instance" visibility="private">
@@ -328,7 +346,7 @@
   <string />
 </variable>
 
-<variable name="START_SERVER" visibility="private">
+<variable name="START_SERVER" visibility="public">
   <label>START_SERVER</label>
   <abstract>Indicates whether during the provision flow, the subsystem should be started</abstract>
   <description>This option allows a provision to be done, without starting the subsystem. By default the subsystem is started.</description>
@@ -340,7 +358,7 @@
   </string>
 </variable>
 
-<variable name="START_AGENT" visibility="private">
+<variable name="START_AGENT" visibility="public">
   <label>START_AGENT</label>
   <abstract>Indicates whether during the provision flow, the subsystem should be started</abstract>
   <description>This option allows a provision to be done, without starting the subsystem. By default the subsystem is started.</description>
@@ -373,7 +391,10 @@
   <abstract> zfsMountPoint</abstract>
   <description>zfsMountPoint</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
+    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
+  </string>
 </variable>
 
 <variable name="UKO_FILE_SYSTEM_HLQ" visibility="private">
@@ -381,7 +402,9 @@
   <abstract>zfsHLQ</abstract>
   <description>zfsHLQ</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>
 
 <variable name="UKO_ZFS_DATACLASS" scope="instance" visibility="private">
@@ -745,12 +768,15 @@
 <!--++++++++++++++++++++++++++++++-->
 <!-- Db2 variables                -->
 <!--++++++++++++++++++++++++++++++-->
-<variable name="DB2_FILE_INSTALL_PATH" visibility="public">
-  <label>DB2_FILE_INSTALL_PATH</label>
-  <abstract>Db2 install dir as shipped with EKMF Web before v3.1</abstract>
-  <description>Legacy option, before v3.1 the DDLs were shipped in a folder location as part of EKMF Web</description>
+<variable name="DB_FILE_INSTALL_PATH" visibility="public">
+  <label>DB_FILE_INSTALL_PATH</label>
+  <abstract>Legacy: only with DB_INSTALL_FROM_FILE_OR_DATASET=FILE with DDLs shipped by EKMF Web pre v3.1</abstract>
+  <description>Legacy option, before v3.1 the DDLs were shipped in a folder location as part of EKMF Web. From UKO 3.1 use the database provided in a data set as separate FMID</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
+    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
+  </string>
 </variable>
 
 <variable name="DB2_TEMP_HLQ" visibility="private">
@@ -759,7 +785,9 @@
   <description>HLQ for temporary datasets that are created to store temporary DDLs and other files created 
     during database creation, update and load. All files will be created under UKO_FILE_SYSTEM_HLQ.DB_CURRENT_SCHEMA.*</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>
 
 <variable name="DB2_HLQ" visibility="private">
@@ -767,7 +795,9 @@
   <abstract>The DB2_HLQ dataset</abstract>
   <description>The HLQ of where Db2 is installed</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>
 
 <variable name="DB2_RUNLIB" visibility="private">
@@ -775,7 +805,9 @@
   <abstract>The DB2_RUNLIB dataset</abstract>
   <description>The HLQ of the Db2 runlib</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>
 
 <variable name="DB2_JCC_SSID" visibility="private">
@@ -825,17 +857,19 @@
   <string />
 </variable>
 
-<variable name="UKO_DATASET_INSTALL_PATH" visibility="private">
-  <label>UKO_DATASET_INSTALL_PATH</label>
-  <abstract>UKO database HLQ</abstract>
+<variable name="DB_DATASET_INSTALL_HLQ" visibility="public">
+  <label>DB_DATASET_INSTALL_HLQ</label>
+  <abstract>UKO database HLQ from which DB is installed if DB_INSTALL_FROM_FILE_OR_DATASET=DATASET</abstract>
   <description>HLQ where the UKO database has been installed, containing the SKMGSQL dataset
   </description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>
-<variable name="UKO_DB_MEMBER" visibility="private">
-  <label>UKO_DB_MEMBER</label>
-  <abstract>UKO database member</abstract>
+<variable name="DB_DATASET_INSTALL_MEMBER" visibility="public">
+  <label>DB_DATASET_INSTALL_MEMBER</label>
+  <abstract>UKO database member from which DB is installed if DB_INSTALL_FROM_FILE_OR_DATASET=DATASET</abstract>
   <description>Which member is to be executed, KMGJCWEB for Web only, KMGJCWSW if also Workstation is to be used
   </description>
   <category>String Variables</category>
@@ -900,7 +934,10 @@
   <abstract>The Db2 product path</abstract>
   <description>The HFS path of Db2</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
+    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
+  </string>
 </variable>
 
 <variable name="DB2_LIBPATH" visibility="private">
@@ -908,7 +945,10 @@
   <abstract>The Db2 library path</abstract>
   <description>The location of the Db2 libraries</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
+    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
+  </string>
 </variable>
 
 <!--++++++++++++++++++++++++++++++-->
@@ -920,7 +960,9 @@
   <abstract>The UKO_AGENT_RUN_HLQ dataset</abstract>
   <description>The HLQ of where the UKO agent is installed</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>
 
 <variable name="UKO_AGENT_STC_NAME" visibility="public">
@@ -936,7 +978,9 @@
   <abstract>The UKO_AGENT_HLQ dataset</abstract>
   <description>Where the UKO agent SAMPLIB is installed</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>
 
 <variable name="TCPIP_HLQ" visibility="private">
@@ -944,7 +988,9 @@
   <abstract>The TCPIP_HLQ dataset</abstract>
   <description>The HLQ of where TCPIP is installed, required for the Agent STC</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>
 
 <!--++++++++++++++++++++++++++++++-->
@@ -992,5 +1038,7 @@
   <description>The HLQ of where REXX is installed, namely the SEAGALT dataset, required for loading
     the pervasive encryption data with KMGUTIL</description>
   <category>String Variables</category>
-  <string />
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
 </variable>

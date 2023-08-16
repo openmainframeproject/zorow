@@ -64,8 +64,8 @@
 
 	<atCreate name="WAS_THE_DB_INSTALLED_FROM_FILE_OR_DATASET" scope="instance" prompt="true" required="false"/>
 	<atCreate name="WILL_THE_DB_BE_UPDATED_FROM_FILE_OR_DATASET" scope="instance" prompt="true" required="false"/>
-	<atCreate name="DB2_FILE_INSTALL_PATH" scope="instance" prompt="true" required="false"/>
-	<atCreate name="UKO_DATASET_INSTALL_PATH" scope="instance" prompt="true" required="false"/>
+	<atCreate name="DB_FILE_INSTALL_PATH" scope="instance" prompt="true" required="false"/>
+	<atCreate name="DB_DATASET_INSTALL_HLQ" scope="instance" prompt="true" required="false"/>
 
     <step name="databaseUpdate">
 		<title>Update the database</title>
@@ -104,7 +104,7 @@
                     </extendStateExpression>
                 </targetStateSet>
             </condition>
-            <variableValue name="DB2_FILE_INSTALL_PATH" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_FILE_INSTALL_PATH" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_UKO" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_DATASET_ENCRYPTION_STATUS" scope="instance" noPromptIfSet="false" required="false"/>
             <instructions substitution="true">Submit shell script to execute step</instructions>
@@ -116,7 +116,7 @@
                     currentversion=$(sed -E -e 's/ *//g' -e 's/.*1_\|([A-Z0-9]*).*/\1/' ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.version);
                     echo "Current database version is: $currentversion";
 
-                    cd ${instance-DB2_FILE_INSTALL_PATH}/resources/db_definitions;
+                    cd ${instance-DB_FILE_INSTALL_PATH}/resources/db_definitions;
 
                     # retrieve the numbers from the codepage to select the correct sub folder
                     subfolder=$(echo ${instance-DB_CODEPAGE} | sed -E 's/[^[:digit:]]*([:digit:]*)/\1/' )
@@ -272,7 +272,7 @@
                     </extendStateExpression>
                 </targetStateSet>
             </condition>
-            <variableValue name="UKO_DATASET_INSTALL_PATH" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_DATASET_INSTALL_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_UKO" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_DATASET_ENCRYPTION_STATUS" scope="instance" noPromptIfSet="false" required="false"/>
             <instructions substitution="true">Submit shell script to execute step</instructions>
@@ -377,7 +377,7 @@
                     </extendStateExpression>
                 </targetStateSet>
             </condition>
-            <!-- <variableValue name="UKO_DATASET_INSTALL_PATH" scope="instance" noPromptIfSet="false" required="false"/>
+            <!-- <variableValue name="DB_DATASET_INSTALL_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_UKO" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_DATASET_ENCRYPTION_STATUS" scope="instance" noPromptIfSet="false" required="false"/> -->
             <instructions substitution="true">Submit shell script to execute step</instructions>
