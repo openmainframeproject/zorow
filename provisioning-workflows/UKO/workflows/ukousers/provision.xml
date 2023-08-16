@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY image_properties SYSTEM "extensions/image_properties.xml">
+                    <!ENTITY variables SYSTEM "variable_imports.xml">
+                    ]> 
+                    
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- UKO Provisioning : Provision user ids and groups                -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>ukousers_Provision</workflowID>
+      <workflowDescription>Provision user ids required for UKO</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>UKO</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>ukousers</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	&image_properties;
+
+    <!--++++++++++++++++++++++-->
+    <!--   Provision Steps    -->
+    <!--++++++++++++++++++++++-->  
+	
+
+    <step name="configureSAFSecurityProfiles">
+        <title>Configure SAF Security</title>
+        <description>Define users and groups</description>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+        <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+        <instructions substitution="true">Submit rexx exec to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">extensions/defineSecurity.rexx</fileTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>1024</maxLrecl>
+        </template>
+    </step>
+
+</workflow>

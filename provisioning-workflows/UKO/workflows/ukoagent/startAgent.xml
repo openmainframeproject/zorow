@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">
+                    ]> 
+                    
+<!--                                                        
+/***********************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                 */
+/* SPDX-License-Identifier: Apache-2.0                                 */
+/***********************************************************************/                                            
+--> 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- UKO Provisioning : Start server                             -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>agent_Start</workflowID>
+      <workflowDescription>Start an Agent.</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+        <!-- Build timestamp 2021.05.09.21.03.24 -->
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>UKO</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>ukoagent</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include WAS variables used by the following steps -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	
+	
+    <!--+++++++++++++++++++++++-->
+    <!--   Start the Server    -->
+    <!--+++++++++++++++++++++++-->  
+    <step name="startServer">
+        <title>Start the server</title>
+        <description>Start the server</description>
+    
+        <step name="startAgent_console">
+        	<title>Start the agent from console</title>
+        	<description>Start the agent from the console</description>
+        	<runAsUser substitution="true">$!{instance-UKO_ADMIN_CONSOLE}</runAsUser>
+	        <approver substitution="true">$!{instance-UKO_APPROVER_CONSOLE}</approver>
+     		<instructions substitution="false">Submitting script to start the agent.</instructions>
+        	<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<rest>
+				<httpMethod>PUT</httpMethod>
+				<uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+				<requestBody substitution="true">
+				  {
+				    "cmd" : "START ${instance-UKO_AGENT_STC_NAME}",
+				    "unsol-key" : "CONSOLE INTERFACE READY",
+				    "unsol-detect-sync" : "Y",
+				    "unsol-detect-timeout" : "120",
+				    "detect-time" : "120",
+				    "system" : "${_workflow-systemName}"
+				    
+				  }	
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="AGENT_REST_STATUS">["status"]</propertyMapping>
+			</rest>
+    	</step>
+
+    	<step name="CheckStartupAgent" optional="false">
+            <title>Checking the rest status from the start command</title>
+            <description>Check the REST Status from the start command</description>
+            <prereqStep name="startAgent_console"/>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_TSO}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_TSO}</approver>
+            <condition>
+                <expression><![CDATA[${startAgent_console.stepState} == "Complete" || ${startAgent_console.stepState} == "Skipped"]]></expression>
+                <description>Should the step be executed based on the AGENT_REST_STATUS setting</description>
+                <targetStateSet>
+                    <description>Check to see whether this step should be skipped</description>
+                    <extendStateExpression>
+                        <description>Only execute it AGENT_REST_STATUS is not detected</description>
+                        <expression><![CDATA[ ${instance-AGENT_REST_STATUS} == "detected"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+	      			<extendStateExpression>
+	      				<description>Skip if START_AGENT == false</description>
+	            		<expression><![CDATA[ ${instance-START_AGENT} == "false"]]></expression>
+	      				<targetState>Skipped</targetState>
+	      			</extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions>Execute simple Rexx command to always return a bad returncode</instructions>
+            <weight>1</weight>
+            <skills>z/OS Administration</skills>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                    exit 8
+                </inlineTemplate>
+                <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            </template>
+        </step> 
+    </step>
+    	
+</workflow>

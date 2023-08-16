@@ -1,0 +1,996 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+
+-->
+<!--+++++++++++++++++++-->
+<!-- Basic Variables   -->
+<!--+++++++++++++++++++-->
+
+<variable name="WLP_INSTALL_DIR" visibility="private">
+  <label>WLP_INSTALL_DIR</label>
+  <abstract>WebSphere Liberty installation directory</abstract>
+  <description>The path to the WebSphere Liberty install directory.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="WLP_OUTPUT_DIR" visibility="public">
+  <label>WLP_OUTPUT_DIR</label>
+  <abstract>WebSphere Liberty output directory</abstract>
+  <description>The path to the WebSphere Liberty output directory for logs and messages.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="JAVA_HOME" visibility="private">
+  <label>JAVA_HOME</label>
+  <abstract>Java home path</abstract>
+  <description>The path to the Java home directory.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_INSTALL_DIR" visibility="public">
+  <label>UKO_INSTALL_DIR</label>
+  <abstract>UKO installation directory</abstract>
+  <description>The path to the UKO install directory.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="TEMP_DIR" visibility="private">
+  <label>TEMP_DIR</label>
+  <abstract>Temp directory</abstract>
+  <description>The path to a temp directory for files created and removed at runtime</description>
+  <category>String Variables</category>
+  <string>
+    <default>/tmp</default>
+  </string>
+</variable>
+
+
+
+
+<!--++++++++++++++++++++-->
+<!-- Angel              -->
+<!--++++++++++++++++++++-->
+
+<variable name="UKO_CREATE_ANGEL" visibility="private">
+  <label>UKO_CREATE_ANGEL</label>
+  <abstract>Enable Angel creation</abstract>
+  <description>Flag to indicate if an Angel server is to be created</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>TRUE</choice>
+    <choice>FALSE</choice>
+    <default>FALSE</default>
+  </string>
+</variable>
+
+<variable name="UKO_ANGEL_NAME" visibility="private">
+  <label>UKO_ANGEL_NAME</label>
+  <abstract>Name of the Angel server</abstract>
+  <description>If an Angel is to be created, this will be the name. If no name specified, a name
+    will be generated. If no Angel is to be created, this is the existing Angel to connect to. If no
+    name specified, UKO will connect to the default Angel</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<!--++++++++++++++++++++-->
+<!-- SSL Authentication -->
+<!--++++++++++++++++++++-->
+<variable name="UKO_CREATE_CA" visibility="private">
+  <label>UKO_CREATE_CA</label>
+  <abstract>Enable CA creation</abstract>
+  <description>Flag to indicate if a CA is to be created</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>TRUE</choice>
+    <choice>FALSE</choice>
+    <default>FALSE</default>
+  </string>
+</variable>
+<variable name="UKO_CA_LABEL" scope="instance" visibility="public">
+  <label>UKO_CA_LABEL</label>
+  <abstract>UKO_CA_LABEL</abstract>
+  <description>Name of the UKO_CA_LABEL to use for the server.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_CREATE_KEYRING" visibility="private">
+  <label>UKO_CREATE_KEYRING</label>
+  <abstract>Enable keyring creation</abstract>
+  <description>Flag to indicate if a keyring is to be created</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>TRUE</choice>
+    <choice>FALSE</choice>
+    <default>FALSE</default>
+  </string>
+</variable>
+<variable name="UKO_USE_KEYRING_AS_TRUST_STORE" visibility="private">
+  <label>UKO_USE_KEYRING_AS_TRUST_STORE</label>
+  <abstract>Uses the same ring as key ring and trust store</abstract>
+  <description>Will create only one keyring for key and trust store, so UKO_TLS_TRUST_STORE_KEY_RING will be UKO_TLS_KEY_STORE_KEY_RING. 
+    Any value set for UKO_TLS_TRUST_STORE_KEY_RING will then be ignored. 
+  </description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>TRUE</choice>
+    <choice>FALSE</choice>
+    <default>FALSE</default>
+  </string>
+</variable>
+<variable name="UKO_TLS_KEY_STORE_KEY_RING" scope="instance" visibility="public">
+  <label>UKO_TLS_KEY_STORE_KEY_RING</label>
+  <abstract>UKO_TLS_KEY_STORE_KEY_RING</abstract>
+  <description>Name of the UKO_TLS_KEY_STORE_KEY_RING to use for the server.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+<variable name="UKO_TLS_TRUST_STORE_KEY_RING" scope="instance" visibility="public">
+  <label>UKO_TLS_TRUST_STORE_KEY_RING</label>
+  <abstract>UKO_TLS_TRUST_STORE_KEY_RING</abstract>
+  <description>Name of the UKO_TLS_TRUST_STORE_KEY_RING to use for the server.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_CREATE_CERTIFICATES" visibility="private">
+  <label>UKO_CREATE_CERTIFICATES</label>
+  <abstract>Enable certificate creation</abstract>
+  <description>Flag to indicate if certificates are to be created</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>TRUE</choice>
+    <choice>FALSE</choice>
+    <default>FALSE</default>
+  </string>
+</variable>
+<variable name="UKO_TLS_KEY_STORE_SERVER_CERT_CN" scope="instance" visibility="private">
+  <label>UKO_TLS_KEY_STORE_SERVER_CERT_CN</label>
+  <abstract> UKO_TLS_KEY_STORE_SERVER_CERT_CN</abstract>
+  <description>Name of the UKO_TLS_KEY_STORE_SERVER_CERT_CN to use for the server.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+<variable name="UKO_TLS_KEY_STORE_SERVER_CERT_OU" scope="instance" visibility="private">
+  <label>UKO_TLS_KEY_STORE_SERVER_CERT_OU</label>
+  <abstract>UKO_TLS_KEY_STORE_SERVER_CERT_OU</abstract>
+  <description>Name of the UKO_TLS_KEY_STORE_SERVER_CERT_OU to use for the server.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+<variable name="UKO_TLS_KEY_STORE_SERVER_CERT_O" scope="instance" visibility="private">
+  <label>UKO_TLS_KEY_STORE_SERVER_CERT_O</label>
+  <abstract>UKO_TLS_KEY_STORE_SERVER_CERT_O</abstract>
+  <description>Name of the UKO_TLS_KEY_STORE_SERVER_CERT_O to use for the server.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+<variable name="UKO_TLS_KEY_STORE_SERVER_CERT" scope="instance" visibility="public">
+  <label>UKO_TLS_KEY_STORE_SERVER_CERT</label>
+  <abstract>UKO_TLS_KEY_STORE_SERVER_CERT</abstract>
+  <description>Name of the UKO_TLS_KEY_STORE_SERVER_CERT to use for the server.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+<variable name="UKO_OIDC_PROVIDER_CERT" scope="instance" visibility="public">
+  <label>UKO_OIDC_PROVIDER_CERT</label>
+  <abstract>UKO_OIDC_PROVIDER_CERT</abstract>
+  <description>Name of the UKO_OIDC_PROVIDER_CERT to use for the server.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_OAUTH_CLIENT_ID" scope="instance" visibility="public">
+  <label>UKO_OAUTH_CLIENT_ID</label>
+  <abstract>UKO_OAUTH_CLIENT_ID</abstract>
+  <description>Client ID is used by the OpenID Connect framework to identify the clients connecting to the server</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_OAUTH_CLIENT_ID_OPENAPI" scope="instance" visibility="public">
+  <label>UKO_OAUTH_CLIENT_ID_OPENAPI</label>
+  <abstract>UKO_OAUTH_CLIENT_ID_OPENAPI</abstract>
+  <description>Client ID used by the OpenAPI user interface</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="ENABLE_MTLS_VIA_HTTPS_PORT" visibility="public">
+  <label>ENABLE_MTLS_VIA_HTTPS_PORT</label>
+  <abstract>Enable mTLS authentication via the https port?</abstract>
+  <description>This option allows mTLS authentication using the https port isntead of a separate mTLS port</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
+  </string>
+</variable>
+
+<!--++++++++++++++++++++++++++++-->
+<!-- Network resource variables -->
+<!--++++++++++++++++++++++++++++-->
+
+<variable name="UKO_AGENT_PORT" visibility="public">
+  <label>Agent Port</label>
+  <abstract>Port for the UKO Agent</abstract>
+  <description>Port for the UKO Agent</description>
+  <category>REST</category>
+  <string />
+</variable>
+
+<variable name="UKO_AGENT_PORT_ID" visibility="private">
+  <label>UKO_AGENT_PORT_ID</label>
+  <abstract>Port ID for the UKO Agent</abstract>
+  <description>The ID of the reserved Agent Port address to use during deprovisioning</description>
+  <category>REST</category>
+  <string />
+</variable>
+
+<variable name="UKO_HTTP_PORT" visibility="public">
+  <label>HTTP port</label>
+  <abstract>HTTP_PORT for the UKO server</abstract>
+  <description>HTTP port for the UKO server</description>
+  <category>REST</category>
+  <string />
+</variable>
+
+<variable name="UKO_HTTP_PORT_ID" visibility="private">
+  <label>UKO_HTTP_PORT_ID</label>
+  <abstract>HTTP port ID for the UKO server</abstract>
+  <description>The ID of the reserved HTTP Port address to use during deprovisioning</description>
+  <category>REST</category>
+  <string />
+</variable>
+
+<variable name="UKO_HTTPS_PORT" visibility="public">
+  <label>HTTPS port</label>
+  <abstract>HTTPS_PORT for the UKO server</abstract>
+  <description>HTTPS port for the UKO server</description>
+  <category>REST</category>
+  <string />
+</variable>
+
+<variable name="UKO_HTTPS_PORT_ID" visibility="private">
+  <label>UKO_HTTPS_PORT_ID</label>
+  <abstract>HTTPS port ID for the UKO server</abstract>
+  <description>The ID of the reserved HTTPS Port address to use during deprovisioning</description>
+  <category>REST</category>
+  <string />
+</variable>
+
+<variable name="UKO_ADDRESS" scope="instance" visibility="public">
+  <label>UKO_ADDRESS</label>
+  <abstract>Hostname that the UKO server is running on</abstract>
+  <description>Hostname that the UKO server is running on.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<!--++++++++++++++++++++++++-->
+<!-- Start option variables -->
+<!--++++++++++++++++++++++++-->
+
+<variable name="UKO_ZOS_PROCLIB" visibility="private">
+  <label>UKO_ZOS_PROCLIB</label>
+  <abstract>The PROCLIB dataset</abstract>
+  <description>The PROCLIB dataset</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_ZOS_PARMLIB" visibility="private">
+  <label>UKO_ZOS_PARMLIB</label>
+  <abstract>The PARMLIB dataset</abstract>
+  <description>The PARMLIB dataset</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_REST_STATUS" scope="instance" visibility="private">
+  <label>UKO_REST_STATUS</label>
+  <abstract>Holds the status of the server REST request</abstract>
+  <description>Holds the status of the server REST request issued to the console API</description>
+  <category>REST</category>
+  <string />
+</variable>
+
+<variable name="INSTANCE_STATUS" visibility="public">
+    <label>INSTANCE_STATUS</label>
+    <abstract>Variable indicating the last known status of the instance.</abstract>
+    <description>Variable indicating the last known status of the instance. The value is updated by calling the checkStatus action on the provisioned instance.</description>
+    <category>REST</category>
+    <string valueMustBeChoice="true">
+        <choice>active</choice>
+        <choice>inactive</choice>
+    </string>
+</variable>
+
+<variable name="AGENT_REST_STATUS" scope="instance" visibility="private">
+  <label>AGENT_REST_STATUS</label>
+  <abstract>Holds the status of the agent REST request</abstract>
+  <description>Holds the status of the agent REST request issued to the console API</description>
+  <category>REST</category>
+  <string />
+</variable>
+
+<variable name="START_SERVER" visibility="private">
+  <label>START_SERVER</label>
+  <abstract>Indicates whether during the provision flow, the subsystem should be started</abstract>
+  <description>This option allows a provision to be done, without starting the subsystem. By default the subsystem is started.</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>true</default>
+  </string>
+</variable>
+
+<variable name="START_AGENT" visibility="private">
+  <label>START_AGENT</label>
+  <abstract>Indicates whether during the provision flow, the subsystem should be started</abstract>
+  <description>This option allows a provision to be done, without starting the subsystem. By default the subsystem is started.</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>true</default>
+  </string>
+</variable>
+
+<variable name="UKO_STOP_TIMEOUT" scope="instance" visibility="private">
+  <label>UKO_STOP_TIMEOUT</label>
+  <abstract>Stop timeout</abstract>
+  <description>Number of seconds to wait for UKO to stop before taking further action</description>
+  <category>Integer Variables</category>
+  <integer>
+    <minValue>10</minValue>
+    <maxValue>600</maxValue>
+    <default>30</default>
+  </integer>
+</variable>
+
+<!--++++++++++++++++++++++-->
+<!-- File System creation -->
+<!--++++++++++++++++++++++-->
+
+<variable name="UKO_ZFS_MOUNTPOINT" visibility="private">
+  <label>UKO_ZFS_MOUNTPOINT</label>
+  <abstract> zfsMountPoint</abstract>
+  <description>zfsMountPoint</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_FILE_SYSTEM_HLQ" visibility="private">
+  <label>UKO_FILE_SYSTEM_HLQ</label>
+  <abstract>zfsHLQ</abstract>
+  <description>zfsHLQ</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_ZFS_DATACLASS" scope="instance" visibility="private">
+  <label>UKO_ZFS_DATACLASS</label>
+  <abstract>zFS DataClass used to define the zFS dataset</abstract>
+  <description>zFS DataClass used to define the zFS dataset</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<!-- STC JOBS -->
+<variable name="UKO_STC_JOB_CARD" visibility="private">
+  <label>STC_JOB_CARD</label>
+  <abstract>Job card to be used by STC Jobs</abstract>
+  <description>Specifies the job card to use for the started task of the provisioned instance. When
+    specified, UKO_ZOS_STCJOBS must also be used to indicate the data set prefix for STCJOBS.</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_ZOS_STCJOBS" scope="instance" visibility="private">
+  <label>ZOS_STCJOBS</label>
+  <abstract>User STCJOBS location</abstract>
+  <description>Names the data set into which the workflow can create the source JCL that defines the
+    job level characteristics of the started task for the provisioned instance. Used only when
+    UKO_STC_JOB_CARD is also specified. </description>
+  <category>String Variables</category>
+  <string>
+    <validationType>DSNAME</validationType>
+  </string>
+</variable>
+
+<variable name="UKO_ZOS_VSAM_VOLUME" scope="instance" visibility="private">
+  <label>ZOS_VSAM_VOLUME</label>
+  <abstract>Volume for Datasets or SMS</abstract>
+  <description>VOLUME value to be used when creating Datasets (eg SYSDA), set to SMS if SMS is used</description>
+  <category>String Variables</category>
+  <string>
+    <minLength>1</minLength>
+    <maxLength>25</maxLength>
+  </string>
+</variable>
+
+<variable name="UKO_SERVER_STC_NAME" visibility="public">
+  <label>UKO_SERVER_STC_NAME</label>
+  <abstract>UKO Server STC name</abstract>
+  <description>The started task name of the UKO Liberty server</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<!--++++++++++++++++++++++++++++++-->
+<!-- Approval and run as user ids -->
+<!--++++++++++++++++++++++++++++++-->
+
+<variable name="UKO_ADMIN_SERVER" visibility="private">
+  <label>UKO_ADMIN_SERVER</label>
+  <abstract>Userid the provisioned server will run under</abstract>
+  <description>The userid that the UKO servers started task will run under</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+<variable name="UKO_APPROVER_SERVER" visibility="private">
+  <label>UKO_APPROVER_SERVER</label>
+  <abstract>The userid to approve the servers run as userid</abstract>
+  <description>The userid to approve the servers run as userid</description>
+  <category>String Variables</category>
+  <string>
+    <!-- Validate for a list of one or more space separated SAF userids -->
+    <regularExpression>^[0-9a-zA-Z$#@ ]*$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_ADMIN_DB" visibility="private">
+  <label>UKO_ADMIN_DB</label>
+  <abstract>Userid the database creation will run under</abstract>
+  <description>The userid that the UKO database creation task will run under</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+<variable name="UKO_APPROVER_DB" visibility="private">
+  <label>UKO_APPROVER_DB</label>
+  <abstract>The userid to approve the database run as userid</abstract>
+  <description>The userid to approve the database run as userid</description>
+  <category>String Variables</category>
+  <string>
+    <!-- Validate for a list of one or more space separated SAF userids -->
+    <regularExpression>^[0-9a-zA-Z$#@ ]*$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_ADMIN_SECURITY" visibility="private">
+  <label>UKO_ADMIN_SECURITY</label>
+  <abstract>APF authorized user id for security related provisioning tasks</abstract>
+  <description>The APF authorized userid to run SAF certificate creation/deletion and SAF profile creation/deletion</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+<variable name="UKO_APPROVER_SECURITY" visibility="private">
+  <label>UKO_APPROVER_SECURITY</label>
+  <abstract>The user id to approve security related provisioning tasks</abstract>
+  <description>The user id to approve security related provisioning tasks</description>
+  <category>String Variables</category>
+  <string>
+    <!-- Validate for a list of one or more space separated SAF userids -->
+    <regularExpression>^[0-9a-zA-Z$#@]*$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_ADMIN_ZFS" visibility="private">
+  <label>UKO_ADMIN_ZFS</label>
+  <abstract>The user id for file system creation and mounting</abstract>
+  <description>The id of the user authorized to create and mount file systems</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+<variable name="UKO_APPROVER_ZFS" visibility="private">
+  <label>UKO_APPROVER_ZFS</label>
+  <abstract>The user id to approve file system creation</abstract>
+  <description>The user id to approve file system creation</description>
+  <category>String Variables</category>
+  <string>
+    <!-- Validate for a list of one or more space separated SAF userids -->
+    <regularExpression>^[0-9a-zA-Z$#@ ]*$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_ADMIN_CONSOLE" visibility="private">
+  <label>UKO_ADMIN_CONSOLE</label>
+  <abstract>The user id for executing mvs console start and stop commands</abstract>
+  <description>The user id for executing mvs console start and stop commands</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+<variable name="UKO_APPROVER_CONSOLE" visibility="private">
+  <label>UKO_APPROVER_CONSOLE</label>
+  <abstract>The user id to approve the execution of console commands</abstract>
+  <description>The user id to approve the execution of console commands</description>
+  <category>String Variables</category>
+  <string>
+    <!-- Validate for a list of one or more space separated SAF userids -->
+    <regularExpression>^[0-9a-zA-Z$#@ ]*$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_ADMIN_TSO" visibility="private">
+  <label>UKO_ADMIN_TSO</label>
+  <abstract>The user id for adding and removing procedures from the proclib</abstract>
+  <description>The user id for adding and removing procedures from the proclib</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+<variable name="UKO_APPROVER_TSO" visibility="private">
+  <label>UKO_APPROVER_TSO</label>
+  <abstract>The user id to approval proclib additions</abstract>
+  <description>The user id to approval proclib additions</description>
+  <category>String Variables</category>
+  <string>
+    <!-- Validate for a list of one or more space separated SAF userids -->
+    <regularExpression>^[0-9a-zA-Z$#@ ]*$</regularExpression>
+  </string>
+</variable>
+
+<!--++++++++++++++++++++++++++++++-->
+<!-- Technical user ids           -->
+<!--++++++++++++++++++++++++++++++-->
+<variable name="UKO_CREATE_GROUPS" visibility="private">
+  <label>UKO_CREATE_GROUPS</label>
+  <abstract>Create the required groups</abstract>
+  <description>Flag to indicate if groups are to be created</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>TRUE</choice>
+    <choice>FALSE</choice>
+    <default>FALSE</default>
+  </string>
+</variable>
+
+<variable name="UKO_CREATE_USERIDS" visibility="private">
+  <label>UKO_CREATE_USERIDS</label>
+  <abstract>Create the required userids</abstract>
+  <description>Flag to indicate if userids are to be created</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>TRUE</choice>
+    <choice>FALSE</choice>
+    <default>FALSE</default>
+  </string>
+</variable>
+
+<variable name="UKO_SERVER_STC_USER" visibility="public">
+  <label>UKO_SERVER_STC_USER</label>
+  <abstract>The user id running the UKO Liberty server</abstract>
+  <description>The id of the user authorized to run UKO Liberty Server as started task</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_UNAUTHENTICATED_USER" visibility="public">
+  <label>UKO_UNAUTHENTICATED_USER</label>
+  <abstract>The unauthenticated user id of the UKO Liberty server</abstract>
+  <description>The Liberty unauthenticated userid</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_AGENT_STC_USER" visibility="public">
+  <label>UKO_AGENT_STC_USER</label>
+  <abstract>The user id running the UKO agent</abstract>
+  <description>The id of the user authorized to run the UKO agent as started task</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_AGENT_CLIENT_USER" visibility="public">
+  <label>UKO_AGENT_CLIENT_USER</label>
+  <abstract>The user id representing clients to connect to the UKO agent</abstract>
+  <description>The id of a client connecting to the UKO agent, which is the user ID defined in the
+    &amp;WEBCLIENT KPMGPARM</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_SERVER_STC_GROUP" visibility="public">
+  <label>UKO_SERVER_STC_GROUP</label>
+  <abstract>The group containing the user id running the UKO Liberty server</abstract>
+  <description>The group containing the id of the user authorized to run UKO Liberty Server as started task</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_UNAUTHENTICATED_GROUP" visibility="public">
+  <label>UKO_UNAUTHENTICATED_GROUP</label>
+  <abstract>The group containing the unauthenticated user id of the UKO Liberty server</abstract>
+  <description>The group containing the Liberty unauthenticated userid</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_AGENT_STC_GROUP" visibility="public">
+  <label>UKO_AGENT_STC_GROUP</label>
+  <abstract>The group containing the user id running the UKO agent</abstract>
+  <description>The group containing the id of the user authorized to run the UKO agent as started task</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_AGENT_CLIENT_GROUP" visibility="public">
+  <label>UKO_AGENT_CLIENT_GROUP</label>
+  <abstract>The group containing the user id representing clients to connect to the UKO agent</abstract>
+  <description>The group containing the id of a client connecting to the UKO agent, which is the
+    user ID defined in the &amp;WEBCLIENT KPMGPARM</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_KEY_ADMIN" visibility="public">
+  <label>UKO_KEY_ADMIN</label>
+  <abstract>The UKO Key Administrator</abstract>
+  <description>Key Administrator who sets up the key hierarchy, and controls keystores and
+    templates, as well as performs special key state actions.</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_KEY_ADMIN_GROUP" visibility="public">
+  <label>UKO_KEY_ADMIN_GROUP</label>
+  <abstract>The group containing UKO Key Administrator</abstract>
+  <description>Group containing the Key Administrator who sets up the key hierarchy, and controls
+    keystores and templates, as well as performs special key state actions.</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_KEY_CUSTODIAN1" visibility="private">
+  <label>UKO_KEY_CUSTODIAN1</label>
+  <abstract>The first UKO Key Custodian</abstract>
+  <description>Key Custodian who can generate keys in PRE-ACTIVATION state, but cannot Activate and
+    Distribute them. Destroy and Compromise actions are also possible.</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+
+<variable name="UKO_KEY_CUSTODIAN2" visibility="private">
+  <label>UKO_KEY_CUSTODIAN2</label>
+  <abstract>The second UKO Key Custodian</abstract>
+  <description>Key Custodian who cannot Generate, but can Activate keys bringing them from
+    PRE-ACTIVATION to ACTIVE state (then distributes them). Destroy and Compromise actions are also possible.
+</description>
+  <category>String Variables</category>
+  <string>
+    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+    characters, including special characters. -->
+    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+  </string>
+</variable>
+<!--++++++++++++++++++++++++++++++-->
+<!-- Db2 variables                -->
+<!--++++++++++++++++++++++++++++++-->
+<variable name="DB2_FILE_INSTALL_PATH" visibility="public">
+  <label>DB2_FILE_INSTALL_PATH</label>
+  <abstract>Db2 install dir as shipped with EKMF Web before v3.1</abstract>
+  <description>Legacy option, before v3.1 the DDLs were shipped in a folder location as part of EKMF Web</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB2_TEMP_HLQ" visibility="private">
+  <label>DB2_TEMP_HLQ</label>
+  <abstract>HLQ for temporary datasets</abstract>
+  <description>HLQ for temporary datasets that are created to store temporary DDLs and other files created 
+    during database creation, update and load. All files will be created under UKO_FILE_SYSTEM_HLQ.DB_CURRENT_SCHEMA.*</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB2_HLQ" visibility="private">
+  <label>DB2_HLQ</label>
+  <abstract>The DB2_HLQ dataset</abstract>
+  <description>The HLQ of where Db2 is installed</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB2_RUNLIB" visibility="private">
+  <label>DB2_RUNLIB</label>
+  <abstract>The DB2_RUNLIB dataset</abstract>
+  <description>The HLQ of the Db2 runlib</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB2_JCC_SSID" visibility="private">
+  <label>DB2_JCC_SSID</label>
+  <abstract>The DB2_JCC_SSID </abstract>
+  <description>The SSID of Db2</description>
+  <category>String Variables</category>
+  <string>
+    <minLength>4</minLength>
+    <maxLength>4</maxLength>
+  </string>
+</variable>
+
+<variable name="DB_INSTALL_FROM_FILE_OR_DATASET" scope="instance" visibility="public">
+  <label>DB_INSTALL_FROM_FILE_OR_DATASET</label>
+  <abstract>Install from file or data set</abstract>
+  <description>Specify whether the database DDL files are in a folder or data set. If you are updating: specify where the last update came from.</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true" multiLine="false">
+      <choice>FILE</choice>
+      <choice>DATASET</choice>
+      <default>DATASET</default>
+  </string>
+</variable>
+
+<variable name="DB_CURRENT_SCHEMA" visibility="public">
+  <label>DB_CURRENT_SCHEMA</label>
+  <abstract>The DB_CURRENT_SCHEMA</abstract>
+  <description>The current schema of the Db2 database</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB_NAME_UKO" visibility="public">
+  <label>DB_NAME_UKO</label>
+  <abstract>The DB_NAME_UKO</abstract>
+  <description>The name of the database for the UKO key repository</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB_NAME_DATASET_ENCRYPTION_STATUS" visibility="public">
+  <label>DB_NAME_DATASET_ENCRYPTION_STATUS</label>
+  <abstract>The Db2 DB_NAME_DATASET_ENCRYPTION_STATUS</abstract>
+  <description>The name of the database for the PE data set status</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_DATASET_INSTALL_PATH" visibility="private">
+  <label>UKO_DATASET_INSTALL_PATH</label>
+  <abstract>UKO database HLQ</abstract>
+  <description>HLQ where the UKO database has been installed, containing the SKMGSQL dataset
+  </description>
+  <category>String Variables</category>
+  <string />
+</variable>
+<variable name="UKO_DB_MEMBER" visibility="private">
+  <label>UKO_DB_MEMBER</label>
+  <abstract>UKO database member</abstract>
+  <description>Which member is to be executed, KMGJCWEB for Web only, KMGJCWSW if also Workstation is to be used
+  </description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true" multiLine="false">
+      <choice>KMGJCWEB</choice>
+      <choice>KMGJCWSW</choice>
+      <default>KMGJCWEB</default>
+  </string>
+</variable>
+
+
+<variable name="DB_CODEPAGE" visibility="private">
+  <label>DB_CODEPAGE</label>
+  <abstract>The Db2 DB_CODEPAGE</abstract>
+  <description>The DB_CODEPAGE of the Db2 database</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB_BUFFERPOOL" visibility="private">
+  <label>DB_BUFFERPOOL</label>
+  <abstract>The Db2 DB_BUFFERPOOL</abstract>
+  <description>The DB_BUFFERPOOL of the Db2 database</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB_STOGROUP" visibility="private">
+  <label>DB_STOGROUP</label>
+  <abstract>The Db2 DB_STOGROUP</abstract>
+  <description>The DB_STOGROUP of the Db2 database</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB_PLAN" visibility="private">
+  <label>DB_PLAN</label>
+  <abstract>The Db2 DB_PLAN</abstract>
+  <description>The DB_PLAN of the Db2 database</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB_PROGRAM" visibility="private">
+  <label>DB_PROGRAM</label>
+  <abstract>The Db2 DB_PROGRAM</abstract>
+  <description>The DB_PROGRAM of the Db2 database</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB_LOCATION" visibility="private">
+  <label>DB_LOCATION</label>
+  <abstract>The Db2 DB_LOCATION</abstract>
+  <description>The location of the Db2 database</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB2_PRODUCT_PATH" visibility="private">
+  <label>DB2_PRODUCT_PATH</label>
+  <abstract>The Db2 product path</abstract>
+  <description>The HFS path of Db2</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB2_LIBPATH" visibility="private">
+  <label>DB2_LIBPATH</label>
+  <abstract>The Db2 library path</abstract>
+  <description>The location of the Db2 libraries</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<!--++++++++++++++++++++++++++++++-->
+<!-- Agent variables -->
+<!--++++++++++++++++++++++++++++++-->
+
+<variable name="UKO_AGENT_RUN_HLQ" visibility="public">
+  <label>UKO_AGENT_RUN_HLQ</label>
+  <abstract>The UKO_AGENT_RUN_HLQ dataset</abstract>
+  <description>The HLQ of where the UKO agent is installed</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_AGENT_STC_NAME" visibility="public">
+  <label>UKO_AGENT_STC_NAME</label>
+  <abstract>Agent STC name</abstract>
+  <description>The started task name of the Agent</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_AGENT_HLQ" visibility="public">
+  <label>UKO_AGENT_HLQ</label>
+  <abstract>The UKO_AGENT_HLQ dataset</abstract>
+  <description>Where the UKO agent SAMPLIB is installed</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="TCPIP_HLQ" visibility="private">
+  <label>TCPIP_HLQ</label>
+  <abstract>The TCPIP_HLQ dataset</abstract>
+  <description>The HLQ of where TCPIP is installed, required for the Agent STC</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<!--++++++++++++++++++++++++++++++-->
+<!-- Other -->
+<!--++++++++++++++++++++++++++++++-->
+
+
+<variable name="UKO_SERVER_VERSION" scope="instance" visibility="public">
+  <label>UKO_SERVER_VERSION</label>
+  <abstract>Server version</abstract>
+  <description>Which version of UKO is this?</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_DB_VERSION" scope="instance" visibility="public">
+  <label>UKO_DB_VERSION</label>
+  <abstract>Database version</abstract>
+  <description>Which version of UKO database is this?</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_SERVER_DIRECTORY" scope="instance" visibility="public">
+  <label>UKO Server directory</label>
+  <abstract>The provisioned UKO servers directory</abstract>
+  <description>The provisioned UKO servers directory containing server.env, jvm.options and product links</description>
+  <category>String Variables</category>
+  <string>
+    <default>NONE</default>
+  </string>
+</variable>
+
+<variable name="UKO_KEY_PREFIX" visibility="public">
+  <label>UKO_KEY_PREFIX</label>
+  <abstract>The UKO_KEY_PREFIX for the CSFKEYS class</abstract>
+  <description>The UKO_KEY_PREFIX to be used to generate a profile in the CSFKEYS class</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="REXX_HLQ" visibility="private">
+  <label>REXX_HLQ</label>
+  <abstract>The REXX_HLQ dataset</abstract>
+  <description>The HLQ of where REXX is installed, namely the SEAGALT dataset, required for loading
+    the pervasive encryption data with KMGUTIL</description>
+  <category>String Variables</category>
+  <string />
+</variable>
