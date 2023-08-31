@@ -35,7 +35,7 @@
   </workflowInfo>
   
   	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
-	<!--     Include WAS variables used by the following steps -->
+	<!--     Include variables used by the following steps     -->
 	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	&variables;
     <variable name="WAS_THE_DB_INSTALLED_FROM_FILE_OR_DATASET" scope="instance" visibility="public">
@@ -275,6 +275,8 @@
             <variableValue name="DB_DATASET_INSTALL_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_UKO" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="DB_NAME_DATASET_ENCRYPTION_STATUS" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_STOGROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_BUFFERPOOL" scope="instance" noPromptIfSet="false" required="false"/>
             <instructions substitution="true">Submit shell script to execute step</instructions>
             <weight>1</weight>
             <autoEnable>true</autoEnable>
@@ -285,7 +287,7 @@
         </step>
 
 
-        <step name="ExecuteUpdateDDL">
+        <step name="executeUpdateDDL">
             <title>Execute DDL to update the Db2 database</title>
             <description>Execute the list of DDLs that have ben created before</description>
             <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
@@ -301,7 +303,7 @@
             </template>
         </step>
 
-        <step name="RepairReorg">
+        <step name="repairReorg">
             <title>Execute DDL to repair and reorg the Db2 database</title>
             <description>This step issues commands to repair certain tables and to REORG the database</description>
             <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
@@ -319,11 +321,11 @@
 
     </step>
 
-    <step name="fixAzureKeystores">
-		<title>Specific Updates to Azure</title>
-		<description>Update the UKO database</description>
+    <step name="additionalFixes">
+		<title>Additional fixes</title>
+		<description>Additional fixes that need to be applied after the previous updates</description>
 
-        <step name="createDdlListFromDatasetAzure" optional="false">
+        <step name="createDdlListFromDatasetAdditional" optional="false">
             <title>Create list of DDLs from a data set</title>
             <description>Create the list of DDLs to be executed</description>
             <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
@@ -360,7 +362,7 @@
             </template>
         </step>
         
-        <step name="createDDLFromDatasetAzure" optional="false">
+        <step name="createDDLFromDatasetAdditional" optional="false">
             <title>Create DDL from data set</title>
             <description>Create the DDL to be executed</description>
             <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
@@ -390,7 +392,7 @@
         </step>
 
 
-        <step name="ExecuteUpdateDDLAzure">
+        <step name="ExecuteUpdateDDLAdditional">
             <title>Execute DDL to update the Db2 database</title>
             <description>Execute the list of DDLs that have ben created before</description>
             <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>

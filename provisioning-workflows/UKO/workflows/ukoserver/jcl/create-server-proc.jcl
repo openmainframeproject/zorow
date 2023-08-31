@@ -44,7 +44,7 @@
 //STDENV   DD   *
 _BPX_SHAREAS=YES
 JAVA_HOME=${instance-JAVA_HOME}
-WLP_USER_DIR=${instance-UKO_ZFS_MOUNTPOINT}
+WLP_USER_DIR=${instance-WLP_USER_DIR}
 #JVM_OPTIONS=<Optional JVM parameters>
 //*
 // PEND

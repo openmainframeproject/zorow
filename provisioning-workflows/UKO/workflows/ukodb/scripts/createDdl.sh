@@ -62,3 +62,6 @@ for i in `cat ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.files`; do
   rm ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.tmp.ddl
   rm ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.conv.ddl
 done;
+
+echo "making ${instance-UKO_ADMIN_DB} the owner of the ddl file zosmf-${_workflow-workflowKey}.ddl"
+chown ${instance-UKO_ADMIN_DB} ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl

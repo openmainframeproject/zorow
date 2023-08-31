@@ -12,6 +12,8 @@ TLS_KEY_STORE_SERVER_CERT="${instance-UKO_TLS_KEY_STORE_SERVER_CERT}"
 OIDC_PROVIDER_CERT="${instance-UKO_OIDC_PROVIDER_CERT}"
 
 Say "Generate a server certificate"
+Say "Define "||TLS_KEY_STORE_SERVER_CERT||" for "||SERVER_STC_USER||" with CA "||CA_LABEL||" "
+
 "RACDCERT ID("||SERVER_STC_USER||") GENCERT",
    " SUBJECTSDN(CN('${instance-UKO_TLS_KEY_STORE_SERVER_CERT_CN}')",
       " OU('${instance-UKO_TLS_KEY_STORE_SERVER_CERT_OU}')",
@@ -25,6 +27,7 @@ Say "Generate a server certificate"
  end
 
 Say "Generate an OIDC certificate"
+Say "Define "||OIDC_PROVIDER_CERT||" for "||SERVER_STC_USER||" with CA "||CA_LABEL||" "
 "RACDCERT ID("||SERVER_STC_USER||") GENCERT",
    " SUBJECTSDN(CN('${instance-UKO_TLS_KEY_STORE_SERVER_CERT_CN}')",
       " OU('${instance-UKO_TLS_KEY_STORE_SERVER_CERT_OU}')",

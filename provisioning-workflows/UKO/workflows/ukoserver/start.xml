@@ -34,7 +34,7 @@
   </workflowInfo>
   
   	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
-	<!--     Include WAS variables used by the following steps -->
+	<!--     Include variables used by the following steps     -->
 	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	&variables;
 	
@@ -96,10 +96,10 @@
                 <inlineTemplate substitution="true">
                     #set ( $d = "$")
                     #set ($zfs = "${instance-UKO_FILE_SYSTEM_HLQ}.${instance-UKO_SERVER_STC_NAME}")
-                    if [ ! -d ${instance-UKO_ZFS_MOUNTPOINT}/servers/${instance-UKO_SERVER_STC_NAME}/PROVISION_OK ];
+                    if [ ! -d ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/PROVISION_OK ];
                     then
 						# Query information about the main mountpoint
-						df_out=${d}(df ${instance-UKO_ZFS_MOUNTPOINT})
+						df_out=${d}(df ${instance-WLP_USER_DIR})
 						
 						echo "df_out set to ${d}df_out"
 						
@@ -109,7 +109,7 @@
 						echo "dataset set to ${d}dataset"
 						
 						# Using the data set restrict using grep in the mount -qv comment
-						mount_info=${d}(mount -qv ${instance-UKO_ZFS_MOUNTPOINT} | grep ${d}dataset)
+						mount_info=${d}(mount -qv ${instance-WLP_USER_DIR} | grep ${d}dataset)
 						
 						echo "mount_info set to ${d}mount_info"
 						
@@ -136,9 +136,9 @@
 						
 						echo "mountvalue ${d}mountvalue"
 						
-						echo "Running command: mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-UKO_ZFS_MOUNTPOINT}/servers/${instance-UKO_SERVER_STC_NAME}"
+						echo "Running command: mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}"
 						
-						mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-UKO_ZFS_MOUNTPOINT}/servers/${instance-UKO_SERVER_STC_NAME}
+						mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}
 						rc=${d}?
 						if [ ${d}rc -gt 0 ]; then
 						  echo "Failed to mount the directory see STDERR with RC ${d}rc"

@@ -3,19 +3,6 @@
 /* Copyright Contributors to the zOS-Workflow Project.            */
 /* PDX-License-Identifier: Apache-2.0                             */
 /*----------------------------------------------------------------*/
-/***********************************************************************/
-/*                                                                     */
-/* PLEASE READ                                                         */
-/*                                                                     */
-/* This script contains example security profiles for dynamically      */
-/* configuring security as part of the deletion of a UKO         */
-/* server.                                                             */
-/*                                                                     */
-/* By default this script does nothing, as there is an 'exit 0'        */
-/* statement directly under this comment.  Review the profiles being   */
-/* deleted and remove the 'exit 0' if you wish to use this script.     */
-/*                                                                     */
-/***********************************************************************/
 
 AGENT_STC_USER="${instance-UKO_AGENT_STC_USER}"
 AGENT_STC_GROUP="${instance-UKO_AGENT_STC_GROUP}"
@@ -33,7 +20,7 @@ Say "Deleting STARTED task for the agent"
 
 "SETROPTS RACLIST(STARTED) REFRESH"
 
-#if($!{instance-UKO_CREATE_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "TRUE" ) 
 /***********************************************************************/
 /***********************************************************************/
 /* Remove userids from profiles                                        */
@@ -77,18 +64,6 @@ Say "Removing access to KMG.EKMF.SMF from "||AGENT_STC_GROUP||" "
 
 Say "Deleting KMG.WEBCLIENT."||AGENT_CLIENT_USER||" in the XFACILIT class"
 "RDELETE XFACILIT KMG.WEBCLIENT."||AGENT_CLIENT_USER||" "
-
-"SETROPTS RACLIST(XFACILIT) REFRESH"
-
-/***********************************************************************/
-/* Diffie-Hellman */
-/***********************************************************************/
-
-Say "Removing access to KMG.WS.* class(XFACILIT) to "||AGENT_STC_GROUP||" "
-"PERMIT KMG.WS.* CLASS(XFACILIT) DELETE ID("||AGENT_STC_GROUP||")"
-
-Say "Removing access to KMG.LG.* class(XFACILIT) to "||AGENT_STC_GROUP||" "
-"PERMIT KMG.LG.* CLASS(XFACILIT) DELETE ID("||AGENT_STC_GROUP||")"
 
 "SETROPTS RACLIST(XFACILIT) REFRESH"
 

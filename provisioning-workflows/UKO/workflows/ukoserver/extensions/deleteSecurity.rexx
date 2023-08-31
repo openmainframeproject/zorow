@@ -3,22 +3,9 @@
 /* Copyright Contributors to the zOS-Workflow Project.            */
 /* PDX-License-Identifier: Apache-2.0                             */
 /*----------------------------------------------------------------*/
-/***********************************************************************/
-/*                                                                     */
-/* PLEASE READ                                                         */
-/*                                                                     */
-/* This script contains example security profiles for dynamically      */
-/* configuring security as part of the deletion of a UKO         */
-/* server.                                                             */
-/*                                                                     */
-/* By default this script does nothing, as there is an 'exit 0'        */
-/* statement directly under this comment.  Review the profiles being   */
-/* deleted and remove the 'exit 0' if you wish to use this script.     */
-/*                                                                     */
-/***********************************************************************/
 
 SERVER_STC_USER="${instance-UKO_SERVER_STC_USER}"
-SERVER_TASK_GROUP="${instance-UKO_SERVER_STC_GROUP}"
+SERVER_STC_GROUP="${instance-UKO_SERVER_STC_GROUP}"
 
 SERVER_UNAUTHENTICATED_USER="${instance-UKO_UNAUTHENTICATED_USER}"
 SERVER_UNAUTHENTICATED_GROUP="${instance-UKO_UNAUTHENTICATED_GROUP}"
@@ -36,7 +23,7 @@ Say "Deleting STARTED task for the server"
 Say "Refreshing STARTED"
 "SETROPTS RACLIST(STARTED) REFRESH"
 
-#if($!{instance-UKO_CREATE_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "TRUE" ) 
 /***********************************************************************/
 /***********************************************************************/
 /* Remove userids from profiles                                        */
@@ -83,8 +70,8 @@ Say "Remove "||SERVER_STC_USER||" access from security domain for the server"
 /* Delete the servers access to the angel process                      */
 /***********************************************************************/
 Say "Removing the servers access to the angel process"
-#if(${instance-UKO_ANGEL_NAME} && ${instance-UKO_ANGEL_NAME} != "")
-"PERMIT BBG.ANGEL.${instance-UKO_ANGEL_NAME} CLASS(SERVER)",
+#if(${instance-WLP_ANGEL_NAME} && ${instance-WLP_ANGEL_NAME} != "")
+"PERMIT BBG.ANGEL.${instance-WLP_ANGEL_NAME} CLASS(SERVER)",
    " DELETE ID("||SERVER_STC_USER||")"
 #else
 "PERMIT BBG.ANGEL CLASS(SERVER) DELETE ID("||SERVER_STC_USER||")"
@@ -127,8 +114,8 @@ Say "Refreshing SERVER"
 /***********************************************************************/
 /* SMF Logging */
 /***********************************************************************/
-Say "Removing access to BPX.SMF CLASS(FACILITY) from "||SERVER_TASK_GROUP||" "
-"PERMIT BPX.SMF CLASS(FACILITY) DELETE ID("||SERVER_TASK_GROUP||") "
+Say "Removing access to BPX.SMF CLASS(FACILITY) from "||SERVER_STC_GROUP||" "
+"PERMIT BPX.SMF CLASS(FACILITY) DELETE ID("||SERVER_STC_GROUP||") "
 
 Say "Refreshing FACILITY"
 "SETROPTS RACLIST(FACILITY) REFRESH"

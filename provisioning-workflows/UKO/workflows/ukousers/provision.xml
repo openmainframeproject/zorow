@@ -34,7 +34,7 @@
   </workflowInfo>
   
   	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
-	<!--     Include WAS variables used by the following steps -->
+	<!--     Include variables used by the following steps     -->
 	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	&variables;
 	&image_properties;
@@ -44,8 +44,23 @@
     <!--++++++++++++++++++++++-->  
 	
 
-    <step name="configureSAFSecurityProfiles">
-        <title>Configure SAF Security</title>
+    <step name="defineTechnicalUsers">
+        <title>Define technical users and groups</title>
+        <description>Define technical user IDs and groups</description>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+        <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+        <instructions substitution="true">Submit rexx exec to execute step</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">extensions/defineTechnicalUsers.rexx</fileTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>1024</maxLrecl>
+        </template>
+    </step>
+
+    <step name="defineRoleUsers">
+        <title>Define role users and groups</title>
         <description>Define users and groups</description>
         <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
         <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
@@ -53,10 +68,40 @@
         <weight>1</weight>
         <autoEnable>true</autoEnable>
         <template>
-            <fileTemplate substitution="true">extensions/defineSecurity.rexx</fileTemplate>
+            <fileTemplate substitution="true">extensions/defineRoleUsers.rexx</fileTemplate>
             <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
             <maxLrecl>1024</maxLrecl>
         </template>
+    </step>
+
+    <step name="defineKeyPrefix">
+        <title>Define key prefix</title>
+        <description>Define the key prefix from CSFKEYS</description>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+	    <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+        <instructions substitution="true">Define the appropriate SAF profiles created by this workflow</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+       	<template>
+           	<fileTemplate substitution="true">extensions/defineKeyPrefix.rexx</fileTemplate>
+           	<submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+           	<maxLrecl>1024</maxLrecl>
+       	</template>
+    </step>
+
+    <step name="defineSchemaGroup">
+        <title>Define schema group</title>
+        <description>Define the group for the schema access</description>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+	    <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+        <instructions substitution="true">Define the appropriate SAF profiles created by this workflow</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+       	<template>
+           	<fileTemplate substitution="true">extensions/defineSchemaGroup.rexx</fileTemplate>
+           	<submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+           	<maxLrecl>1024</maxLrecl>
+       	</template>
     </step>
 
 </workflow>

@@ -8,33 +8,22 @@
 /***********************************************************************/
 
 SERVER_STC_USER="${instance-UKO_SERVER_STC_USER}"
-SERVER_TASK_GROUP="${instance-UKO_SERVER_STC_GROUP}"
+SERVER_STC_GROUP="${instance-UKO_SERVER_STC_GROUP}"
 
 SERVER_UNAUTHENTICATED_USER="${instance-UKO_UNAUTHENTICATED_USER}"
 SERVER_UNAUTHENTICATED_GROUP="${instance-UKO_UNAUTHENTICATED_GROUP}"
 
-KEY_ADMIN="${instance-UKO_KEY_ADMIN}"
-KEY_ADMIN_GROUP="${instance-UKO_KEY_ADMIN_GROUP}"
-
-
-/***********************************************************************/
-/* SMF Logging */
-/***********************************************************************/
-
-/* This is required only if smf logging is enabled */
-Say "Creating BPX.SMF in the FACILITY class to enable SMF logging"
-"RDEFINE FACILITY BPX.SMF UACC(NONE)" 
-Say "Granting access to BPX.SMF CLASS(FACILITY) to "||SERVER_TASK_GROUP||" "
-"PERMIT BPX.SMF CLASS(FACILITY) ID("||SERVER_TASK_GROUP||") ACCESS(READ)"
-
-Say "Refreshing FACILITY"
-"SETROPTS RACLIST(FACILITY) REFRESH"
+KEY_ADMIN="${instance-UKO_KEY_ADMIN_GROUP}"
+KEY_CUSTODIAN1="${instance-UKO_KEY_CUSTODIAN1_GROUP}"
+KEY_CUSTODIAN2="${instance-UKO_KEY_CUSTODIAN2_GROUP}"
+UKO_AUDITOR="${instance-UKO_AUDITOR_GROUP}"
+SERVER_STC_NAME="${instance-UKO_SERVER_STC_NAME}"
 
 /***********************************************************************/
 /* Setup the STARTED task for this server                              */
 /***********************************************************************/
 Say "Defining STARTED task for the server"
-"RDEF STARTED ${instance-UKO_SERVER_STC_NAME}.* UACC(NONE)",
+"RDEF STARTED "||SERVER_STC_NAME||".* UACC(NONE)",
    " STDATA(USER("||SERVER_STC_USER||") PRIVILEGED(NO) TRUSTED(NO) TRACE(YES))"
 
 Say "Refreshing STARTED"
@@ -54,8 +43,14 @@ Say "Grant an unauthenticated "||SERVER_UNAUTHENTICATED_USER||" user ID READ acc
 "PERMIT EKMFWEB CLASS(APPL) ACCESS(READ) ID("||SERVER_UNAUTHENTICATED_USER||")"
 
 Say "All users that will access UKO are required to have READ access to this resource."
-Say "Grant access to UKO to "||KEY_ADMIN_GROUP||" "
-"PERMIT EKMFWEB CLASS(APPL) ACCESS(READ) ID("||KEY_ADMIN_GROUP||")"
+Say "Grant access to UKO to "||KEY_ADMIN||" "
+"PERMIT EKMFWEB CLASS(APPL) ACCESS(READ) ID("||KEY_ADMIN||")"
+Say "Grant access to UKO to "||KEY_CUSTODIAN1||" "
+"PERMIT EKMFWEB CLASS(APPL) ACCESS(READ) ID("||KEY_CUSTODIAN1||")"
+Say "Grant access to UKO to "||KEY_CUSTODIAN2||" "
+"PERMIT EKMFWEB CLASS(APPL) ACCESS(READ) ID("||KEY_CUSTODIAN2||")"
+Say "Grant access to UKO to "||UKO_AUDITOR||" "
+"PERMIT EKMFWEB CLASS(APPL) ACCESS(READ) ID("||UKO_AUDITOR||")"
 
 Say "Refreshing APPL"
 "SETROPTS RACLIST(APPL) REFRESH"
@@ -75,11 +70,11 @@ Say "Grant the servers id READ access to the security domain for the server"
 /* Grant the server access to the angel process                        */
 /***********************************************************************/
 
-#if(${instance-UKO_ANGEL_NAME} && ${instance-UKO_ANGEL_NAME} != "")
+#if(${instance-WLP_ANGEL_NAME} && ${instance-WLP_ANGEL_NAME} != "")
 Say "Define the class for the named angel process"
-"RDEFINE SERVER BBG.ANGEL.${instance-UKO_ANGEL_NAME} UACC(NONE)"
+"RDEFINE SERVER BBG.ANGEL.${instance-WLP_ANGEL_NAME} UACC(NONE)"
 Say "Permitting the server access to the angel process"
-"PERMIT BBG.ANGEL.${instance-UKO_ANGEL_NAME} CLASS(SERVER)",
+"PERMIT BBG.ANGEL.${instance-WLP_ANGEL_NAME} CLASS(SERVER)",
    " ACCESS(READ) ID("||SERVER_STC_USER||")"
 #else
 Say "Define the class for the default angel process"
@@ -188,5 +183,18 @@ Say "Granting access to RRSAF profile to "||SERVER_STC_USER||" "
 
 Say "Refreshing DSNR"
 "SETROPTS RACLIST(DSNR) REFRESH"
+
+/***********************************************************************/
+/* SMF Logging */
+/***********************************************************************/
+
+/* This is required only if smf logging is enabled */
+Say "Creating BPX.SMF in the FACILITY class to enable SMF logging"
+"RDEFINE FACILITY BPX.SMF UACC(NONE)" 
+Say "Granting access to BPX.SMF CLASS(FACILITY) to "||SERVER_STC_GROUP||" "
+"PERMIT BPX.SMF CLASS(FACILITY) ID("||SERVER_STC_GROUP||") ACCESS(READ)"
+
+Say "Refreshing FACILITY"
+"SETROPTS RACLIST(FACILITY) REFRESH"
 
 exit

@@ -42,7 +42,7 @@
 //SYSTSIN   DD *
   PROFILE MSGID WTPMSG
   MKDIR +
-'${instance-UKO_ZFS_MOUNTPOINT}/servers/${instance-UKO_SERVER_STC_NAME}' +
+'${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}' +
         MODE(7,5,5)
 /*
 #if(${instance-WLP_OUTPUT_DIR} && $!{instance-WLP_OUTPUT_DIR} != "")

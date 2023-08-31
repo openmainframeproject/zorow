@@ -35,118 +35,15 @@
   </workflowInfo>
   
   	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
-	<!--     Include WAS variables used by the following steps -->
+	<!--     Include variables used by the following steps     -->
 	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	&variables;
 	&image_properties;
-
-    <!--+++++++++++++++++++++++-->
-    <!--   Validation Steps    -->
-    <!--+++++++++++++++++++++++-->  
-
-    
-    <step name="validateConsoleAPI" optional="false">
-        <title>Validating console commands can be issued</title>
-        <description>Issue a command via the console API to ensure basic commands can be executed.</description>
-        <runAsUser substitution="true">$!{instance-UKO_ADMIN_CONSOLE}</runAsUser>
-        <approver substitution="true">$!{instance-UKO_APPROVER_CONSOLE}</approver>
-        <condition>
-            <expression><![CDATA["1" == "1"]]></expression>
-            <description>Should the step be executed, based on the START_AGENT setting</description>
-            <targetStateSet>
-              <description/>
-                <extendStateExpression>
-                    <description>Skip if START_AGENT == false</description>
-                  <expression><![CDATA[ ${instance-START_AGENT} == "false"]]></expression>
-                    <targetState>Skipped</targetState>
-                </extendStateExpression>
-            </targetStateSet>
-        </condition>
-        <variableValue name="UKO_AGENT_STC_NAME" scope="instance" noPromptIfSet="false" required="false"/>
-        <instructions>Execute console API to check if its set up correctly</instructions>
-        <weight>1</weight>
-        <skills>z/OS administration</skills>
-        <autoEnable>true</autoEnable>
-        <rest>
-            <httpMethod>PUT</httpMethod>
-            <uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
-            <requestBody substitution="true">
-                { 
-                  "cmd" : "d a,${instance-UKO_AGENT_STC_NAME}",
-                  "sol-key" : "NOT FOUND",
-                  "system" : "${_workflow-systemName}"
-                  
-                }
-            </requestBody>
-            <expectedStatusCode>200</expectedStatusCode>
-            <propertyMapping mapTo="UKO_REST_STATUS">["sol-key-detected"]</propertyMapping>
-        </rest>
-    </step>
 
     <!--++++++++++++++++++++++-->
     <!--   Provision Steps    -->
     <!--++++++++++++++++++++++-->  
 
-    <step name="configureSecurity">
-    	<title>Configure Security for UKO agent</title>
-    	<description>Configure security for UKO agent and related resources</description>
-
-        <step name="configureSAFSecurityProfiles">
-            <title>Configure SAF Security</title>
-            <description>Configure UKO agent Security</description>
-            <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
-            <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
-            <variableValue name="UKO_AGENT_STC_NAME" scope="instance" noPromptIfSet="false" required="false"/>
-            <variableValue name="UKO_AGENT_STC_USER" scope="instance" noPromptIfSet="false" required="false"/>
-            <variableValue name="UKO_AGENT_STC_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
-            <variableValue name="UKO_AGENT_CLIENT_USER" scope="instance" noPromptIfSet="false" required="false"/>
-            <variableValue name="UKO_AGENT_CLIENT_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
-            <instructions substitution="true">Submit rexx exec to execute step</instructions>
-            <weight>1</weight>
-            <autoEnable>true</autoEnable>
-            <template>
-                <fileTemplate substitution="true">extensions/defineSecurity.rexx</fileTemplate>
-                <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
-                <maxLrecl>1024</maxLrecl>
-            </template>
-        </step>
-
-        <step name="additionalSecuritySetup">
-            <title>Additional Security Setup</title>
-            <description>Specifying additional security settings</description>
-
-            <step name="defineKeyAccess">
-                <title>Key prefix creation</title>
-                <description>Create entry in CSFKEYS class and grant access</description>
-                <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
-                <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
-                <variableValue name="UKO_KEY_PREFIX" scope="instance" noPromptIfSet="false" required="false"/>
-                <instructions>Executes a REXX program to create the key prefix</instructions>
-                <weight>1</weight>
-                <autoEnable>true</autoEnable>
-                <template>
-                    <fileTemplate substitution="true">extensions/defineKeyAccess.rexx</fileTemplate>
-                    <submitAs maxRc="4">TSO-REXX-JCL</submitAs>
-                    <maxLrecl>1024</maxLrecl>
-                </template>
-            </step>
-            <step name="defineIcsfAccess">
-                <title>Define access to ICSF</title>
-                <description>Define the profiles in the CSFSERV class and grant access</description>
-                <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
-                <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
-                <instructions>Executes a REXX program to create profiles and grant access</instructions>
-                <weight>1</weight>
-                <autoEnable>true</autoEnable>
-                <template>
-                    <fileTemplate substitution="true">extensions/defineIcsfAccess.rexx</fileTemplate>
-                    <submitAs maxRc="4">TSO-REXX-JCL</submitAs>
-                    <maxLrecl>1024</maxLrecl>
-                </template>
-            </step>
-        </step>
-
-	</step>
 
     <step name="configureAgent">
     	<title>Configure UKO agent</title>
@@ -210,10 +107,122 @@
         </step>
 	</step>
 
+    <step name="configureSecurity">
+    	<title>Configure Security for UKO agent</title>
+    	<description>Configure security for UKO agent and related resources</description>
+
+        <step name="configureSAFSecurityProfiles">
+            <title>Configure SAF Security</title>
+            <description>Configure UKO agent Security</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+            <variableValue name="UKO_AGENT_STC_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_AGENT_STC_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_AGENT_STC_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_AGENT_CLIENT_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_AGENT_CLIENT_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit rexx exec to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">extensions/defineSecurity.rexx</fileTemplate>
+                <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+                <maxLrecl>1024</maxLrecl>
+            </template>
+        </step>
+
+        <step name="defineIcsfAccess">
+            <title>Define access to ICSF</title>
+            <description>Define the profiles in the CSFSERV class and grant access</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+            <instructions>Executes a REXX program to create profiles and grant access</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">extensions/defineIcsfAccess.rexx</fileTemplate>
+                <submitAs maxRc="4">TSO-REXX-JCL</submitAs>
+                <maxLrecl>1024</maxLrecl>
+            </template>
+        </step>
+
+        <step name="defineLinkEncryption">
+            <title>Define link encryption</title>
+            <description>Define link encryption between the agent and clients</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+            <variableValue name="UKO_SERVER_PUBLIC_KEY_HASH" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_AGENT_STC_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit rexx exec to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">extensions/defineLinkEncryption.rexx</fileTemplate>
+                <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+                <maxLrecl>1024</maxLrecl>
+            </template>
+        </step>
+
+        <step name="defineKeyAccess">
+            <title>Key prefix creation</title>
+            <description>Create entry in CSFKEYS class and grant access</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+            <variableValue name="UKO_KEY_PREFIX" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions>Executes a REXX program to create the key prefix</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">extensions/defineKeyAccess.rexx</fileTemplate>
+                <submitAs maxRc="4">TSO-REXX-JCL</submitAs>
+                <maxLrecl>1024</maxLrecl>
+            </template>
+        </step>
+
+
+	</step>
 
     <step name="startAgent">
         <title>Start the agent</title>
         <description>Start the agent</description>
+
+        <step name="validateConsoleAPI" optional="false">
+            <title>Validating console commands can be issued</title>
+            <description>Issue a command via the console API to ensure basic commands can be executed.</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_CONSOLE}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_CONSOLE}</approver>
+            <condition>
+                <expression><![CDATA["1" == "1"]]></expression>
+                <description>Should the step be executed, based on the START_AGENT setting</description>
+                <targetStateSet>
+                  <description/>
+                    <extendStateExpression>
+                        <description>Skip if START_AGENT == false</description>
+                      <expression><![CDATA[ ${instance-START_AGENT} == "false"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <variableValue name="UKO_AGENT_STC_NAME" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions>Execute console API to check if its set up correctly</instructions>
+            <weight>1</weight>
+            <skills>z/OS administration</skills>
+            <autoEnable>true</autoEnable>
+            <rest>
+                <httpMethod>PUT</httpMethod>
+                <uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+                <requestBody substitution="true">
+                    { 
+                      "cmd" : "d a,${instance-UKO_AGENT_STC_NAME}",
+                      "sol-key" : "NOT FOUND",
+                      "system" : "${_workflow-systemName}"
+                      
+                    }
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+                <propertyMapping mapTo="UKO_REST_STATUS">["sol-key-detected"]</propertyMapping>
+            </rest>
+        </step>    
 
         <step name="startAgent_console">
         	<title>Start the agent from console</title>

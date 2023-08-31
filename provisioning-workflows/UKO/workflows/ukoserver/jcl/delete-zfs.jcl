@@ -10,9 +10,9 @@
 //STDERR  DD SYSOUT=*
 //STDPARM DD *
 sh
-if [ -d ${instance-UKO_ZFS_MOUNTPOINT}/servers/${instance-UKO_SERVER_STC_NAME}/PROVISION_OK ];
+if [ -d ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/PROVISION_OK ];
 then
-/usr/sbin/unmount -o immediate ${instance-UKO_ZFS_MOUNTPOINT}/servers/${instance-UKO_SERVER_STC_NAME};
+/usr/sbin/unmount -o immediate ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME};
 #if(${instance-WLP_OUTPUT_DIR} && $!{instance-WLP_OUTPUT_DIR} != "")
 /usr/sbin/unmount -o immediate ${instance-WLP_OUTPUT_DIR}/${instance-UKO_SERVER_STC_NAME};
 #end

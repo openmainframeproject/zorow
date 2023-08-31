@@ -34,7 +34,7 @@ Say "Generate the trust ring"
 /* ********************************************** */
 /* keyring access section                         */
 /* ********************************************** */
-
+Say "RDATALIB definitions: "
 /* Enable the Liberty user to use the key ring */
 Say "Define "||SERVER_STC_USER||"."||TLS_KEY_STORE_KEY_RING||" "
 "RDEFINE RDATALIB",

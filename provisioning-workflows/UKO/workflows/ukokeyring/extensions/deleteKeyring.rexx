@@ -3,21 +3,6 @@
 /* Copyright Contributors to the zOS-Workflow Project.            */
 /* PDX-License-Identifier: Apache-2.0                             */
 /*----------------------------------------------------------------*/
-/***********************************************************************/
-/*                                                                     */
-/* PLEASE READ                                                         */
-/*                                                                     */
-/* This script contains an example for deleting the dynamic keyring    */
-/* and certificate as part of the deletion of a UKO server.      */
-/*                                                                     */
-/* By default this script does nothing, as there is an 'exit 0'        */
-/* statement directly under this comment.  Review the keyring and      */
-/* certificate being deleted and remove the 'exit 0' if you wish to    */
-/* use this script.                                                    */
-/*                                                                     */
-/***********************************************************************/
-
-/* exit 0 */ 
 
 SERVER_STC_USER="${instance-UKO_SERVER_STC_USER}"
 CA_LABEL="${instance-UKO_CA_LABEL}"
@@ -80,7 +65,7 @@ Say "Refresh RDATALIB"
     #end
 #end
 
-#if($!{instance-UKO_CREATE_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "TRUE" ) 
 Say "Removing access to IRR.DIGTCERT.LISTRING profile from "||SERVER_STC_USER||" "
 "PERMIT IRR.DIGTCERT.LISTRING CLASS(FACILITY)",
    " DELETE ID("||SERVER_STC_USER||")"                 

@@ -85,17 +85,15 @@
   </string>
 </variable>
 
-<variable name="UKO_ANGEL_NAME" visibility="private">
-  <label>UKO_ANGEL_NAME</label>
+<variable name="WLP_ANGEL_NAME" visibility="private">
+  <label>WLP_ANGEL_NAME</label>
   <abstract>Name of the Angel server</abstract>
   <description>If an Angel is to be created, this will be the name. If no name specified, a name
     will be generated. If no Angel is to be created, this is the existing Angel to connect to. If no
     name specified, UKO will connect to the default Angel</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
@@ -234,6 +232,92 @@
     <default>false</default>
   </string>
 </variable>
+
+<variable name="UKO_SERVER_PUBLIC_KEY_HASH" scope="instance" visibility="public">
+  <label>UKO_SERVER_PUBLIC_KEY_HASH</label>
+  <abstract>Public key hash of the UKO server</abstract>
+  <description>UKO server public key hash consisting of 64 hex characters you find it when you click on the question mark in the top right corner. Specify * if you want this agent to be accessible by any client.</description>
+  <category>String Variables</category>
+  <string>
+    <!-- 64 hex caharacters or * -->
+    <regularExpression>^[0-9a-fA-F]{64}$|^\*$</regularExpression>
+    <default>*</default>
+  </string>
+</variable>
+
+<variable name="UKO_VAULT_ID" visibility="public">
+  <label>UKO_VAULT_ID</label>
+  <abstract>Vault ID to grant access to, select "ekmfwebv2" for EKMF Web 2.x</abstract>
+  <description>Specify the vault ID to grant access to, where 00000000-0000-0000-0000-000000000000 is the default vault, * will be all vaults. Leave empty if you provision UKO pre V3.1.</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>*</choice>
+    <choice>ekmfwebv2</choice>
+    <choice>00000000-0000-0000-0000-000000000000</choice>
+    <choice>10000000-0000-0000-0000-111111111111</choice>
+    <choice>20000000-0000-0000-0000-111111111111</choice>
+    <choice>30000000-0000-0000-0000-111111111111</choice>
+    <choice>40000000-0000-0000-0000-111111111111</choice>
+    <choice>50000000-0000-0000-0000-111111111111</choice>
+    <choice>60000000-0000-0000-0000-111111111111</choice>
+    <choice>70000000-0000-0000-0000-111111111111</choice>
+    <choice>80000000-0000-0000-0000-111111111111</choice>
+    <choice>90000000-0000-0000-0000-111111111111</choice>
+    <choice>a0000000-0000-0000-0000-111111111111</choice>
+    <choice>b0000000-0000-0000-0000-111111111111</choice>
+    <choice>c0000000-0000-0000-0000-111111111111</choice>
+    <choice>d0000000-0000-0000-0000-111111111111</choice>
+    <choice>e0000000-0000-0000-0000-111111111111</choice>
+    <choice>f0000000-0000-0000-0000-111111111111</choice>
+    <choice>00000000-1000-0000-0000-222222222222</choice>
+    <choice>00000000-2000-0000-0000-222222222222</choice>
+    <choice>00000000-3000-0000-0000-222222222222</choice>
+    <choice>00000000-4000-0000-0000-222222222222</choice>
+    <choice>00000000-5000-0000-0000-222222222222</choice>
+    <choice>00000000-6000-0000-0000-222222222222</choice>
+    <choice>00000000-7000-0000-0000-222222222222</choice>
+    <choice>00000000-8000-0000-0000-222222222222</choice>
+    <choice>00000000-9000-0000-0000-222222222222</choice>
+    <choice>00000000-a000-0000-0000-222222222222</choice>
+    <choice>00000000-b000-0000-0000-222222222222</choice>
+    <choice>00000000-c000-0000-0000-222222222222</choice>
+    <choice>00000000-d000-0000-0000-222222222222</choice>
+    <choice>00000000-e000-0000-0000-222222222222</choice>
+    <choice>00000000-f000-0000-0000-222222222222</choice>
+    <choice>00000000-0000-1000-0000-333333333333</choice>
+    <choice>00000000-0000-2000-0000-333333333333</choice>
+    <choice>00000000-0000-3000-0000-333333333333</choice>
+    <choice>00000000-0000-4000-0000-333333333333</choice>
+    <choice>00000000-0000-5000-0000-333333333333</choice>
+    <choice>00000000-0000-6000-0000-333333333333</choice>
+    <choice>00000000-0000-7000-0000-333333333333</choice>
+    <choice>00000000-0000-8000-0000-333333333333</choice>
+    <choice>00000000-0000-9000-0000-333333333333</choice>
+    <choice>00000000-0000-a000-0000-333333333333</choice>
+    <choice>00000000-0000-b000-0000-333333333333</choice>
+    <choice>00000000-0000-c000-0000-333333333333</choice>
+    <choice>00000000-0000-d000-0000-333333333333</choice>
+    <choice>00000000-0000-e000-0000-333333333333</choice>
+    <choice>00000000-0000-f000-0000-333333333333</choice>
+    <choice>00000000-0000-0000-1000-444444444444</choice>
+    <choice>00000000-0000-0000-2000-444444444444</choice>
+    <choice>00000000-0000-0000-3000-444444444444</choice>
+    <choice>00000000-0000-0000-4000-444444444444</choice>
+    <choice>00000000-0000-0000-5000-444444444444</choice>
+    <choice>00000000-0000-0000-6000-444444444444</choice>
+    <choice>00000000-0000-0000-7000-444444444444</choice>
+    <choice>00000000-0000-0000-8000-444444444444</choice>
+    <choice>00000000-0000-0000-9000-444444444444</choice>
+    <choice>00000000-0000-0000-a000-444444444444</choice>
+    <choice>00000000-0000-0000-b000-444444444444</choice>
+    <choice>00000000-0000-0000-c000-444444444444</choice>
+    <choice>00000000-0000-0000-d000-444444444444</choice>
+    <choice>00000000-0000-0000-e000-444444444444</choice>
+    <choice>00000000-0000-0000-f000-444444444444</choice>
+    <default>00000000-0000-0000-0000-000000000000</default>
+  </string>
+</variable>
+
 
 <!--++++++++++++++++++++++++++++-->
 <!-- Network resource variables -->
@@ -386,8 +470,8 @@
 <!-- File System creation -->
 <!--++++++++++++++++++++++-->
 
-<variable name="UKO_ZFS_MOUNTPOINT" visibility="private">
-  <label>UKO_ZFS_MOUNTPOINT</label>
+<variable name="WLP_USER_DIR" visibility="private">
+  <label>WLP_USER_DIR</label>
   <abstract> zfsMountPoint</abstract>
   <description>zfsMountPoint</description>
   <category>String Variables</category>
@@ -466,9 +550,7 @@
   <description>The userid that the UKO servers started task will run under</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 <variable name="UKO_APPROVER_SERVER" visibility="private">
@@ -488,9 +570,7 @@
   <description>The userid that the UKO database creation task will run under</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 <variable name="UKO_APPROVER_DB" visibility="private">
@@ -510,9 +590,7 @@
   <description>The APF authorized userid to run SAF certificate creation/deletion and SAF profile creation/deletion</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 <variable name="UKO_APPROVER_SECURITY" visibility="private">
@@ -532,9 +610,7 @@
   <description>The id of the user authorized to create and mount file systems</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 <variable name="UKO_APPROVER_ZFS" visibility="private">
@@ -554,9 +630,7 @@
   <description>The user id for executing mvs console start and stop commands</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 <variable name="UKO_APPROVER_CONSOLE" visibility="private">
@@ -591,8 +665,8 @@
 <!--++++++++++++++++++++++++++++++-->
 <!-- Technical user ids           -->
 <!--++++++++++++++++++++++++++++++-->
-<variable name="UKO_CREATE_GROUPS" visibility="private">
-  <label>UKO_CREATE_GROUPS</label>
+<variable name="UKO_CREATE_TECHNICAL_GROUPS" visibility="private">
+  <label>UKO_CREATE_TECHNICAL_GROUPS</label>
   <abstract>Create the required groups</abstract>
   <description>Flag to indicate if groups are to be created</description>
   <category>String Variables</category>
@@ -603,8 +677,8 @@
   </string>
 </variable>
 
-<variable name="UKO_CREATE_USERIDS" visibility="private">
-  <label>UKO_CREATE_USERIDS</label>
+<variable name="UKO_CREATE_TECHNICAL_USERIDS" visibility="private">
+  <label>UKO_CREATE_TECHNICAL_USERIDS</label>
   <abstract>Create the required userids</abstract>
   <description>Flag to indicate if userids are to be created</description>
   <category>String Variables</category>
@@ -621,9 +695,7 @@
   <description>The id of the user authorized to run UKO Liberty Server as started task</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
@@ -633,9 +705,7 @@
   <description>The Liberty unauthenticated userid</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
@@ -645,9 +715,7 @@
   <description>The id of the user authorized to run the UKO agent as started task</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
@@ -658,9 +726,7 @@
     &amp;WEBCLIENT KPMGPARM</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
@@ -670,9 +736,7 @@
   <description>The group containing the id of the user authorized to run UKO Liberty Server as started task</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
@@ -682,9 +746,7 @@
   <description>The group containing the Liberty unauthenticated userid</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
@@ -694,9 +756,7 @@
   <description>The group containing the id of the user authorized to run the UKO agent as started task</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
@@ -707,11 +767,38 @@
     user ID defined in the &amp;WEBCLIENT KPMGPARM</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
+
+<!--++++++++++++++++++++++++++++++-->
+<!-- Role user ids                -->
+<!--++++++++++++++++++++++++++++++-->
+
+<variable name="UKO_CREATE_ROLE_GROUPS" visibility="private">
+  <label>UKO_CREATE_ROLE_GROUPS</label>
+  <abstract>Create the groups representing access roles</abstract>
+  <description>Flag to indicate if groups are to be created holding the different access roles</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>TRUE</choice>
+    <choice>FALSE</choice>
+    <default>FALSE</default>
+  </string>
+</variable>
+
+<variable name="UKO_CREATE_ROLE_USERIDS" visibility="private">
+  <label>UKO_CREATE_ROLE_USERIDS</label>
+  <abstract>Create the userids representing access roles</abstract>
+  <description>Flag to indicate if userids for different access roles like key admin or custodian are to be created</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>TRUE</choice>
+    <choice>FALSE</choice>
+    <default>FALSE</default>
+  </string>
+</variable>
+
 
 <variable name="UKO_KEY_ADMIN" visibility="public">
   <label>UKO_KEY_ADMIN</label>
@@ -720,12 +807,9 @@
     templates, as well as performs special key state actions.</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
-
 <variable name="UKO_KEY_ADMIN_GROUP" visibility="public">
   <label>UKO_KEY_ADMIN_GROUP</label>
   <abstract>The group containing UKO Key Administrator</abstract>
@@ -733,9 +817,7 @@
     keystores and templates, as well as performs special key state actions.</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
@@ -746,9 +828,17 @@
     Distribute them. Destroy and Compromise actions are also possible.</description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
+  </string>
+</variable>
+<variable name="UKO_KEY_CUSTODIAN1_GROUP" visibility="private">
+  <label>UKO_KEY_CUSTODIAN1_GROUP</label>
+  <abstract>The group holding the first UKO Key Custodians</abstract>
+  <description>Group for Key Custodians who can generate keys in PRE-ACTIVATION state, but cannot Activate and
+    Distribute them. Destroy and Compromise actions are also possible.</description>
+  <category>String Variables</category>
+  <string>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
@@ -760,25 +850,49 @@
 </description>
   <category>String Variables</category>
   <string>
-    <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
-    characters, including special characters. -->
-    <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
-<!--++++++++++++++++++++++++++++++-->
-<!-- Db2 variables                -->
-<!--++++++++++++++++++++++++++++++-->
-<variable name="DB_FILE_INSTALL_PATH" visibility="public">
-  <label>DB_FILE_INSTALL_PATH</label>
-  <abstract>Legacy: only with DB_INSTALL_FROM_FILE_OR_DATASET=FILE with DDLs shipped by EKMF Web pre v3.1</abstract>
-  <description>Legacy option, before v3.1 the DDLs were shipped in a folder location as part of EKMF Web. From UKO 3.1 use the database provided in a data set as separate FMID</description>
+<variable name="UKO_KEY_CUSTODIAN2_GROUP" visibility="private">
+  <label>UKO_KEY_CUSTODIAN2_GROUP</label>
+  <abstract>The group holding the second UKO Key Custodians</abstract>
+  <description>The group holding the Key Custodians who cannot Generate, but can Activate keys bringing them from
+    PRE-ACTIVATION to ACTIVE state (then distributes them). Destroy and Compromise actions are also possible.
+</description>
   <category>String Variables</category>
   <string>
-    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
-    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
+    <validationType>USERID</validationType>
   </string>
 </variable>
 
+<variable name="UKO_AUDITOR" visibility="private">
+  <label>UKO_AUDITOR</label>
+  <abstract>The UKO Auditor</abstract>
+  <description>Auditor who can view the audit log as well as keystores, templates, keys, and status of dataset encryption.
+</description>
+  <category>String Variables</category>
+  <string>
+    <validationType>USERID</validationType>
+  </string>
+</variable>
+
+<variable name="UKO_AUDITOR_GROUP" visibility="private">
+  <label>UKO_AUDITOR_GROUP</label>
+  <abstract>The group holding the UKO Auditors</abstract>
+  <description>The group holding the auditors who can view the audit log as well as keystores, templates, keys, and status of dataset encryption.
+</description>
+  <category>String Variables</category>
+  <string>
+    <validationType>USERID</validationType>
+  </string>
+</variable>
+
+
+
+
+<!--++++++++++++++++++++++++++++++-->
+<!-- Db2 variables                -->
+<!--++++++++++++++++++++++++++++++-->
 <variable name="DB2_TEMP_HLQ" visibility="private">
   <label>DB2_TEMP_HLQ</label>
   <abstract>HLQ for temporary datasets</abstract>
@@ -857,6 +971,17 @@
   <string />
 </variable>
 
+<variable name="DB_FILE_INSTALL_PATH" visibility="public">
+  <label>DB_FILE_INSTALL_PATH</label>
+  <abstract>Legacy: only with DB_INSTALL_FROM_FILE_OR_DATASET=FILE with DDLs shipped by EKMF Web pre v3.1</abstract>
+  <description>Legacy option, before v3.1 the DDLs were shipped in a folder location as part of EKMF Web. From UKO 3.1 use the database provided in a data set as separate FMID</description>
+  <category>String Variables</category>
+  <string>
+    <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace, or might be empty -->
+    <regularExpression>(^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$|^$)</regularExpression>
+  </string>
+</variable>
+
 <variable name="DB_DATASET_INSTALL_HLQ" visibility="public">
   <label>DB_DATASET_INSTALL_HLQ</label>
   <abstract>UKO database HLQ from which DB is installed if DB_INSTALL_FROM_FILE_OR_DATASET=DATASET</abstract>
@@ -864,7 +989,8 @@
   </description>
   <category>String Variables</category>
   <string>
-    <validationType>DSNAME</validationType>
+    <!-- must be valid dataset, or might be empty depending on installation type-->
+    <regularExpression>(^(?=.{1,44}$)[A-Z#$@][A-Z0-9\}#$@-]{0,7}([.][A-Z#$@][A-Z0-9\}#$@-]{0,7}){0,21}$|^$)</regularExpression>
   </string>
 </variable>
 <variable name="DB_DATASET_INSTALL_MEMBER" visibility="public">
@@ -1028,6 +1154,14 @@
   <label>UKO_KEY_PREFIX</label>
   <abstract>The UKO_KEY_PREFIX for the CSFKEYS class</abstract>
   <description>The UKO_KEY_PREFIX to be used to generate a profile in the CSFKEYS class</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_RECOVERY_KEY" visibility="public">
+  <label>UKO_RECOVERY_KEY</label>
+  <abstract>The UKO_RECOVERY_KEY for the CSFKEYS class</abstract>
+  <description>The UKO_RECOVERY_KEY to be used to generate a profile in the CSFKEYS class</description>
   <category>String Variables</category>
   <string />
 </variable>

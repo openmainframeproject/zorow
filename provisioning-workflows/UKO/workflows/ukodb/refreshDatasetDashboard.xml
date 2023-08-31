@@ -34,7 +34,7 @@
   </workflowInfo>
   
   	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
-	<!--     Include WAS variables used by the following steps -->
+	<!--     Include variables used by the following steps     -->
 	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	&variables;
 
