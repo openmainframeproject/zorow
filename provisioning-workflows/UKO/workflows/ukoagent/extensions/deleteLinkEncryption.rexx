@@ -17,7 +17,7 @@ PUBLIC_KEY_HASH="${instance-UKO_SERVER_PUBLIC_KEY_HASH}"
 /***********************************************************************/
 
 
-#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "true" ) 
 
 Say "Removing access to KMG.WS."||PUBLIC_KEY_HASH||" class(XFACILIT) from "||AGENT_STC_GROUP||" "
 "PERMIT KMG.WS."||PUBLIC_KEY_HASH||" CLASS(XFACILIT) DELETE ID("||AGENT_STC_GROUP||")"

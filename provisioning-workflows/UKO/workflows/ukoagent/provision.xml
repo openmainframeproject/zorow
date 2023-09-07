@@ -49,11 +49,23 @@
     	<title>Configure UKO agent</title>
     	<description>Configure the agent to start as a started task</description>
 
-        <step name="substituteAgentConfig">
-            <title>Substitute KMGPARM</title>
+        <step name="substituteAgentConfigNoWorkstation">
+            <title>Substitute KMGPARM without Workstation</title>
             <description>Replace values in KMGPARM with template variable values</description>
             <runAsUser substitution="true">$!{instance-UKO_ADMIN_SERVER}</runAsUser>
             <approver substitution="true">$!{instance-UKO_APPROVER_SERVER}</approver>
+            <condition>
+                <expression>"1"=="1"</expression>
+                <description>always true</description>
+                <targetStateSet>
+                    <description>Execute if no workstation access is required</description>
+                    <extendStateExpression>
+                        <description>Skip if workstation access is required</description>
+                        <expression>${instance-WORKSTATION_ACCESS_REQUIRED} == "true"</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
             <variableValue name="UKO_AGENT_CLIENT_USER" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="UKO_AGENT_PORT" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="UKO_KEY_PREFIX" scope="instance" noPromptIfSet="false" required="false"/>
@@ -62,12 +74,70 @@
             <autoEnable>true</autoEnable>
             <template>
                     <inlineTemplate substitution="true">
-                    echo "&amp;WEBCLIENT(${instance-UKO_AGENT_CLIENT_USER})" > ${instance-TEMP_DIR}/${instance-UKO_AGENT_STC_NAME}-KMGPARM;    
-                    sed "s#^\&amp;IP-PORT.*#\&amp;IP-PORT(${instance-UKO_AGENT_PORT})#g;
-                        s#^\&amp;WEBCLIENT.*#\&amp;WEBCLIENT(${instance-UKO_AGENT_CLIENT_USER})#g;
-                        s#^\&amp;SYS-RSAKEK-PREFIX.*#\&amp;SYS-RSAKEK-PREFIX(${instance-UKO_KEY_PREFIX}.RSAKEK)#g;
-                        s#^\&amp;SYS-ECCSIGN-PREFIX.*#\&amp;SYS-ECCSIGN-PREFIX(${instance-UKO_KEY_PREFIX}.ECCSIGN)#g" "//'${instance-UKO_AGENT_HLQ}.SKMGSAMP(KMGOPCRY)'" >> ${instance-TEMP_DIR}/${instance-UKO_AGENT_STC_NAME}-KMGPARM;
+                        echo "workstation access is not required, using sample options member KMGOPCRY"
+                        # getting rid of potential dashes in the codepage
+                        ccsid=$(echo "${instance-DB_CODEPAGE}" | sed 's/-//g')
 
+                        echo "/* Agent configuration parameters */" > ${instance-TEMP_DIR}/${instance-UKO_AGENT_STC_NAME}-KMGPARM;    
+                        sed "s#^\&amp;IP-PORT.*#\&amp;IP-PORT(${instance-UKO_AGENT_PORT})#g;
+                            s#^\&amp;SYS-RSAKEK-PREFIX.*#\&amp;SYS-RSAKEK-PREFIX(${instance-UKO_KEY_PREFIX}.RSAKEK)#g;
+                            s#^\&amp;SYS-ECCSIGN-PREFIX.*#\&amp;SYS-ECCSIGN-PREFIX(${instance-UKO_KEY_PREFIX}.ECCSIGN)#g;
+                            s#^\&amp;SYS-CCSID.*#\&amp;SYS-CCSID(${ccsid})#g;
+                            s#^\&amp;WEBCLIENT.*#\&amp;WEBCLIENT(${instance-UKO_AGENT_CLIENT_USER})#g" "//'${instance-UKO_AGENT_HLQ}.SKMGSAMP(KMGOPCRY)'" >> ${instance-TEMP_DIR}/${instance-UKO_AGENT_STC_NAME}-KMGPARM;
+                            
+                    </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+
+        <step name="substituteAgentConfigWithWorkstation">
+            <title>Substitute KMGPARM with Workstation</title>
+            <description>Replace values in KMGPARM with template variable values</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_SERVER}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_SERVER}</approver>
+            <condition>
+                <expression>"1"=="1"</expression>
+                <description>always true</description>
+                <targetStateSet>
+                    <description>Only execute for workstation access</description>
+                    <extendStateExpression>
+                        <description>Skip if no workstation access is required</description>
+                        <expression>${instance-WORKSTATION_ACCESS_REQUIRED} == "false"</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <variableValue name="UKO_AGENT_CLIENT_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_AGENT_PORT" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_AGENT_PLAN" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_JCC_SSID" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_LOCATION" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_JDBC_PORT" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_JDBC_SECPORT" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_KEY_PREFIX" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                    <inlineTemplate substitution="true">
+                        echo "workstation access is required, using sample options member KMGOPDB2"
+                        # getting rid of potential dashes in the codepage
+                        ccsid=$(echo "${instance-DB_CODEPAGE}" | sed 's/-//g')
+
+                        echo "/* Agent configuration parameters */" > ${instance-TEMP_DIR}/${instance-UKO_AGENT_STC_NAME}-KMGPARM;    
+                        sed "s#^\&amp;IP-PORT.*#\&amp;IP-PORT(${instance-UKO_AGENT_PORT})#g;
+                            s#^\&amp;SYS-RSAKEK-PREFIX.*#\&amp;SYS-RSAKEK-PREFIX(${instance-UKO_KEY_PREFIX}.RSAKEK)#g;
+                            s#^\&amp;SYS-ECCSIGN-PREFIX.*#\&amp;SYS-ECCSIGN-PREFIX(${instance-UKO_KEY_PREFIX}.ECCSIGN)#g;
+                            s#^\&amp;DB2-PLAN.*#\&amp;DB2-PLAN(${instance-DB_AGENT_PLAN})#g;
+                            s#^\&amp;DB2-SYSTEM.*#\&amp;DB2-SYSTEM(${instance-DB2_JCC_SSID})#g;
+                            s#^\&amp;SYS-CCSID.*#\&amp;SYS-CCSID(${ccsid})#g;
+                            s#^\&amp;SYS-JDBC-LOCATION.*#\&amp;SYS-JDBC-LOCATION(${instance-DB_LOCATION})#g;
+                            s#^\&amp;SYS-JDBC-PORT.*#\&amp;SYS-JDBC-PORT(${instance-DB_JDBC_PORT})#g;
+                            s#^\&amp;SYS-JDBC-SECPORT.*#\&amp;SYS-JDBC-SECPORT(${instance-DB_JDBC_SECPORT})#g;
+                            s#^\&amp;WEBCLIENT.*#\&amp;WEBCLIENT(${instance-UKO_AGENT_CLIENT_USER})#g" "//'${instance-UKO_AGENT_HLQ}.SKMGSAMP(KMGOPDB2)'" >> ${instance-TEMP_DIR}/${instance-UKO_AGENT_STC_NAME}-KMGPARM;
+
+                        echo "&amp;DB2-QUALIFIER(${instance-DB_CURRENT_SCHEMA})" >> ${instance-TEMP_DIR}/${instance-UKO_AGENT_STC_NAME}-KMGPARM;    
+                            
                     </inlineTemplate>
                 <submitAs>shell-JCL</submitAs>
             </template>

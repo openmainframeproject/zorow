@@ -473,7 +473,12 @@
                   <description/>
                     <extendStateExpression>
                         <description>Skip if START_SERVER == false</description>
-                      <expression><![CDATA[ ${instance-START_SERVER} == "false"]]></expression>
+                        <expression><![CDATA[ ${instance-START_SERVER} == "false"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                    <extendStateExpression>
+                        <description>Skip if workstation access is required</description>
+                        <expression><![CDATA[ ${instance-WORKSTATION_ACCESS_REQUIRED} == "true"]]></expression>
                         <targetState>Skipped</targetState>
                     </extendStateExpression>
                 </targetStateSet>
@@ -514,6 +519,11 @@
 	            		<expression><![CDATA[ ${instance-START_SERVER} == "false"]]></expression>
 	      				<targetState>Skipped</targetState>
 	      			</extendStateExpression>
+                      <extendStateExpression>
+                        <description>Skip if workstation access is required, because the workstation should connect to the database first</description>
+                        <expression><![CDATA[ ${instance-WORKSTATION_ACCESS_REQUIRED} == "true"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
 				</targetStateSet>
 			</condition>
      		<instructions substitution="false">Submitting script to stop the server.</instructions>
@@ -559,6 +569,11 @@
 	            		<expression><![CDATA[ ${instance-START_SERVER} == "false"]]></expression>
 	      				<targetState>Skipped</targetState>
 	      			</extendStateExpression>
+                      <extendStateExpression>
+                        <description>Skip if workstation access is required</description>
+                        <expression><![CDATA[ ${instance-WORKSTATION_ACCESS_REQUIRED} == "true"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
                 </targetStateSet>
             </condition>
             <instructions>Execute simple Rexx command to always return a bad returncode</instructions>

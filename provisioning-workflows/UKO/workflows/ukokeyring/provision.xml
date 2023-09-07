@@ -56,7 +56,7 @@
                 <description>Only create the certificate authority if requested</description>
                 <extendStateExpression>
                     <description>Skip if UKO_CREATE_CA is NO</description>
-                    <expression><![CDATA[ ${instance-UKO_CREATE_CA} == undefined || ${instance-UKO_CREATE_CA} != "TRUE"]]></expression>
+                    <expression><![CDATA[ ${instance-UKO_CREATE_CA} == undefined || ${instance-UKO_CREATE_CA} != "true"]]></expression>
                     <targetState>Skipped</targetState>
                 </extendStateExpression>
             </targetStateSet>
@@ -83,7 +83,7 @@
                 <description>Only create the certificates if requested</description>
                 <extendStateExpression>
                     <description>Skip if UKO_CREATE_CERTIFICATES is NO</description>
-                    <expression><![CDATA[ ${instance-UKO_CREATE_CERTIFICATES} == undefined || ${instance-UKO_CREATE_CERTIFICATES} != "TRUE"]]></expression>
+                    <expression><![CDATA[ ${instance-UKO_CREATE_CERTIFICATES} == undefined || ${instance-UKO_CREATE_CERTIFICATES} != "true"]]></expression>
                     <targetState>Skipped</targetState>
                 </extendStateExpression>
             </targetStateSet>
@@ -110,7 +110,7 @@
                 <description>Only create the key and trust ring if requested</description>
                 <extendStateExpression>
                     <description>Skip if UKO_CREATE_KEYRING is NO</description>
-                    <expression><![CDATA[ ${instance-UKO_CREATE_KEYRING} == undefined || ${instance-UKO_CREATE_KEYRING} != "TRUE"]]></expression>
+                    <expression><![CDATA[ ${instance-UKO_CREATE_KEYRING} == undefined || ${instance-UKO_CREATE_KEYRING} != "true"]]></expression>
                     <targetState>Skipped</targetState>
                 </extendStateExpression>
             </targetStateSet>

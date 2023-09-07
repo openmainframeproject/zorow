@@ -69,7 +69,7 @@
                 <expression><![CDATA[${check_status.stepState}=="Complete" || ${check_status.stepState} == "Skipped"]]></expression>
                 <description>Only perform check if previous step has completed</description>
                 <targetStateSet>
-                    <description>Set state to Skipped if UKO_REST_STATUS does not equal FALSE</description>
+                    <description>Set state to Skipped if UKO_REST_STATUS does not equal false</description>
                     <extendStateExpression>
                            <description>Only execute it UKO_REST_STATUS is false</description>
                            <expression><![CDATA[ ${instance-UKO_REST_STATUS} != "false"]]></expression>
@@ -108,7 +108,7 @@
                 <expression><![CDATA[${check_status.stepState}=="Complete" || ${check_status.stepState} == "Skipped"]]></expression>
                 <description>Only perform check if previous step has completed</description>
                 <targetStateSet>
-                    <description>Set state to Skipped if UKO_REST_STATUS does not equal FALSE</description>
+                    <description>Set state to Skipped if UKO_REST_STATUS does not equal false</description>
                     <extendStateExpression>
                            <description>Only execute it UKO_REST_STATUS is false</description>
                            <expression><![CDATA[ ${instance-UKO_REST_STATUS} != "false"]]></expression>

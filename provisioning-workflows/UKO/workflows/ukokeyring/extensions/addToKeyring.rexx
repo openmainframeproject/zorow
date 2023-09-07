@@ -16,7 +16,7 @@ TLS_KEY_STORE_KEY_RING="${instance-UKO_TLS_KEY_STORE_KEY_RING}"
 TLS_TRUST_STORE_KEY_RING="${instance-UKO_TLS_TRUST_STORE_KEY_RING}"
 
 
-#if($!{instance-UKO_CREATE_KEYRING} != "TRUE" && $!{instance-UKO_CREATE_CERTIFICATES} != "TRUE")
+#if($!{instance-UKO_CREATE_KEYRING} != "true" && $!{instance-UKO_CREATE_CERTIFICATES} != "true")
 /* if certificates and key ring are already existing, assume that the certificates */
 /* have been added to the key ring*/
 #else 
@@ -52,7 +52,7 @@ Say "Connect OIDC provider certificate to trust ring"
 
 #end
 
-#if($!{instance-UKO_CREATE_KEYRING} != "TRUE" && $!{instance-UKO_CREATE_CA} != "TRUE")
+#if($!{instance-UKO_CREATE_KEYRING} != "true" && $!{instance-UKO_CREATE_CA} != "true")
 /* if CA and key ring are already existing, assume that the CA */
 /* has been added to the trust ring*/
 #else 

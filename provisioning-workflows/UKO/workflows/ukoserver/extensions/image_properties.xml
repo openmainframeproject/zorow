@@ -48,10 +48,12 @@
 <atCreate name="UKO_TLS_KEY_STORE_KEY_RING" scope="instance" prompt="true" required="false"/>
 <atCreate name="UKO_TLS_KEY_STORE_SERVER_CERT" scope="instance" prompt="true" required="false"/>
 <atCreate name="UKO_OIDC_PROVIDER_CERT" scope="instance" prompt="true" required="false"/>
+<atCreate name="UKO_OAUTH_CLIENT_ID" scope="instance" prompt="true" required="false"/>
+<atCreate name="UKO_OAUTH_CLIENT_ID_OPENAPI" scope="instance" prompt="true" required="false"/>
 
 <atCreate name="UKO_TLS_TRUST_STORE_KEY_RING" scope="instance" prompt="true" required="false"/>
 
 <atCreate name="DB_CURRENT_SCHEMA" scope="instance" prompt="true" required="false"/>
 <atCreate name="UKO_AGENT_STC_NAME" scope="instance" prompt="true" required="false"/>
-
+<atCreate name="WORKSTATION_ACCESS_REQUIRED" scope="instance" prompt="true" required="false"/>
       

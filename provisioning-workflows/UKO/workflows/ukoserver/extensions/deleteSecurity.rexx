@@ -23,7 +23,7 @@ Say "Deleting STARTED task for the server"
 Say "Refreshing STARTED"
 "SETROPTS RACLIST(STARTED) REFRESH"
 
-#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "true" ) 
 /***********************************************************************/
 /***********************************************************************/
 /* Remove userids from profiles                                        */

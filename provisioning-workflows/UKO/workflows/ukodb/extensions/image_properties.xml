@@ -29,4 +29,9 @@
 <atCreate name="DB_INSTALL_FROM_FILE_OR_DATASET" scope="instance" prompt="true" required="false"/>
 <atCreate name="DB_FILE_INSTALL_PATH" scope="instance" prompt="true" required="false"/>
 <atCreate name="DB_DATASET_INSTALL_HLQ" scope="instance" prompt="true" required="false"/>
-<atCreate name="DB_DATASET_INSTALL_MEMBER" scope="instance" prompt="true" required="false"/>
+
+<atCreate name="WORKSTATION_ACCESS_REQUIRED" scope="instance" prompt="true" required="false"/>
+<atCreate name="UKO_AGENT_STC_USER" scope="instance" prompt="true" required="false"/>
+<atCreate name="UKO_AGENT_CLIENT_USER" scope="instance" prompt="true" required="false"/>
+<atCreate name="DB_AGENT_PLAN" scope="instance" prompt="true" required="false"/>
+<atCreate name="DB_AGENT_PACKAGE" scope="instance" prompt="true" required="false"/>

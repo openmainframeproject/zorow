@@ -7,7 +7,7 @@
 KEY_PREFIX="${instance-UKO_KEY_PREFIX}"
 SERVER_STC_USER="${instance-UKO_SERVER_STC_USER}"
 
-#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "true" ) 
 Say "Remove access to recovery key"
 "PERMIT ${instance-UKO_RECOVERY_KEY}  CLASS(CSFKEYS) DELETE ID("||SERVER_STC_USER||")"
 /* "PERMIT ${instance-UKO_RECOVERY_KEY}  CLASS(CSFKEYS) DELETE ID("||KEY_ADMIN_GROUP||")" */

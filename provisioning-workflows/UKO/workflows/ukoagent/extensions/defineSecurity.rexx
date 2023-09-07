@@ -72,6 +72,18 @@ Say "Creating KMG.EKMF.SMF in the FACILITY class to enable SMF logging"
 Say "Granting access to KMG.EKMF.SMF to "||AGENT_STC_GROUP||" "
 "PERMIT KMG.EKMF.SMF CLASS(FACILITY) ID("||AGENT_STC_GROUP||") ACCESS(READ)"
 
+
+#if(${instance-WORKSTATION_ACCESS_REQUIRED} && ${instance-WORKSTATION_ACCESS_REQUIRED} == "true")
+/* Only for Workstation use: */
+/* If the client user ID should be able to disable logging to SMF for */
+/* EKMF events, the Agent user ID must be permitted to */ 
+/* FACILITY resource KMG.EKMF.AUDITOFF*/
+Say "Creating KMG.EKMF.AUDITOFF (FACILITY) to allow disabling of SMF logging"
+"RDEFINE FACILITY KMG.EKMF.AUDITOFF UACC(NONE) AUDIT(ALL(READ))"
+Say "Granting access to KMG.EKMF.AUDITOFF to "||AGENT_STC_GROUP||" "
+"PERMIT KMG.EKMF.AUDITOFF CLASS(FACILITY) ID("||AGENT_STC_GROUP||") ACCESS(READ)"
+#end 
+
 "SETROPTS RACLIST(FACILITY) REFRESH"
 
 /***********************************************************************/
@@ -94,5 +106,18 @@ Say "Granting "||AGENT_STC_GROUP||" access to KMG.WEBCLIENT."||AGENT_CLIENT_USER
 /* defined, the CSF-PKDS-DEFAULT resource in CSFKEYS class must also  */
 /* be defined and the Agent's <task-user> needs access.*/
 
+#if(${instance-WORKSTATION_ACCESS_REQUIRED} && ${instance-WORKSTATION_ACCESS_REQUIRED} == "true")
+/***********************************************************************/
+/* Granting access to Db2 DSNR */
+/***********************************************************************/
+Say "Defining BATCH profile in DSNR class"
+"RDEFINE DSNR ${instance-DB2_JCC_SSID}.BATCH UACC(NONE)"
+Say "Granting access to BATCH profile to "||AGENT_STC_USER||" "
+"PERMIT ${instance-DB2_JCC_SSID}.BATCH CLASS(DSNR)",
+   " ACCESS(READ) ID("||AGENT_STC_USER||")"                 
+
+Say "Refreshing DSNR"
+"SETROPTS RACLIST(DSNR) REFRESH"
+#end
 
 exit

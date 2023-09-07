@@ -17,7 +17,7 @@ UKO_AUDITOR="${instance-UKO_AUDITOR}"
 UKO_AUDITOR_GROUP="${instance-UKO_AUDITOR_GROUP}"
 
 
-#if($!{instance-UKO_CREATE_ROLE_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_ROLE_USERIDS} == "true" ) 
 "DELUSER "||KEY_ADMIN||" "
 "DELUSER "||KEY_CUSTODIAN1||" "
 "DELUSER "||KEY_CUSTODIAN2||" "
@@ -34,7 +34,7 @@ UKO_AUDITOR_GROUP="${instance-UKO_AUDITOR_GROUP}"
 
 #end
 
-#if($!{instance-UKO_CREATE_ROLE_GROUPS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_ROLE_GROUPS} == "true" ) 
 "DELGROUP "||KEY_ADMIN_GROUP||" "
 "DELGROUP "||KEY_CUSTODIAN1_GROUP||" "
 "DELGROUP "||KEY_CUSTODIAN2_GROUP||" "

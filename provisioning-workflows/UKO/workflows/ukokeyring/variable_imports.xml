@@ -79,9 +79,9 @@
   <description>Flag to indicate if an Angel server is to be created</description>
   <category>String Variables</category>
   <string valueMustBeChoice="true">
-    <choice>TRUE</choice>
-    <choice>FALSE</choice>
-    <default>FALSE</default>
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
   </string>
 </variable>
 
@@ -106,9 +106,9 @@
   <description>Flag to indicate if a CA is to be created</description>
   <category>String Variables</category>
   <string valueMustBeChoice="true">
-    <choice>TRUE</choice>
-    <choice>FALSE</choice>
-    <default>FALSE</default>
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
   </string>
 </variable>
 <variable name="UKO_CA_LABEL" scope="instance" visibility="public">
@@ -125,9 +125,9 @@
   <description>Flag to indicate if a keyring is to be created</description>
   <category>String Variables</category>
   <string valueMustBeChoice="true">
-    <choice>TRUE</choice>
-    <choice>FALSE</choice>
-    <default>FALSE</default>
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
   </string>
 </variable>
 <variable name="UKO_USE_KEYRING_AS_TRUST_STORE" visibility="private">
@@ -138,9 +138,9 @@
   </description>
   <category>String Variables</category>
   <string valueMustBeChoice="true">
-    <choice>TRUE</choice>
-    <choice>FALSE</choice>
-    <default>FALSE</default>
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
   </string>
 </variable>
 <variable name="UKO_TLS_KEY_STORE_KEY_RING" scope="instance" visibility="public">
@@ -164,9 +164,9 @@
   <description>Flag to indicate if certificates are to be created</description>
   <category>String Variables</category>
   <string valueMustBeChoice="true">
-    <choice>TRUE</choice>
-    <choice>FALSE</choice>
-    <default>FALSE</default>
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
   </string>
 </variable>
 <variable name="UKO_TLS_KEY_STORE_SERVER_CERT_CN" scope="instance" visibility="private">
@@ -671,9 +671,9 @@
   <description>Flag to indicate if groups are to be created</description>
   <category>String Variables</category>
   <string valueMustBeChoice="true">
-    <choice>TRUE</choice>
-    <choice>FALSE</choice>
-    <default>FALSE</default>
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
   </string>
 </variable>
 
@@ -683,9 +683,9 @@
   <description>Flag to indicate if userids are to be created</description>
   <category>String Variables</category>
   <string valueMustBeChoice="true">
-    <choice>TRUE</choice>
-    <choice>FALSE</choice>
-    <default>FALSE</default>
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
   </string>
 </variable>
 
@@ -781,9 +781,9 @@
   <description>Flag to indicate if groups are to be created holding the different access roles</description>
   <category>String Variables</category>
   <string valueMustBeChoice="true">
-    <choice>TRUE</choice>
-    <choice>FALSE</choice>
-    <default>FALSE</default>
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
   </string>
 </variable>
 
@@ -793,9 +793,9 @@
   <description>Flag to indicate if userids for different access roles like key admin or custodian are to be created</description>
   <category>String Variables</category>
   <string valueMustBeChoice="true">
-    <choice>TRUE</choice>
-    <choice>FALSE</choice>
-    <default>FALSE</default>
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
   </string>
 </variable>
 
@@ -821,7 +821,7 @@
   </string>
 </variable>
 
-<variable name="UKO_KEY_CUSTODIAN1" visibility="private">
+<variable name="UKO_KEY_CUSTODIAN1" visibility="public">
   <label>UKO_KEY_CUSTODIAN1</label>
   <abstract>The first UKO Key Custodian</abstract>
   <description>Key Custodian who can generate keys in PRE-ACTIVATION state, but cannot Activate and
@@ -831,7 +831,7 @@
     <validationType>USERID</validationType>
   </string>
 </variable>
-<variable name="UKO_KEY_CUSTODIAN1_GROUP" visibility="private">
+<variable name="UKO_KEY_CUSTODIAN1_GROUP" visibility="public">
   <label>UKO_KEY_CUSTODIAN1_GROUP</label>
   <abstract>The group holding the first UKO Key Custodians</abstract>
   <description>Group for Key Custodians who can generate keys in PRE-ACTIVATION state, but cannot Activate and
@@ -842,7 +842,7 @@
   </string>
 </variable>
 
-<variable name="UKO_KEY_CUSTODIAN2" visibility="private">
+<variable name="UKO_KEY_CUSTODIAN2" visibility="public">
   <label>UKO_KEY_CUSTODIAN2</label>
   <abstract>The second UKO Key Custodian</abstract>
   <description>Key Custodian who cannot Generate, but can Activate keys bringing them from
@@ -853,7 +853,7 @@
     <validationType>USERID</validationType>
   </string>
 </variable>
-<variable name="UKO_KEY_CUSTODIAN2_GROUP" visibility="private">
+<variable name="UKO_KEY_CUSTODIAN2_GROUP" visibility="public">
   <label>UKO_KEY_CUSTODIAN2_GROUP</label>
   <abstract>The group holding the second UKO Key Custodians</abstract>
   <description>The group holding the Key Custodians who cannot Generate, but can Activate keys bringing them from
@@ -865,7 +865,7 @@
   </string>
 </variable>
 
-<variable name="UKO_AUDITOR" visibility="private">
+<variable name="UKO_AUDITOR" visibility="public">
   <label>UKO_AUDITOR</label>
   <abstract>The UKO Auditor</abstract>
   <description>Auditor who can view the audit log as well as keystores, templates, keys, and status of dataset encryption.
@@ -876,7 +876,7 @@
   </string>
 </variable>
 
-<variable name="UKO_AUDITOR_GROUP" visibility="private">
+<variable name="UKO_AUDITOR_GROUP" visibility="public">
   <label>UKO_AUDITOR_GROUP</label>
   <abstract>The group holding the UKO Auditors</abstract>
   <description>The group holding the auditors who can view the audit log as well as keystores, templates, keys, and status of dataset encryption.
@@ -993,18 +993,6 @@
     <regularExpression>(^(?=.{1,44}$)[A-Z#$@][A-Z0-9\}#$@-]{0,7}([.][A-Z#$@][A-Z0-9\}#$@-]{0,7}){0,21}$|^$)</regularExpression>
   </string>
 </variable>
-<variable name="DB_DATASET_INSTALL_MEMBER" visibility="public">
-  <label>DB_DATASET_INSTALL_MEMBER</label>
-  <abstract>UKO database member from which DB is installed if DB_INSTALL_FROM_FILE_OR_DATASET=DATASET</abstract>
-  <description>Which member is to be executed, KMGJCWEB for Web only, KMGJCWSW if also Workstation is to be used
-  </description>
-  <category>String Variables</category>
-  <string valueMustBeChoice="true" multiLine="false">
-      <choice>KMGJCWEB</choice>
-      <choice>KMGJCWSW</choice>
-      <default>KMGJCWEB</default>
-  </string>
-</variable>
 
 
 <variable name="DB_CODEPAGE" visibility="private">
@@ -1075,6 +1063,51 @@
     <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
     <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
   </string>
+</variable>
+
+<!--++++++ workstation DB variables ++++++-->
+<variable name="WORKSTATION_ACCESS_REQUIRED" visibility="public">
+  <label>WORKSTATION_ACCESS_REQUIRED</label>
+  <abstract>Will database and agent be used by EKMF Workstation as well?</abstract>
+  <description>Flag to indicate if the installed database and agent are used by an EKMF Workstation in addition to the UKO server</description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="true">
+    <choice>true</choice>
+    <choice>false</choice>
+    <default>false</default>
+  </string>
+</variable>
+
+<variable name="DB_AGENT_PLAN" visibility="public">
+  <label>DB_AGENT_PLAN</label>
+  <abstract>The Db2 DB_AGENT_PLAN</abstract>
+  <description>The Db2 plan for configuring EKMF Workstation access</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB_AGENT_PACKAGE" visibility="public">
+  <label>DB_AGENT_PACKAGE</label>
+  <abstract>The Db2 DB_AGENT_PACKAGE</abstract>
+  <description>The Db2 package for configuring EKMF Workstation access</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB_JDBC_PORT" visibility="private">
+  <label>DB_JDBC</label>
+  <abstract>The Db2 DB_JDBC</abstract>
+  <description>JDBC port for configuring EKMF Workstation access</description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="DB_JDBC_SECPORT" visibility="private">
+  <label>DB_JDBC_SECPORT</label>
+  <abstract>The Db2 DB_LOCATION</abstract>
+  <description>Secure JDBC port for configuring EKMF Workstation access</description>
+  <category>String Variables</category>
+  <string />
 </variable>
 
 <!--++++++++++++++++++++++++++++++-->

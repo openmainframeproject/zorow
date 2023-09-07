@@ -156,7 +156,7 @@
             <targetStateSet>
                 <description>Skip this step if the DDLs come from files</description>
                 <extendStateExpression>
-                    <description>Skip the step when data set is selected</description>
+                    <description>Skip the step when file is selected</description>
                     <expression>${instance-DB_INSTALL_FROM_FILE_OR_DATASET} == "FILE"</expression>
                     <targetState>skipped</targetState>
                 </extendStateExpression>
@@ -168,7 +168,14 @@
         <autoEnable>true</autoEnable>
         <template>
             <inlineTemplate substitution="true">
-                filelist=$(sed -En 's/(\/\/[^\*]).*&amp;SQL\((.*)\).*/\2/gp' "//'${instance-DB_DATASET_INSTALL_HLQ}(${instance-DB_DATASET_INSTALL_MEMBER})'")
+                #if(${instance-WORKSTATION_ACCESS_REQUIRED} &amp;&amp; ${instance-WORKSTATION_ACCESS_REQUIRED} == "true")
+                    echo "workstation access is required, querying file list from KMGJCWSW"
+                    filelist=$(sed -En 's/(\/\/[^\*]).*&amp;SQL\((.*)\).*/\2/gp' "//'${instance-DB_DATASET_INSTALL_HLQ}(KMGJCWSW)'")
+                #else
+                    echo "workstation access is not required, querying file list from KMGJCWEB"
+                    filelist=$(sed -En 's/(\/\/[^\*]).*&amp;SQL\((.*)\).*/\2/gp' "//'${instance-DB_DATASET_INSTALL_HLQ}(KMGJCWEB)'")
+                #end
+
                 echo $filelist > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.files
             </inlineTemplate>
             <submitAs>shell-JCL</submitAs>
@@ -186,7 +193,7 @@
             <targetStateSet>
                 <description>Skip this step if the DDLs come from files</description>
                 <extendStateExpression>
-                    <description>Skip the step when data set is selected</description>
+                    <description>Skip the step when file is selected</description>
                     <expression>${instance-DB_INSTALL_FROM_FILE_OR_DATASET} == "FILE"</expression>
                     <targetState>skipped</targetState>
                 </extendStateExpression>
@@ -229,21 +236,137 @@
             <maxLrecl>80</maxLrecl>
         </template>
     </step>
+
     
+    <step name="bindPackagePlan">
+        <title>Bind packages and plan</title>
+        <description>Bind packages and plan for EKMF Workstation access</description>
+
+        <step name="bindPackages">
+            <title>Bind packages</title>
+            <description>Bind packages</description>        
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <condition>
+                <expression>"1"=="1"</expression>
+                <description>Skip this step if the DDLs come from files</description>
+                <targetStateSet>
+                    <description>Skip this step if the DDLs come from files</description>
+                    <extendStateExpression>
+                        <description>Skip the step when file is selected</description>
+                        <expression>${instance-DB_INSTALL_FROM_FILE_OR_DATASET} == "FILE"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                    <extendStateExpression>
+                        <description>Skip if no workstation access is required</description>
+                        <expression>${instance-WORKSTATION_ACCESS_REQUIRED} == "false"</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_AGENT_PACKAGE" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/bind-package.jcl</fileTemplate>
+                <submitAs maxRc="4">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+        <step name="bindPlan">
+            <title>Bind plan</title>
+            <description>Bind plan</description>        
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <condition>
+                <expression>"1"=="1"</expression>
+                <description>Skip this step if the DDLs come from files</description>
+                <targetStateSet>
+                    <description>Skip this step if the DDLs come from files</description>
+                    <extendStateExpression>
+                        <description>Skip the step when file is selected</description>
+                        <expression>${instance-DB_INSTALL_FROM_FILE_OR_DATASET} == "FILE"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                    <extendStateExpression>
+                        <description>Skip if no workstation access is required</description>
+                        <expression>${instance-WORKSTATION_ACCESS_REQUIRED} == "false"</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_AGENT_PACKAGE" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_AGENT_PLAN" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/bind-plan.jcl</fileTemplate>
+                <submitAs maxRc="4">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+    </step>
+
+
     <step name="configureDatabaseAccess">
         <title>Configure Access to the Db2 database</title>
         <description>Configure the new UKO server to be able to access the required tables</description>
-        <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
-        <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
-        <variableValue name="UKO_SERVER_STC_USER" scope="instance" noPromptIfSet="false" required="false"/>
-        <instructions substitution="true">Submit jcl to execute step</instructions>
-        <weight>1</weight>
-        <autoEnable>true</autoEnable>
-        <template>
-            <fileTemplate substitution="true">jcl/database-grant-access.jcl</fileTemplate>
-            <submitAs maxRc="4">JCL</submitAs>
-            <maxLrecl>80</maxLrecl>
-        </template>
+
+        <step name="configureDatabaseAccessServer">
+            <title>Configure db access for the server</title>
+            <description>Configure the new UKO server to be able to access the required tables</description>        
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <variableValue name="UKO_SERVER_STC_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/database-grant-access.jcl</fileTemplate>
+                <submitAs maxRc="4">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+        <step name="configureDatabaseAccessClient">
+            <title>Configure db access for the client user</title>
+            <description>Configure Access to the Db2 database for the client user</description>        
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <condition>
+                <expression>"1"=="1"</expression>
+                <description>Skip this step if the DDLs come from files or no workstation access is required</description>
+                <targetStateSet>
+                    <description>Skip this step if the DDLs come from files</description>
+                    <extendStateExpression>
+                        <description>Skip the step when file is selected</description>
+                        <expression>${instance-DB_INSTALL_FROM_FILE_OR_DATASET} == "FILE"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                    <extendStateExpression>
+                        <description>Skip if no workstation access is required</description>
+                        <expression>${instance-WORKSTATION_ACCESS_REQUIRED} == "false"</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/database-grant-access-client.jcl</fileTemplate>
+                <submitAs maxRc="4">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
     </step>
 
     <step name="optionalSteps">

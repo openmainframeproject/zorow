@@ -68,7 +68,7 @@
                 <expression><![CDATA[${check_status_agent.stepState}=="Complete" || ${check_status_agent.stepState} == "Skipped"]]></expression>
                 <description>Only perform check if previous step has completed</description>
                 <targetStateSet>
-                    <description>Set state to Skipped if AGENT_REST_STATUS does not equal FALSE</description>
+                    <description>Set state to Skipped if AGENT_REST_STATUS does not equal false</description>
                     <extendStateExpression>
                            <description>Only execute it AGENT_REST_STATUS is false</description>
                            <expression><![CDATA[ ${instance-AGENT_REST_STATUS} != "false"]]></expression>
@@ -107,7 +107,7 @@
                 <expression><![CDATA[${check_status_agent.stepState}=="Complete" || ${check_status_agent.stepState} == "Skipped"]]></expression>
                 <description>Only perform check if previous step has completed</description>
                 <targetStateSet>
-                    <description>Set state to Skipped if AGENT_REST_STATUS does not equal FALSE</description>
+                    <description>Set state to Skipped if AGENT_REST_STATUS does not equal false</description>
                     <extendStateExpression>
                            <description>Only execute it AGENT_REST_STATUS is false</description>
                            <expression><![CDATA[ ${instance-AGENT_REST_STATUS} != "false"]]></expression>

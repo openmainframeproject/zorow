@@ -18,13 +18,13 @@ TLS_TRUST_STORE_KEY_RING="${instance-UKO_TLS_TRUST_STORE_KEY_RING}"
 /* Delete the KEYRING and the certificates                            */
 /**********************************************************************/
 
-#if($!{instance-UKO_CREATE_CA} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_CA} == "true" ) 
 "RACDCERT CERTAUTH DELETE",
     " (LABEL("||"'"||CA_LABEL||"'"||"))"
 #end
 
 
-#if($!{instance-UKO_CREATE_CERTIFICATES} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_CERTIFICATES} == "true" ) 
 Say "Delete TLS Server Certificate"
 "RACDCERT ID("||SERVER_STC_USER||") DELETE",
     " (LABEL("||"'"||TLS_KEY_STORE_SERVER_CERT||"'"||"))"
@@ -33,12 +33,12 @@ Say "Delete OIDC provider Certificate"
     " (LABEL("||"'"||OIDC_PROVIDER_CERT||"'"||"))"
 #end
 
-#if($!{instance-UKO_CREATE_CA} == "TRUE" || $!{instance-UKO_CREATE_CERTIFICATES} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_CA} == "true" || $!{instance-UKO_CREATE_CERTIFICATES} == "true" ) 
 Say "Refresh DIGTCERT"
 "SETROPTS RACLIST(DIGTCERT) REFRESH"
 #end
 
-#if($!{instance-UKO_CREATE_KEYRING} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_KEYRING} == "true" ) 
 Say "Delete key ring"
 "RACDCERT DELRING("||TLS_KEY_STORE_KEY_RING||")",
     " ID(${instance-UKO_SERVER_STC_USER})"
@@ -65,7 +65,7 @@ Say "Refresh RDATALIB"
     #end
 #end
 
-#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "true" ) 
 Say "Removing access to IRR.DIGTCERT.LISTRING profile from "||SERVER_STC_USER||" "
 "PERMIT IRR.DIGTCERT.LISTRING CLASS(FACILITY)",
    " DELETE ID("||SERVER_STC_USER||")"                 

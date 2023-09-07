@@ -20,7 +20,7 @@ Say "Deleting STARTED task for the agent"
 
 "SETROPTS RACLIST(STARTED) REFRESH"
 
-#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "true" ) 
 /***********************************************************************/
 /***********************************************************************/
 /* Remove userids from profiles                                        */
@@ -56,6 +56,12 @@ Say "Deleting KMG.EKMF.KMGPRACF."||AGENT_STC_USER||" in the FACILITY class"
 Say "Removing access to KMG.EKMF.SMF from "||AGENT_STC_GROUP||" "
 "PERMIT KMG.EKMF.SMF CLASS(FACILITY) DELETE ID("||AGENT_STC_GROUP||") "
 
+#if(${instance-WORKSTATION_ACCESS_REQUIRED} && ${instance-WORKSTATION_ACCESS_REQUIRED} == "true")
+/* Only for Workstation use: */
+Say "Removing access to KMG.EKMF.AUDITOFF from "||AGENT_STC_GROUP||" "
+"PERMIT KMG.EKMF.AUDITOFF CLASS(FACILITY) DELETE ID("||AGENT_STC_GROUP||")"
+#end 
+
 "SETROPTS RACLIST(FACILITY) REFRESH"
 
 /***********************************************************************/
@@ -66,6 +72,18 @@ Say "Deleting KMG.WEBCLIENT."||AGENT_CLIENT_USER||" in the XFACILIT class"
 "RDELETE XFACILIT KMG.WEBCLIENT."||AGENT_CLIENT_USER||" "
 
 "SETROPTS RACLIST(XFACILIT) REFRESH"
+
+#if(${instance-WORKSTATION_ACCESS_REQUIRED} && ${instance-WORKSTATION_ACCESS_REQUIRED} == "true")
+/***********************************************************************/
+/* Removing access from Db2 DSNR */
+/***********************************************************************/
+Say "Removing access to BATCH profile from "||AGENT_STC_USER||" "
+"PERMIT ${instance-DB2_JCC_SSID}.BATCH CLASS(DSNR)",
+   " DELETE ID("||AGENT_STC_USER||")"                 
+
+Say "Refreshing DSNR"
+"SETROPTS RACLIST(DSNR) REFRESH"
+#end
 
 /***********************************************************************/
 /***********************************************************************/

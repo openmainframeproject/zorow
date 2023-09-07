@@ -21,6 +21,7 @@ Say "Remove Permissions from Key Administrator "||KEY_ADMIN||" "
 "PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:active:install CLASS(EJBROLE) DELETE ID("||KEY_ADMIN||")"
 "PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:deactivated:reactivate CLASS(EJBROLE) DELETE ID("||KEY_ADMIN||")"
 "PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:non_existing:import CLASS(EJBROLE) DELETE ID("||KEY_ADMIN||")"
+"PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:non_existing:generate CLASS(EJBROLE) DELETE ID("||KEY_ADMIN||")"
 
 "PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:read CLASS(EJBROLE) DELETE ID("||KEY_ADMIN||")"
 "PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:write CLASS(EJBROLE) DELETE ID("||KEY_ADMIN||")"

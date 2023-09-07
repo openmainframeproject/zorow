@@ -66,6 +66,8 @@ Say "Grant Permissions to Key Administrator "||KEY_ADMIN||" "
 "PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:active:install CLASS(EJBROLE) ACCESS(READ) ID("||KEY_ADMIN||")"
 "PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:deactivated:reactivate CLASS(EJBROLE) ACCESS(READ) ID("||KEY_ADMIN||")"
 "PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:non_existing:import CLASS(EJBROLE) ACCESS(READ) ID("||KEY_ADMIN||")"
+/* to be able to create the KEKs */
+"PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:non_existing:generate CLASS(EJBROLE) ACCESS(READ) ID("||KEY_ADMIN||")"
 
 "PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:read CLASS(EJBROLE) ACCESS(READ) ID("||KEY_ADMIN||")"
 "PERMIT EKMFWEB.ekmf-rest-api."||VAULT_ID||".keys:write CLASS(EJBROLE) ACCESS(READ) ID("||KEY_ADMIN||")"

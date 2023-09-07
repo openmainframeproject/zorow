@@ -6,7 +6,7 @@
 
 DB_CURRENT_SCHEMA="${instance-DB_CURRENT_SCHEMA}"
 
-#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "true" ) 
 
 "REMOVE  ${instance-UKO_ADMIN_DB} GROUP("||DB_CURRENT_SCHEMA||")"
 "DELGROUP "||DB_CURRENT_SCHEMA||" " 

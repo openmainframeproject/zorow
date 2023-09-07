@@ -17,7 +17,7 @@ KEY_CUSTODIAN2_GROUP="${instance-UKO_KEY_CUSTODIAN2_GROUP}"
 UKO_AUDITOR="${instance-UKO_AUDITOR}"
 UKO_AUDITOR_GROUP="${instance-UKO_AUDITOR_GROUP}"
 
-#if($!{instance-UKO_CREATE_ROLE_GROUPS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_ROLE_GROUPS} == "true" ) 
 /***********************************************************************/
 /* Creating the required groups                                        */
 /***********************************************************************/
@@ -32,7 +32,7 @@ Say "Creating the auditor group"
 "ADDGROUP "||UKO_AUDITOR_GROUP||" SUPGROUP(SYS1) OMVS(AUTOGID)"
 #end
 
-#if($!{instance-UKO_CREATE_ROLE_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_ROLE_USERIDS} == "true" ) 
 /***********************************************************************/
 /* Creating all required user ids                                      */
 /***********************************************************************/

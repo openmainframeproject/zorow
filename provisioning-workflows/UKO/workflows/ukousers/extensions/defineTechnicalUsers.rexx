@@ -17,7 +17,7 @@ SERVER_UNAUTHENTICATED_USER="${instance-UKO_UNAUTHENTICATED_USER}"
 SERVER_UNAUTHENTICATED_GROUP="${instance-UKO_UNAUTHENTICATED_GROUP}"
 
 
-#if($!{instance-UKO_CREATE_TECHNICAL_GROUPS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_GROUPS} == "true" ) 
 /***********************************************************************/
 /* Creating the required groups                                        */
 /***********************************************************************/
@@ -32,7 +32,7 @@ Say "Creating the unauthenticated user group for the Liberty server"
 "ADDGROUP "||SERVER_UNAUTHENTICATED_GROUP||" SUPGROUP(SYS1) OMVS(AUTOGID)"
 #end
 
-#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "TRUE" ) 
+#if($!{instance-UKO_CREATE_TECHNICAL_USERIDS} == "true" ) 
 /***********************************************************************/
 /* Creating all required user ids                                      */
 /***********************************************************************/
