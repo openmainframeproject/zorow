@@ -245,6 +245,28 @@
   </string>
 </variable>
 
+<variable name="UKO_WELCOME_MESSAGE" scope="instance" visibility="public">
+  <label>UKO_WELCOME_MESSAGE</label>
+  <abstract>Description message</abstract>
+  <description>Update description in the UKO server.env (EKMF_DESCRIPTION), leave empty for default </description>
+  <category>String Variables</category>
+  <string />
+</variable>
+
+<variable name="UKO_TRACE_OPTIONS" scope="instance" visibility="public">
+  <label>UKO_TRACE_OPTIONS</label>
+  <abstract>Trace options</abstract>
+  <description>Trace options for the UKO server, leave empty for default </description>
+  <category>String Variables</category>
+  <string valueMustBeChoice="false">
+    <choice>"*=info:com.ibm.ccc.ekmf.*=info"</choice>
+    <choice>"com.ibm.ccc.ekmf.*=all:com.ibm.crypto.*=all:org.eclipse.persistence.*=all"</choice>
+    <choice>"com.ibm.ccc.ekmf.*=all:com.ibm.crypto.*=all:org.eclipse.persistence.*=all:com.ibm.db2.*=all:eclipselink.sql=all"</choice>
+    <choice>"com.ibm.ccc.ekmf.*=all:com.ibm.crypto.*=all:org.eclipse.persistence.*=all:com.ibm.db2.*=all:eclipselink.sql=all:zos.native.03=all"</choice>
+    <default>"*=info:com.ibm.ccc.ekmf.*=info"</default>
+  </string>
+</variable>
+
 <variable name="UKO_VAULT_ID" visibility="public">
   <label>UKO_VAULT_ID</label>
   <abstract>Vault ID to grant access to, select "ekmfwebv2" for EKMF Web 2.x</abstract>

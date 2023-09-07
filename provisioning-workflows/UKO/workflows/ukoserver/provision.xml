@@ -138,12 +138,28 @@
             <autoEnable>true</autoEnable>
             <template>
    		         <inlineTemplate substitution="true">
+                    #if(${instance-UKO_TRACE_OPTIONS} &amp;&amp; ${instance-UKO_TRACE_OPTIONS} != "")
+                        # removing potential quotes
+                        traceoptions=$(echo "${instance-UKO_TRACE_OPTIONS}" | sed 's/\"//g')
+                    #end
+                    #if(${instance-UKO_WELCOME_MESSAGE} &amp;&amp; ${instance-UKO_WELCOME_MESSAGE} != "")
+                        # removing potential quotes
+                        welcomemessage=$(echo "${instance-UKO_WELCOME_MESSAGE}" | sed 's/\"//g')
+                    #end
+
+
                     sed "s#JAVA_HOME=.*#JAVA_HOME=${instance-JAVA_HOME}#g;
                         #if(${instance-WLP_OUTPUT_DIR} &amp;&amp; ${instance-WLP_OUTPUT_DIR} != "")
                             s#^[ \#]*WLP_OUTPUT_DIR=.*#WLP_OUTPUT_DIR=${instance-WLP_OUTPUT_DIR}#g;
                         #end
                         #if(${instance-ENABLE_MTLS_VIA_HTTPS_PORT} &amp;&amp; ${instance-ENABLE_MTLS_VIA_HTTPS_PORT} != "")
                             s#^[ \#]*TLS_CLIENT_AUTHENTICATION_SUPPORTED=.*#TLS_CLIENT_AUTHENTICATION_SUPPORTED=${instance-ENABLE_MTLS_VIA_HTTPS_PORT}#g;
+                        #end
+                        #if(${instance-UKO_TRACE_OPTIONS} &amp;&amp; ${instance-UKO_TRACE_OPTIONS} != "")
+                            s#^[ \#]*TRACE_SPEC=.*#TRACE_SPEC=\"${traceoptions}\"#g;
+                        #end
+                        #if(${instance-UKO_WELCOME_MESSAGE} &amp;&amp; ${instance-UKO_WELCOME_MESSAGE} != "")
+                            s#^[ \#]*EKMF_DESCRIPTION=.*#EKMF_DESCRIPTION=\"${welcomemessage}\"#g;
                         #end
                         s#^[ \#]*TLS_KEY_STORE_KEY_RING=.*#TLS_KEY_STORE_KEY_RING=${instance-UKO_TLS_KEY_STORE_KEY_RING}#g;
                         s#^[ \#]*TLS_TRUST_STORE_KEY_RING=.*#TLS_TRUST_STORE_KEY_RING=${instance-UKO_TLS_TRUST_STORE_KEY_RING}#g;
@@ -160,15 +176,6 @@
                         s#^[ \#]*UKO_OAUTH_CLIENT_ID_OPENAPI=.*#UKO_OAUTH_CLIENT_ID_OPENAPI=${instance-UKO_OAUTH_CLIENT_ID_OPENAPI}#g;
                         s#^[ \#]*OIDC_PROVIDER_TRUST_ALIAS_NAME=.*#OIDC_PROVIDER_TRUST_ALIAS_NAME=${instance-UKO_OIDC_PROVIDER_CERT}#g;
                         s#^[ \#]*OIDC_PROVIDER_KEY_ALIAS_NAME=.*#OIDC_PROVIDER_KEY_ALIAS_NAME=${instance-UKO_OIDC_PROVIDER_CERT}#g" ${instance-UKO_INSTALL_DIR}/server.env > ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env;
-
-                    # TODO: temporary manual variable add, remove for the future
-                    #if(${instance-ENABLE_MTLS_VIA_HTTPS_PORT} &amp;&amp; ${instance-ENABLE_MTLS_VIA_HTTPS_PORT} != "")
-                        echo TLS_CLIENT_AUTHENTICATION_SUPPORTED=${instance-ENABLE_MTLS_VIA_HTTPS_PORT} >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env;
-                    #end
-                    echo DB_MODE=DB2 >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env;
-                    echo HOST=winmvs3n.hursley.ibm.com >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env;
-                    echo INSTANCE_ID=00000000-0000-0000-0000-000000000000 >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env;
-                    echo DEFAULT_VAULT_ID=00000000-0000-0000-0000-000000000000 >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env;
 
                     </inlineTemplate>
             	<submitAs>shell-JCL</submitAs>
