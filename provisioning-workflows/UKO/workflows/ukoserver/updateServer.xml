@@ -41,7 +41,6 @@
 	<atCreate name="UKO_INSTALL_DIR" scope="instance" prompt="true" required="false"/>
 	<atCreate name="START_SERVER" scope="instance" prompt="true" required="false"/>
     <atCreate name="UKO_VAULT_ID" scope="instance" prompt="true" required="false"/>
-    <atCreate name="UKO_SERVER_DIRECTORY" scope="instance" prompt="true" required="false"/>
     
     <!--++++++++++++++++++++++-->
     <!--   Stop the server    -->
@@ -69,33 +68,33 @@
             <template>
                 <inlineTemplate substitution="true">
                     # Get the current version
-                    currentversion=$(iconv -t IBM037 -f utf-8 ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/EkmfWeb.properties | grep com.ibm.websphere.productVersion | sed -E 's/.*=([^\$])/\1/')
+                    currentversion=$(iconv -t IBM037 -f utf-8 ${instance-UKO_SERVER_DIRECTORY}/EkmfWeb.properties | grep com.ibm.websphere.productVersion | sed -E 's/.*=([^\$])/\1/')
 
                     # create backup directory
-                    mkdir ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey};
+                    mkdir ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey};
 
                     # move everything into backup directory
-                    mv ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/EkmfWeb.properties ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/EkmfWeb.properties;
-                    mv ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/apps ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/apps;
+                    mv ${instance-UKO_SERVER_DIRECTORY}/EkmfWeb.properties ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/EkmfWeb.properties;
+                    mv ${instance-UKO_SERVER_DIRECTORY}/apps ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/apps;
 
-                    if [ -d "${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/includes" ] 
+                    if [ -d "${instance-UKO_SERVER_DIRECTORY}/includes" ] 
                     then
-                        mv ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/includes ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/includes; 
+                        mv ${instance-UKO_SERVER_DIRECTORY}/includes ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/includes; 
                     fi
                     
-                    if [ -d "${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/configDropins" ] 
+                    if [ -d "${instance-UKO_SERVER_DIRECTORY}/configDropins" ] 
                     then
-                        mv ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/configDropins ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/configDropins; 
+                        mv ${instance-UKO_SERVER_DIRECTORY}/configDropins ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/configDropins; 
                     fi
 
 
-                    mv ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/resources ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/resources;
-                    mv ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.xml ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/server.xml;		    
-                    mv ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/server.env;			    
-                    mv ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/jvm.options ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/jvm.options;			    
+                    mv ${instance-UKO_SERVER_DIRECTORY}/resources ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/resources;
+                    mv ${instance-UKO_SERVER_DIRECTORY}/server.xml ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/server.xml;		    
+                    mv ${instance-UKO_SERVER_DIRECTORY}/server.env ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/server.env;			    
+                    mv ${instance-UKO_SERVER_DIRECTORY}/jvm.options ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/jvm.options;			    
 
                     # Create a migration log
-                    echo "Current UKO Version is: $currentversion" > ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "Current UKO Version is: $currentversion" > ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
                 </inlineTemplate>
                 <submitAs>shell-JCL</submitAs>
             </template>
@@ -114,15 +113,15 @@
    		         <inlineTemplate substitution="true">
 
                     #extract all name=value pairs that are not commented out from old file
-                    sed '/^[[:blank:]]*#/d;/^$/d' ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/jvm.options > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options; 
+                    sed '/^[[:blank:]]*#/d;/^$/d' ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/jvm.options > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options; 
 
-                    echo "********************************************" >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
-                    echo "Parameters from jvm.options to be migrated: " >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
-                    cat ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "********************************************" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "Parameters from jvm.options to be migrated: " >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    cat ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
                     # set the number of lines
                     lines=$(sed -n '$='  ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_jvm.options; ); 
-                    echo "********************************************" >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
-                    echo "Number of parameters to be transferred:" ${lines} >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "********************************************" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "Number of parameters to be transferred:" ${lines} >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
                     sedstring="";
                     nottransfered="";
                     transferred="";
@@ -153,14 +152,14 @@
                     done
                     
                     # echo "sedstring: $sedstring";
-                    sed -e "$sedstring" ${instance-UKO_INSTALL_DIR}/jvm.options > ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/jvm.options;
-                    echo "The following variable(s) have been transferred: $transfered\n" >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                    sed -e "$sedstring" ${instance-UKO_INSTALL_DIR}/jvm.options > ${instance-UKO_SERVER_DIRECTORY}/jvm.options;
+                    echo "The following variable(s) have been transferred: $transfered\n" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
 
                     if ["$nottransfered" = ""]
                     then
-                        echo "All parameters were transferred" >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                        echo "All parameters were transferred" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
                     else
-                        echo "The following variable(s) can NOT be transferred automatically: $nottransfered \nVerify whether they still exist in the new version." >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                        echo "The following variable(s) can NOT be transferred automatically: $nottransfered \nVerify whether they still exist in the new version." >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
                     fi     
 
                 </inlineTemplate>
@@ -181,16 +180,16 @@
    		         <inlineTemplate substitution="true">
 
                     #extract all name=value pairs that are not commented out from old file
-                    sed '/^[[:blank:]]*#/d;/^$/d' ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/server.env > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env; 
+                    sed '/^[[:blank:]]*#/d;/^$/d' ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/server.env > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env; 
 
-                    echo "********************************************" >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
-                    echo "Parameters from server.env to be migrated: " >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
-                    cat ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "********************************************" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "Parameters from server.env to be migrated: " >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    cat ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
 
                     # set the number of lines
                     lines=$(sed -n '$='  ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_server.env; ); 
-                    echo "********************************************" >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
-                    echo "Number of parameters to be transferred:" ${lines} >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "********************************************" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                    echo "Number of parameters to be transferred:" ${lines} >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
                     sedstring="";
                     nottransfered="";
                     transferred="";
@@ -217,20 +216,15 @@
                     done
                     
                     # echo "sedstring: $sedstring";
-                    sed -e "$sedstring" ${instance-UKO_INSTALL_DIR}/server.env > ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env;
-                    echo "The following variable(s) have been transferred: $transfered\n" >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                    sed -e "$sedstring" ${instance-UKO_INSTALL_DIR}/server.env > ${instance-UKO_SERVER_DIRECTORY}/server.env;
+                    echo "The following variable(s) have been transferred: $transfered\n" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
 
                     if ["$nottransfered" = ""]
                     then
-                        echo "All parameters were transferred" >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                        echo "All parameters were transferred" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
                     else
-                        echo "The following variable(s) can NOT be transferred automatically: $nottransfered \nVerify whether they still exist in the new version." >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/backup_${_workflow-workflowKey}/migration.log;
+                        echo "The following variable(s) can NOT be transferred automatically: $nottransfered \nVerify whether they still exist in the new version." >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
                     fi     
-
-                    # this line is to be removed once TLS_CLIENT_AUTHENTICATION_SUPPORTED has been added to server.env after V2.1.0.6
-                    #if(${instance-ENABLE_MTLS_VIA_HTTPS_PORT} &amp;&amp; ${instance-ENABLE_MTLS_VIA_HTTPS_PORT} != "")
-                        echo TLS_CLIENT_AUTHENTICATION_SUPPORTED=${instance-ENABLE_MTLS_VIA_HTTPS_PORT} >> ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env;
-                    #end
 
                     currentversion=$(iconv -t IBM037 -f utf-8 ${instance-UKO_INSTALL_DIR}/EkmfWeb.properties | grep com.ibm.websphere.productVersion | sed -E 's/.*=([^\$])/\1/')
 
@@ -249,24 +243,24 @@
             <approver substitution="true">$!{instance-UKO_APPROVER_SERVER}</approver>
             <variableValue name="UKO_SERVER_STC_USER" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="UKO_SERVER_STC_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
-            <instructions substitution="true">Execute the script to transfer ownership of jvm.options and server.env in ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME} to ${instance-UKO_SERVER_STC_USER}</instructions>
+            <instructions substitution="true">Execute the script to transfer ownership of jvm.options and server.env in ${instance-UKO_SERVER_DIRECTORY} to ${instance-UKO_SERVER_STC_USER}</instructions>
             <weight>1</weight>
             <autoEnable>true</autoEnable>
             <template>
               <inlineTemplate substitution="true">
                     
                 #if(${instance-UKO_SERVER_STC_GROUP} != "" &amp;&amp; ${instance-UKO_SERVER_STC_GROUP})
-                    echo "Ensure that ${instance-UKO_SERVER_STC_GROUP} has read access to ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env and jvm.options"
-                    chown ${instance-UKO_SERVER_STC_USER}:${instance-UKO_SERVER_STC_GROUP} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env
-                    chmod 770 ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env
-                    chown ${instance-UKO_SERVER_STC_USER}:${instance-UKO_SERVER_STC_GROUP} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/jvm.options
-                    chmod 770 ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/jvm.options
+                    echo "Ensure that ${instance-UKO_SERVER_STC_GROUP} has read access to ${instance-UKO_SERVER_DIRECTORY}/server.env and jvm.options"
+                    chown ${instance-UKO_SERVER_STC_USER}:${instance-UKO_SERVER_STC_GROUP} ${instance-UKO_SERVER_DIRECTORY}/server.env
+                    chmod 770 ${instance-UKO_SERVER_DIRECTORY}/server.env
+                    chown ${instance-UKO_SERVER_STC_USER}:${instance-UKO_SERVER_STC_GROUP} ${instance-UKO_SERVER_DIRECTORY}/jvm.options
+                    chmod 770 ${instance-UKO_SERVER_DIRECTORY}/jvm.options
                 #else
-                    echo "Ensure that ${instance-UKO_SERVER_STC_USER} has read access to ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env and jvm.options"
-                    chown ${instance-UKO_SERVER_STC_USER} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env
-                    chmod 700 ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/server.env
-                    chown ${instance-UKO_SERVER_STC_USER} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/jvm.options
-                    chmod 700 ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/jvm.options
+                    echo "Ensure that ${instance-UKO_SERVER_STC_USER} has read access to ${instance-UKO_SERVER_DIRECTORY}/server.env and jvm.options"
+                    chown ${instance-UKO_SERVER_STC_USER} ${instance-UKO_SERVER_DIRECTORY}/server.env
+                    chmod 700 ${instance-UKO_SERVER_DIRECTORY}/server.env
+                    chown ${instance-UKO_SERVER_STC_USER} ${instance-UKO_SERVER_DIRECTORY}/jvm.options
+                    chmod 700 ${instance-UKO_SERVER_DIRECTORY}/jvm.options
                 #end
     
                 if [ $? -gt 1 ]; then 
@@ -291,7 +285,7 @@
                 <inlineTemplate substitution="true">
 
                     # Create symlinks to the updated installation folder of UKO
-                    cd ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}
+                    cd ${instance-UKO_SERVER_DIRECTORY}
                     ln -s ${instance-UKO_INSTALL_DIR}/EkmfWeb.properties EkmfWeb.properties
                     ln -s ${instance-UKO_INSTALL_DIR}/apps apps
 
