@@ -329,7 +329,23 @@
             <autoEnable>true</autoEnable>
             <template>
                 <fileTemplate substitution="true">jcl/database-grant-access.jcl</fileTemplate>
-                <submitAs maxRc="4">JCL</submitAs>
+                <submitAs maxRc="8">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+        <step name="configureSystableAccess">
+            <title>Configure access to SYSIBM.SYSTABLES for system status</title>
+            <description>Configure access to the SYSIBM.SYSTABLES table which is required to run the system status checks</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <variableValue name="UKO_SERVER_STC_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/database-grant-access-systable.jcl</fileTemplate>
+                <submitAs maxRc="8">JCL</submitAs>
                 <maxLrecl>80</maxLrecl>
             </template>
         </step>
@@ -373,21 +389,6 @@
         <title>Optional steps</title>
         <description>Additional steps you can execute</description>
 
-        <step name="configureSystableAccess">
-            <title>Configure access to SYSIBM.SYSTABLES for system status</title>
-            <description>Configure access to the SYSIBM.SYSTABLES table which is required to run the system status checks</description>
-            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
-            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
-            <variableValue name="UKO_SERVER_STC_USER" scope="instance" noPromptIfSet="false" required="false"/>
-            <instructions substitution="true">Submit jcl to execute step</instructions>
-            <weight>1</weight>
-            <autoEnable>true</autoEnable>
-            <template>
-                <fileTemplate substitution="true">jcl/database-grant-access-systable.jcl</fileTemplate>
-                <submitAs maxRc="8">JCL</submitAs>
-                <maxLrecl>80</maxLrecl>
-            </template>
-        </step>
 
         <step name="cleanUpVariables">
             <title>Clean up variables</title>

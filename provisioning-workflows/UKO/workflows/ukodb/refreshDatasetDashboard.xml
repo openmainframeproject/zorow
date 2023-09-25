@@ -42,8 +42,8 @@
     <step name="extractDataFromCatalog">
 		<title>Extract data from global catalog</title>
 		<description>Run the KMGUTIL utility to extract data set information from the global catalog</description>
-        <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
-        <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SERVER}</runAsUser>
+        <approver substitution="true">$!{instance-UKO_APPROVER_SERVER}</approver>
         <variableValue name="DB2_TEMP_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
         <instructions substitution="true">Submit jcl to execute step</instructions>
         <weight>1</weight>

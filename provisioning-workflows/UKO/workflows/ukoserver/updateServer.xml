@@ -142,15 +142,16 @@
                         #check whether the extracted variable is contained in the latest jvm.options
                         if !(grep -Fq "${grepstring}=" ${instance-UKO_INSTALL_DIR}/jvm.options)
                         then
-                            nottransfered="${nottransfered}\n$ukovariable";
+                            nottransfered="${nottransfered}\n${ukovariable}=${ukovalue}";
                         else
                             transfered="${transfered}\n$ukovariable";
                             # create rest string to update variables
-                            echo "{\"name\":\"$ukovariable\",\"value\":\"$ukovalue\",\"visibility\":\"public\"}," >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties;
+                            # echo "{\"name\":\"$ukovariable\",\"value\":\"$ukovalue\",\"visibility\":\"public\"}," >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties;
                         fi
 
                     done
                     
+                    # do the actual replacement
                     # echo "sedstring: $sedstring";
                     sed -e "$sedstring" ${instance-UKO_INSTALL_DIR}/jvm.options > ${instance-UKO_SERVER_DIRECTORY}/jvm.options;
                     echo "The following variable(s) have been transferred: $transfered\n" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
@@ -159,7 +160,8 @@
                     then
                         echo "All parameters were transferred" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
                     else
-                        echo "The following variable(s) can NOT be transferred automatically: $nottransfered \nVerify whether they still exist in the new version." >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                        echo "The following variable(s) can NOT be transferred automatically: ${nottransfered} \nVerify whether they still exist in the new version." >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                        echo "# Verify the following parameters:\n${nottransfered}" >> ${instance-UKO_SERVER_DIRECTORY}/jvm.options;
                     fi     
 
                 </inlineTemplate>
@@ -207,11 +209,11 @@
                         #check whether the extracted variable is contained in the latest server.env
                         if !(grep -Fq "${ukovariable}=" ${instance-UKO_INSTALL_DIR}/server.env)
                         then
-                            nottransfered="${nottransfered}\n$ukovariable";
+                            nottransfered="${nottransfered}\n${ukovariable}=${ukovalue}";
                         else
                             transfered="${transfered}\n$ukovariable";
                             # create rest string to update variables
-                            echo "{\"name\":\"$ukovariable\",\"value\":\"$ukovalue\",\"visibility\":\"public\"}," >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties;
+                            # echo "{\"name\":\"$ukovariable\",\"value\":\"$ukovalue\",\"visibility\":\"public\"}," >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties;
                         fi
                     done
                     
@@ -224,11 +226,12 @@
                         echo "All parameters were transferred" >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
                     else
                         echo "The following variable(s) can NOT be transferred automatically: $nottransfered \nVerify whether they still exist in the new version." >> ${instance-UKO_SERVER_DIRECTORY}/backup_${_workflow-workflowKey}/migration.log;
+                        echo "# Verify the following parameters:\n${nottransfered}" >> ${instance-UKO_SERVER_DIRECTORY}/server.env;
                     fi     
 
                     currentversion=$(iconv -t IBM037 -f utf-8 ${instance-UKO_INSTALL_DIR}/EkmfWeb.properties | grep com.ibm.websphere.productVersion | sed -E 's/.*=([^\$])/\1/')
 
-                    echo "{\"name\":\"UKO_SERVER_VERSION\",\"value\":\"$currentversion\",\"visibility\":\"public\"}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties;
+                    # echo "{\"name\":\"UKO_SERVER_VERSION\",\"value\":\"$currentversion\",\"visibility\":\"public\"}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties;
 
                     </inlineTemplate>
             	<submitAs>shell-JCL</submitAs>
@@ -308,6 +311,51 @@
 
     </step>
 	  
+    <step name="defineRoles">
+        <title>Define security roles</title>
+        <description>Define EJB roles required to operate UKO and grant access</description>
+
+        <step name="defineRolesGeneral">
+            <title>Define general UKO roles</title>
+            <description>Defines the general roles across all vaults</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+            <variableValue name="UKO_KEY_ADMIN_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_KEY_CUSTODIAN1_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_KEY_CUSTODIAN2_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_AUDITOR_GROUP" scope="instance" noPromptIfSet="false" required="false"/>        
+            <instructions>Executes a REXX program to create EJB roles and grant access</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">extensions/defineRolesGeneral.rexx</fileTemplate>
+                <submitAs maxRc="4">TSO-REXX-JCL</submitAs>
+                <maxLrecl>1024</maxLrecl>
+            </template>
+        </step>
+
+        <step name="defineRolesVault">
+            <title>Define vault-specific UKO roles</title>
+            <description>Defines the vault-specific roles</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+            <variableValue name="UKO_VAULT_ID" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_KEY_ADMIN_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_KEY_CUSTODIAN1_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_KEY_CUSTODIAN2_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_AUDITOR_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions>Executes a REXX program to create EJB roles and grant access</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">extensions/defineRolesVault.rexx</fileTemplate>
+                <submitAs maxRc="4">TSO-REXX-JCL</submitAs>
+                <maxLrecl>1024</maxLrecl>
+            </template>
+        </step>
+        
+    </step>
+
     <step name="startServer">
         <title>Start the server</title>
         <description>Start the server</description>
