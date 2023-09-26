@@ -14,6 +14,7 @@
             <description>Issue a stop command for the server.</description>
             <runAsUser substitution="true">$!{instance-UKO_ADMIN_CONSOLE}</runAsUser>
             <approver substitution="true">$!{instance-UKO_APPROVER_CONSOLE}</approver>
+            <variableValue name="UKO_SERVER_STC_NAME" scope="instance" noPromptIfSet="false" required="false"/>
             <instructions substitution="false">Submitting script to stop the server.</instructions>
             <weight>1</weight>
             <autoEnable>true</autoEnable>
