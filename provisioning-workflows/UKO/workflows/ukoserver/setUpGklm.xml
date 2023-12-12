@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">
+                    <!ENTITY image_properties SYSTEM "extensions/image_properties.xml">
+                    ]> 
+                    
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- UKO Provisioning : Provision a new server                   -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>uko_setUpGklm</workflowID>
+      <workflowDescription>Setting up for GKLM integration</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+        <!-- Build timestamp 2021.05.09.21.03.24 -->
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>UKO</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>ukoserver</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include variables used by the following steps     -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+
+    <variable name="UKO_GKLM_CLIENT_USER" visibility="private">
+        <label>UKO_GKLM_CLIENT_USER</label>
+        <abstract>The GKLM client user ID</abstract>
+        <description>GKLM client access group, for all functions required by GKLM. This group is connected to the used ID that the GKLM mTLS certificate maps to.</description>
+        <category>String Variables</category>
+        <string>
+        <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+        characters, including special characters. -->
+        <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+        </string>
+    </variable>
+    
+    <variable name="UKO_GKLM_CLIENT_GROUP" visibility="private">
+        <label>UKO_GKLM_CLIENT_GROUP</label>
+        <abstract>The group holding the GKLM clients</abstract>
+        <description>GKLM client access group, for all functions required by GKLM. This group is connected to the used ID that the GKLM mTLS certificate maps to.</description>
+        <category>String Variables</category>
+        <string>
+        <!-- A validation type of USERID allows for 1-8 alphanumeric (uppercase only)
+        characters, including special characters. -->
+        <regularExpression>^[0-9a-zA-Z$#@]{0,8}$</regularExpression>
+        </string>
+    </variable>
+  
+	<atCreate name="UKO_GKLM_CLIENT_USER" scope="instance" prompt="true" required="false"/>
+	<atCreate name="UKO_GKLM_CLIENT_GROUP" scope="instance" prompt="true" required="false"/>
+
+    <step name="defineRoles">
+        <title>Define security roles</title>
+        <description>Define EJB roles required to operate UKO and grant access</description>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+        <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+        <variableValue name="UKO_GKLM_CLIENT_USER" scope="instance" noPromptIfSet="false" required="false"/>
+        <variableValue name="UKO_GKLM_CLIENT_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+        <instructions>Executes a REXX program to access EJB roles</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">extensions/defineGklmAccess.rexx</fileTemplate>
+            <submitAs maxRc="4">TSO-REXX-JCL</submitAs>
+            <maxLrecl>1024</maxLrecl>
+        </template>
+    </step>
+
+</workflow>
