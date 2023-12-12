@@ -120,6 +120,7 @@
 	        <description>replace values in server.env with template variable values</description>
 	        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SERVER}</runAsUser>
 	        <approver substitution="true">$!{instance-UKO_APPROVER_SERVER}</approver>
+            <variableValue name="JAVA_HOME" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="UKO_TLS_KEY_STORE_KEY_RING" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="UKO_TLS_TRUST_STORE_KEY_RING" scope="instance" noPromptIfSet="false" required="false"/>
             <variableValue name="UKO_TLS_KEY_STORE_SERVER_CERT" scope="instance" noPromptIfSet="false" required="false"/>

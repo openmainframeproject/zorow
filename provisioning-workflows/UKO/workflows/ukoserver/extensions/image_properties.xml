@@ -23,6 +23,7 @@
 
 <atCreate name="START_SERVER" scope="instance" prompt="true" required="false"/>
 <atCreate name="UKO_INSTALL_DIR" scope="instance" prompt="true" required="false"/>
+<atCreate name="JAVA_HOME" scope="instance" prompt="true" required="false"/>
 
 <atCreate name="UKO_SERVER_STC_NAME" scope="instance" prompt="true" required="false"/>
 <atCreate name="UKO_HTTP_PORT" scope="instance" prompt="true" required="false"/>
@@ -50,7 +51,7 @@
 <atCreate name="UKO_OIDC_PROVIDER_CERT" scope="instance" prompt="true" required="false"/>
 <atCreate name="UKO_OAUTH_CLIENT_ID" scope="instance" prompt="true" required="false"/>
 <atCreate name="UKO_OAUTH_CLIENT_ID_OPENAPI" scope="instance" prompt="true" required="false"/>
-<atCreate name="UKO_TRACE_OPTIONS" scope="instance" prompt="true" required="false"/>
+<!-- <atCreate name="UKO_TRACE_OPTIONS" scope="instance" prompt="true" required="false"/> -->
 <atCreate name="UKO_WELCOME_MESSAGE" scope="instance" prompt="true" required="false"/>
 
 <atCreate name="UKO_TLS_TRUST_STORE_KEY_RING" scope="instance" prompt="true" required="false"/>

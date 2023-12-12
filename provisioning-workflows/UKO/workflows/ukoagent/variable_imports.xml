@@ -32,14 +32,16 @@
   </string>
 </variable>
 
-<variable name="JAVA_HOME" visibility="private">
+<variable name="JAVA_HOME" visibility="public">
   <label>JAVA_HOME</label>
   <abstract>Java home path</abstract>
   <description>The path to the Java home directory.</description>
   <category>String Variables</category>
-  <string>
+  <string valueMustBeChoice="false">
+    <choice>"/java/java80_64/J8.0_64"</choice>
+    <choice>"/java/java11_bit64_sr18_fp0/J11.0_64"</choice>
+    <choice>"/java/java17_bit64_sr7_fp0/J17.0_64"</choice>
     <!-- Path validation, has to start with slash, may contain slashes, must not end with slash or whitespace -->
-    <regularExpression>^\/([A-z0-9-_+\.]+\/)*([A-z0-9-_+\.])*[^\/\s]$</regularExpression>
   </string>
 </variable>
 
@@ -260,7 +262,8 @@
   <category>String Variables</category>
   <string valueMustBeChoice="false">
     <choice>"*=info:com.ibm.ccc.ekmf.*=info"</choice>
-    <choice>"com.ibm.ccc.ekmf.*=all:com.ibm.crypto.*=all:org.eclipse.persistence.*=all"</choice>
+    <choice>"com.ibm.ccc.ekmf.*=all:com.ibm.crypto.*=all:org.eclipse.persistence.*=info:com.ibm.db2.*=info:eclipselink.sql=info"</choice>
+    <choice>"com.ibm.ccc.ekmf.*=all:com.ibm.crypto.*=all:org.eclipse.persistence.*=all:com.ibm.db2.*=info:eclipselink.sql=info"</choice>
     <choice>"com.ibm.ccc.ekmf.*=all:com.ibm.crypto.*=all:org.eclipse.persistence.*=all:com.ibm.db2.*=all:eclipselink.sql=all"</choice>
     <choice>"com.ibm.ccc.ekmf.*=all:com.ibm.crypto.*=all:org.eclipse.persistence.*=all:com.ibm.db2.*=all:eclipselink.sql=all:zos.native.03=all"</choice>
     <default>"*=info:com.ibm.ccc.ekmf.*=info"</default>

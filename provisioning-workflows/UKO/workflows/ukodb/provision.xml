@@ -373,6 +373,7 @@
                 </targetStateSet>
             </condition>
             <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_AGENT_CLIENT_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
             <instructions substitution="true">Submit jcl to execute step</instructions>
             <weight>1</weight>
             <autoEnable>true</autoEnable>

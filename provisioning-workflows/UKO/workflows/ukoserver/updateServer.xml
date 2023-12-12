@@ -41,6 +41,7 @@
 	<atCreate name="UKO_INSTALL_DIR" scope="instance" prompt="true" required="false"/>
 	<atCreate name="START_SERVER" scope="instance" prompt="true" required="false"/>
     <atCreate name="UKO_VAULT_ID" scope="instance" prompt="true" required="false"/>
+    <atCreate name="JAVA_HOME" scope="instance" prompt="true" required="false"/>
     
     <!--++++++++++++++++++++++-->
     <!--   Stop the server    -->
@@ -106,6 +107,7 @@
 	        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SERVER}</runAsUser>
 	        <approver substitution="true">$!{instance-UKO_APPROVER_SERVER}</approver>
             <variableValue name="UKO_INSTALL_DIR" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="TEMP_DIR" scope="instance" noPromptIfSet="false" required="false"/>
             <instructions substitution="true">Submit shell script to execute step</instructions>
             <weight>1</weight>
             <autoEnable>true</autoEnable>
@@ -311,6 +313,31 @@
 
     </step>
 	  
+    <step name="additionalMigration">
+        <title>Additional migration steps</title>
+        <description>Additional steps to be executed after the directories have been migrated</description>
+
+        <step name="verifyJavaHome">
+		    <title>Verify Java home</title>
+	        <description>The new version might need a newer version of Java, verify the version now.</description>
+	        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SERVER}</runAsUser>
+	        <approver substitution="true">$!{instance-UKO_APPROVER_SERVER}</approver>
+            <variableValue name="JAVA_HOME" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+   		        <inlineTemplate substitution="true">
+                    cp ${instance-UKO_SERVER_DIRECTORY}/server.env ${instance-UKO_SERVER_DIRECTORY}/server.env_backup
+                    sed "s#JAVA_HOME=.*#JAVA_HOME=${instance-JAVA_HOME}#g" ${instance-UKO_SERVER_DIRECTORY}/server.env_backup > ${instance-UKO_SERVER_DIRECTORY}/server.env;
+
+                </inlineTemplate>
+            	<submitAs>shell-JCL</submitAs>
+        	</template>
+        </step>
+
+    </step>
+
     <step name="defineRoles">
         <title>Define security roles</title>
         <description>Define EJB roles required to operate UKO and grant access</description>
