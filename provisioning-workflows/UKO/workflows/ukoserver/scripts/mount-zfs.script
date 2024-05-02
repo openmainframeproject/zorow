@@ -1,0 +1,130 @@
+#
+# /******************************************************************************/
+# /* Copyright Contributors to the zOS-Workflow Project.                        */
+# /* SPDX-License-Identifier: Apache-2.0                                        */
+# /******************************************************************************/
+
+#
+#   STATUS = @STATUS@
+#
+# FILE : mount-zfs.script
+#
+#
+## Set the $ sign for use in the script
+#set ( $d = "$")
+#set ($zfs = "${instance-UKO_FILE_SYSTEM_HLQ}.${instance-UKO_SERVER_STC_NAME}")
+
+# Query information about the main mountpoint
+df_out=${d}(df ${instance-WLP_USER_DIR})
+
+echo "df_out set to ${d}df_out"
+
+# Split to obtain the data set for the mount point
+dataset=${d}(echo ${d}df_out | sed -e 's/.*(//' | sed -e 's/).*//')
+
+echo "dataset set to ${d}dataset"
+
+# Using the data set restrict using grep in the mount -qv comment
+mount_info=${d}(mount -qv ${instance-WLP_USER_DIR} | grep ${d}dataset)
+
+echo "mount_info set to ${d}mount_info"
+
+# Look at the 5 byte to work out what to do next
+parent_mount=${d}(expr substr "${d}mount_info" 5 1)
+
+echo "parent_mount set to ${d}parent_mount"
+
+# Decide the automount value
+case ${d}parent_mount in
+   "A")
+       echo "Automount (yes)"
+       mountvalue="yes"
+       ;;
+   "U")
+       echo "Unmount (unmount)"
+       mountvalue="unmount"
+       ;;
+   "-")
+       echo "NoAutomount (no)"
+       mountvalue="no"
+       ;;
+esac
+
+echo "mountvalue ${d}mountvalue"
+
+echo "Running command: mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}"
+
+mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}
+rc=${d}?
+if [ ${d}rc -gt 0 ]; then
+  echo "Failed to mount the directory see STDERR with RC ${d}rc"
+  exit ${d}rc
+fi
+
+echo "Creating directories / files"
+
+mkdir ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/PROVISION_OK
+#if(${instance-UKO_SERVER_STC_GROUP} != "" && ${instance-UKO_SERVER_STC_GROUP})
+chmod 775 ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}
+chown ${instance-UKO_SERVER_STC_USER}:${instance-UKO_SERVER_STC_GROUP} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}
+#else
+chmod 755 ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}
+#if(${instance-UKO_SERVER_STC_USER} != ${instance-UKO_ADMIN_ZFS})
+chown ${instance-UKO_SERVER_STC_USER} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}
+#end
+#end
+
+# ##########################
+
+#if(${instance-WLP_OUTPUT_DIR} && $!{instance-WLP_OUTPUT_DIR} != "")
+# mount WLP_OUTPUT_DIR if specified
+#set ($zfs = "${instance-UKO_FILE_SYSTEM_HLQ}.${instance-UKO_SERVER_STC_NAME}.OUTPUT")
+# Query information about the main mountpoint
+df_out=${d}(df ${instance-WLP_OUTPUT_DIR})
+
+echo "df_out set to ${d}df_out"
+
+# Split to obtain the data set for the mount point
+dataset=${d}(echo ${d}df_out | sed -e 's/.*(//' | sed -e 's/).*//')
+
+echo "dataset set to ${d}dataset"
+
+# Using the data set restrict using grep in the mount -qv comment
+mount_info=${d}(mount -qv ${instance-WLP_OUTPUT_DIR} | grep ${d}dataset)
+
+echo "mount_info set to ${d}mount_info"
+
+# Look at the 5 byte to work out what to do next
+parent_mount=${d}(expr substr "${d}mount_info" 5 1)
+
+echo "parent_mount set to ${d}parent_mount"
+
+# Decide the automount value
+case ${d}parent_mount in
+   "A")
+       echo "Automount (yes)"
+       mountvalue="yes"
+       ;;
+   "U")
+       echo "Unmount (unmount)"
+       mountvalue="unmount"
+       ;;
+   "-")
+       echo "NoAutomount (no)"
+       mountvalue="no"
+       ;;
+esac
+
+echo "mountvalue ${d}mountvalue"
+
+echo "Running command: mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-WLP_OUTPUT_DIR}/${instance-UKO_SERVER_STC_NAME}"
+
+mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-WLP_OUTPUT_DIR}/${instance-UKO_SERVER_STC_NAME}
+rc=${d}?
+if [ ${d}rc -gt 0 ]; then
+  echo "Failed to mount the output directory see STDERR with RC ${d}rc"
+  exit ${d}rc
+fi
+mkdir ${instance-WLP_OUTPUT_DIR}/${instance-UKO_SERVER_STC_NAME}/PROVISION_OK
+
+#end

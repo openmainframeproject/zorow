@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">
+                    <!ENTITY image_properties SYSTEM "extensions/image_properties.xml">
+                    ]> 
+                    
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- UKO Provisioning : Provision keyring(s) and certificate(s)      -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>ukokeyring_Provision</workflowID>
+      <workflowDescription>Provision keyrings and certificates required for UKO</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>UKO</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>ukokeyring</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include variables used by the following steps     -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	&image_properties;
+	
+    <!--++++++++++++++++++++++-->
+    <!--   Provision Steps    -->
+    <!--++++++++++++++++++++++-->  
+
+    
+    <step name="createCA">
+        <title>Create CA</title>
+        <description>If requested, create a certificate authority</description>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+        <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+        <condition>
+            <expression><![CDATA["1" == "1"]]></expression>
+            <description>Always perform</description>
+            <targetStateSet>
+                <description>Only create the certificate authority if requested</description>
+                <extendStateExpression>
+                    <description>Skip if UKO_CREATE_CA is false</description>
+                    <expression><![CDATA[ ${instance-UKO_CREATE_CA} == undefined || ${instance-UKO_CREATE_CA} != "true"]]></expression>
+                    <targetState>Skipped</targetState>
+                </extendStateExpression>
+            </targetStateSet>
+        </condition> 
+        <instructions>Executes a REXX program to create a certificate authority</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">extensions/createCA.rexx</fileTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>1024</maxLrecl>
+        </template>
+    </step>
+
+    <step name="createCertificates">
+        <title>Create certificates</title>
+        <description>If requested, create a certificates </description>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+        <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+        <condition>
+            <expression><![CDATA["1" == "1"]]></expression>
+            <description>Always perform</description>
+            <targetStateSet>
+                <description>Only create the certificates if requested</description>
+                <extendStateExpression>
+                    <description>Skip if UKO_CREATE_CERTIFICATES is false</description>
+                    <expression><![CDATA[ ${instance-UKO_CREATE_CERTIFICATES} == undefined || ${instance-UKO_CREATE_CERTIFICATES} != "true"]]></expression>
+                    <targetState>Skipped</targetState>
+                </extendStateExpression>
+            </targetStateSet>
+        </condition> 
+        <instructions>Executes a REXX program to create a certificates</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">extensions/createCerts.rexx</fileTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>1024</maxLrecl>
+        </template>
+    </step>
+
+    <step name="createKeyring">
+        <title>Create Keyring</title>
+        <description>If requested, create a key ring and trust ring</description>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+        <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+        <condition>
+            <expression><![CDATA["1" == "1"]]></expression>
+            <description>Always perform</description>
+            <targetStateSet>
+                <description>Only create the key and trust ring if requested</description>
+                <extendStateExpression>
+                    <description>Skip if UKO_CREATE_KEYRING is NO</description>
+                    <expression><![CDATA[ ${instance-UKO_CREATE_KEYRING} == undefined || ${instance-UKO_CREATE_KEYRING} != "true"]]></expression>
+                    <targetState>Skipped</targetState>
+                </extendStateExpression>
+            </targetStateSet>
+        </condition> 
+        <instructions>Executes a REXX program to create the key ring and potentially trust ring</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">extensions/defineKeyring.rexx</fileTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>1024</maxLrecl>
+        </template>
+    </step>
+
+    <step name="addToKeyRing">
+        <title>Add certificates and CA to keyring</title>
+        <description>Add certificate(s) and CA to keyring(s) if anything was newly created</description>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+        <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+        <instructions>Executes a REXX program to add certificates and the CA to the key ring and potentially trust ring</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">extensions/addToKeyring.rexx</fileTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>1024</maxLrecl>
+        </template>
+    </step>
+
+    <step name="addMoreCertificatesToTrustRing">
+        <title>Add additional certificates to trust ring </title>
+        <description>Add trusted certificates to the server's trust keyring, for example to connect to cloud keystores</description>
+        <runAsUser substitution="true">$!{instance-UKO_ADMIN_SECURITY}</runAsUser>
+        <approver substitution="true">$!{instance-UKO_APPROVER_SECURITY}</approver>
+        <instructions>Adjust and execute this REXX program to add additional certificates to the trust keyring, adjust the names to reflect your own local certificate labels</instructions>
+        <weight>1</weight>
+        <autoEnable>true</autoEnable>
+        <template>
+            <fileTemplate substitution="true">extensions/addTrustCertificates.rexx</fileTemplate>
+            <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            <maxLrecl>1024</maxLrecl>
+        </template>
+    </step>
+
+</workflow>

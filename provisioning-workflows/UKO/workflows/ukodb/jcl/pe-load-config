@@ -1,0 +1,135 @@
+LOAD DATA
+   INDDN LOADDATA
+   REPLACE
+   LOG    NO
+   IGNORE(WHEN)
+
+   INTO TABLE ${instance-DB_CURRENT_SCHEMA}.T_KMGPE_SYSTEM_INFO
+   WHEN(1:4)='SYSI' (
+      ID                   POSITION(006)   BIGINT,
+      LAST_SCAN            POSITION(015)   TIMESTAMP EXTERNAL(19),
+      SYSPLEX              POSITION(035)   VARCHAR(8),
+      SYSNAME              POSITION(046)   VARCHAR(8),
+      SMFID                POSITION(057)   VARCHAR(4),
+      LPAR                 POSITION(064)   VARCHAR(8),
+      SERIAL               POSITION(075)   VARCHAR(12),
+      MCAT                 POSITION(090)   VARCHAR(44),
+      MCATVOL              POSITION(137)   VARCHAR(6),
+      ZOSREL               POSITION(146)   VARCHAR(6),
+      ICSFREL              POSITION(155)   VARCHAR(8),
+      EKMFREL              POSITION(166)   VARCHAR(6),
+      INCL_VTOC_DATA       POSITION(175)   CHAR(1),
+      INCL_HSMMIGRAT       POSITION(177)   CHAR(1),
+      INCL_HSMBACKUP       POSITION(179)   CHAR(1)
+      )
+
+LOAD DATA
+   INDDN LOADDATA
+   REPLACE
+   LOG    NO
+   IGNORE(WHEN)
+
+   INTO TABLE ${instance-DB_CURRENT_SCHEMA}.T_KMGPE_SCAN_FILTER
+   WHEN(1:4)='SCAN' (
+      ID                   POSITION(006)   BIGINT,
+      SYSTEM_ID            POSITION(015)   BIGINT,
+      NAME                 POSITION(024)   VARCHAR(44),
+      TYPES                POSITION(071)   VARCHAR(16)
+      )
+
+LOAD DATA
+   INDDN LOADDATA
+   REPLACE
+   LOG    NO
+   IGNORE(WHEN)
+
+   INTO TABLE ${instance-DB_CURRENT_SCHEMA}.T_KMGPE_DATASET
+   WHEN(1:4)='PDSN' (
+      ID                   POSITION(006)   BIGINT,
+      SYSTEM_ID            POSITION(015)   BIGINT,
+      NAME                 POSITION(024)   VARCHAR(44),
+      CATALOG              POSITION(071)   VARCHAR(44),
+      ERR_ID               POSITION(118)   VARCHAR(2)
+                                           NULLIF(ERR_ID = ''),
+      ERR_REASON           POSITION(123)   SMALLINT
+                                           NULLIF(ERR_ID = ''),
+      ERR_RETURN           POSITION(126)   SMALLINT
+                                           NULLIF(ERR_ID = ''),
+      DSTYPE               POSITION(129)   CHAR(1),
+      IS_EXTENDED          POSITION(131)   CHAR(1)
+                                           NULLIF(IS_EXTENDED = ''),
+      CREDATE              POSITION(133)   TIMESTAMP EXTERNAL(19)
+                                           NULLIF(CREDATE = ''),
+      DATACLAS             POSITION(153)   VARCHAR(8)
+                                           NULLIF(DATACLAS = ''),
+      VOLSER               POSITION(164)   VARCHAR(6)
+                                           NULLIF(VOLSER = ''),
+      ENCRYPTION_STATUS    POSITION(173)   INTEGER,
+      NOTENC_REASON        POSITION(178)   INTEGER,
+      CRY_ENCTYPE          POSITION(183)   VARCHAR(4)
+                                           NULLIF(CRY_LABEL = ''),
+      CRY_LABEL            POSITION(190)   VARCHAR(64)
+                                           NULLIF(CRY_LABEL = ''),
+      CRY_ICV              POSITION(257)   VARCHAR(16)
+                                           NULLIF(CRY_LABEL = ''),
+      CRY_ENCMODE          POSITION(276)   VARCHAR(2)
+                                           NULLIF(CRY_LABEL = ''),
+      CRY_VERVAL           POSITION(281)   VARCHAR(32)
+                                           NULLIF(CRY_LABEL = ''),
+      CRY_RESERVED         POSITION(316)   VARCHAR(10)
+                                           NULLIF(CRY_LABEL = ''),
+      IS_VOL_OK            POSITION(329)   CHAR(1)
+                                           NULLIF(IS_VOL_OK     = ''),
+      IS_DATASET_OK        POSITION(331)   CHAR(1)
+                                           NULLIF(IS_DATASET_OK = ''),
+      IS_PARTITIONED       POSITION(333)   CHAR(1)
+                                           NULLIF(IS_PARTITIONED  = '')
+      )
+
+LOAD DATA
+   INDDN LOADDATA
+   REPLACE
+   LOG    NO
+   IGNORE(WHEN)
+
+   INTO TABLE ${instance-DB_CURRENT_SCHEMA}.T_KMGPE_SEC_DATASET
+   WHEN(1:4)='SDSN' (
+      ID                   POSITION(006)   BIGINT,
+      DATASET_ID           POSITION(015)   BIGINT,
+      SYSTEM_ID            POSITION(024)   BIGINT,
+      NAME                 POSITION(033)   VARCHAR(44),
+      CATALOG              POSITION(080)   VARCHAR(44),
+      ERR_ID               POSITION(127)   VARCHAR(2)
+                                           NULLIF(ERR_ID = ''),
+      ERR_REASON           POSITION(132)   SMALLINT
+                                           NULLIF(ERR_ID = ''),
+      ERR_RETURN           POSITION(135)   SMALLINT
+                                           NULLIF(ERR_ID = ''),
+      DSTYPE               POSITION(138)   CHAR(1),
+      IS_EXTENDED          POSITION(140)   CHAR(1)
+                                           NULLIF(IS_EXTENDED = ''),
+      CREDATE              POSITION(142)   TIMESTAMP EXTERNAL(19)
+                                           NULLIF(CREDATE = ''),
+      DATACLAS             POSITION(162)   VARCHAR(8)
+                                           NULLIF(DATACLAS = ''),
+      VOLSER               POSITION(173)   VARCHAR(6)
+                                           NULLIF(VOLSER = ''),
+      ENCRYPTION_STATUS    POSITION(182)   INTEGER,
+      NOTENC_REASON        POSITION(187)   INTEGER,
+      CRY_ENCTYPE          POSITION(192)   VARCHAR(4)
+                                           NULLIF(CRY_LABEL = ''),
+      CRY_LABEL            POSITION(199)   VARCHAR(64)
+                                           NULLIF(CRY_LABEL = ''),
+      CRY_ICV              POSITION(266)   VARCHAR(16)
+                                           NULLIF(CRY_LABEL = ''),
+      CRY_ENCMODE          POSITION(285)   VARCHAR(2)
+                                           NULLIF(CRY_LABEL = ''),
+      CRY_VERVAL           POSITION(290)   VARCHAR(32)
+                                           NULLIF(CRY_LABEL = ''),
+      CRY_RESERVED         POSITION(325)   VARCHAR(10)
+                                           NULLIF(CRY_LABEL = ''),
+      IS_VOL_OK            POSITION(338)   CHAR(1)
+                                           NULLIF(IS_VOL_OK     = ''),
+      IS_DATASET_OK        POSITION(340)   CHAR(1)
+                                           NULLIF(IS_DATASET_OK = ''),
+      )

@@ -134,7 +134,7 @@ configureServerProc()
 	cp ${instance-WLP_INSTALL_DIR}/templates/zos/procs/bbgzsrv.jcl ${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/${_workflow-softwareServiceInstanceName}.jcl.tmp
 
 	# Edit proc template
-	sed "s#BBGZSRV PROC#${_workflow-softwareServiceInstanceName} PROC#" ${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/${_workflow-softwareServiceInstanceName}.jcl.tmp | sed "s#USERDIR='/u/MSTONE1/wlp/usr'#USERDIR='${instance-WLP_USER_DIR}'#" | sed "s#INSTDIR='/u/MSTONE1/wlp'#INSTDIR='${instance-WLP_INSTALL_DIR}'#" > ${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/${_workflow-softwareServiceInstanceName}.jcl
+	sed "s#BBGZSRV PROC#${_workflow-softwareServiceInstanceName} PROC#" ${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/${_workflow-softwareServiceInstanceName}.jcl.tmp | sed "s#USERDIR='/var/WebSphere/Liberty'#USERDIR='${instance-WLP_USER_DIR}'#" | sed "s#INSTDIR='/usr/lpp/WebSphere/Liberty'#INSTDIR='${instance-WLP_INSTALL_DIR}'#" > ${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/${_workflow-softwareServiceInstanceName}.jcl
 
 	if [ "${instance-DB2_HLQ}" != "" -a "${instance-DB2_HLQ}" != "DB2_HLQ" ]; then
 	    echo "//STEPLIB  DD DISP=SHR,DSN=${instance-DB2_HLQ}.SDSNEXIT" >> ${instance-WLP_USER_DIR}/servers/${_workflow-softwareServiceInstanceName}/${_workflow-softwareServiceInstanceName}.jcl

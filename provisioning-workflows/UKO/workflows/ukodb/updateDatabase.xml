@@ -1,0 +1,762 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">
+                    <!ENTITY image_properties SYSTEM "extensions/image_properties.xml">
+                    ]> 
+                    
+<!--
+/******************************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                        */
+/* SPDX-License-Identifier: Apache-2.0                                        */
+/******************************************************************************/
+-->
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- UKO Provisioning : Provision a new database                     -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>ukodb_Update</workflowID>
+      <workflowDescription>Update UKO database</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+        <!-- Build timestamp 2021.05.09.21.03.24 -->
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>UKO</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>ukodb</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include variables used by the following steps     -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+    <variable name="WAS_THE_DB_INSTALLED_FROM_FILE_OR_DATASET" scope="instance" visibility="public">
+        <label>WAS_THE_DB_INSTALLED_FROM_FILE_OR_DATASET</label>
+        <abstract>Was the db originally installed from file DDLs or a dataset</abstract>
+        <description>If you have installed the db with the files provided by EKMF Web pre v3.1, select FILE. If you have installed the database with a dataset delivered by the agent, select DATASET</description>
+        <category>String Variables</category>
+        <string valueMustBeChoice="true" multiLine="false">
+            <choice>FILE</choice>
+            <choice>DATASET</choice>
+            <default>FILE</default>
+        </string>
+    </variable>
+
+	<atCreate name="WAS_THE_DB_INSTALLED_FROM_FILE_OR_DATASET" scope="instance" prompt="true" required="false"/>
+	<atCreate name="DB_DATASET_INSTALL_HLQ" scope="instance" prompt="true" required="false"/>
+
+    <step name="currentVersion">
+		<title>What is the current version?</title>
+		<description>Steps to retrieve the current version of the UKO database</description>
+
+        <step name="retrieveExistingVersionSQL">
+            <title>Retrieve current version SQL</title>
+            <description>Queries the EKMF_META content from the Db2 database and puts the result in a temp file</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="TEMP_DIR" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_JCC_SSID" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_PROGRAM" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB_PLAN" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="DB2_RUNLIB" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/get-database-version.jcl</fileTemplate>
+                <submitAs maxRc="0">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+        <step name="createVersionVariable" optional="false">
+            <title>Create variable name for the version</title>
+            <description>Retrieves the version from the previous SQL query and puts the result in a variable</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+            
+                    currentversion=$(sed -E -e 's/ *//g' -e 's/.*1_\|([A-Z0-9]*).*/\1/' ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.version);
+                    echo "Current database version is: ${currentversion}";
+
+                    echo "UKO_DB_VERSION ${currentversion}" >> ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+    
+                    chmod 744 ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties
+                </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+                <output substitution="true" needResolveConflicts="false">${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.properties</output>
+            </template>
+        </step>
+
+    </step>
+
+    <step name="databaseUpdateToV3R1M0">
+		<title>Update the database to V3R1M0</title>
+		<description>Upgrading the UKO database to version 3.1.0</description>
+
+        <step name="updateDatabaseToV3R1M0part1">
+            <title>Update the database to V3R1M0 Part 1</title>
+            <description>Update the UKO database to V3R1M0, first part</description>
+
+            <step name="createDdlListToV3R1M0part1" optional="false">
+                <title>Create list of DDLs to upgrade to V3R1M0 part 1</title>
+                <description>Create the list of DDLs to be executed to upgrade the current version to V3R1M0</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M0 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M0"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>
+                <variableValue name="WAS_THE_DB_INSTALLED_FROM_FILE_OR_DATASET" scope="instance" noPromptIfSet="false" required="false"/>
+                <instructions substitution="true">Submit shell script to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <inlineTemplate substitution="true">
+                        #currentversion=$(sed -E -e 's/ *//g' -e 's/.*1_\|([A-Z0-9]*).*/\1/' ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.version);
+                        currentversion=${instance-UKO_DB_VERSION}
+                        echo "Current database version is: $currentversion";
+
+                        #UPDATE SCHEMA, SQLID
+                        filelist="KMGISQLI";
+
+                        # Update from EKMFWEB V2R10 to V2R11 level (EKMFweb V2.1.0.3 upgrade)
+                        tempversion="V2R1M1";
+                        if [[ "$currentversion" &lt; "$tempversion" ]]; then
+                            # SPECIFIC 211 DB updates
+                            filelist="${filelist} KMGUW211"
+                        fi
+
+                        # Update from EKMFWEB V2R11 to V2R20 level (EKMFweb V2.1.0.4 upgrade)
+                        tempversion="V2R2M0";
+                        if [[ "$currentversion" &lt; "$tempversion" ]]; then
+                            # SPECIFIC 220 DB updates
+                            filelist="${filelist} KMGUW220"
+                            # REDO AUDIT VIEWS
+                            filelist="${filelist} KMGCVAUD"
+                        fi 
+
+                        # Update from EKMFWEB V2R20 to V2R31 level (EKMFweb V2.1.0.5/7 upgrade)
+                        tempversion="V2R3M1";
+                        if [[ "$currentversion" &lt; "$tempversion" ]]; then
+                            # SPECIFIC drop views
+                            filelist="${filelist} KMGUW231"
+                            # REDO EKMF VIEWS
+                            filelist="${filelist} KMGCVUKT"
+                            # REDO EKMF VIEWS
+                            filelist="${filelist} KMGCVUK7"
+                            # DEF TABLESPACE PARAM
+                            filelist="${filelist} KMGCSPRM"
+                            # DEF TABLE PARAM
+                            filelist="${filelist} KMGCTPRM"
+                            # SET CURRENT WEB VERSION
+                            filelist="${filelist} KMGINWME"
+                        fi
+
+                        tempversion="V3R1M0";
+                        # Update from EKMFWEB V2R31 to V3R1 level (UKO for z/OS V3.1 upgrade)
+                        if [[ "$currentversion" &lt; "$tempversion" ]]; then
+
+                                # DEF TBS FOR SETTINGS
+                                filelist="${filelist} KMGCSSET"   
+                                # DEF TABLES FOR SETTINGS
+                                filelist="${filelist} KMGCTSET"   
+                                # DROP WEB VIEW BEFORE ALTERS
+                                filelist="${filelist} KMGUW31D"   
+
+                                if [[ ${instance-WAS_THE_DB_INSTALLED_FROM_FILE_OR_DATASET} == "DATASET" ]]; then
+                                    echo "upgrading database that was provided from agent dataset"
+                                    # A) Current database build from original UKO agent DDL's
+                                    # ADD UKDS7 COLUMNS (EKMF AGENT)
+                                    filelist="${filelist} KMGUS310" 
+                                fi
+    
+                                if [[ ${instance-WAS_THE_DB_INSTALLED_FROM_FILE_OR_DATASET} == "FILE" ]]; then
+                                    echo "upgrading database that was provided from UKO files"
+                                    # B) Current database build from EKMFWEB DDL's
+                                    # ADD UKDS7 COLUMNS (EKMFWEB DEF)
+                                    filelist="${filelist} KMGUS31W"   
+                                fi 
+
+                                # REDO EKMF VIEWS 
+                                filelist="${filelist} KMGCVUKT" 
+                                # REDO EKMF VIEWS 
+                                filelist="${filelist} KMGCVUK7"  
+                                # DEF TABLESPACE JSON OPT  
+                                filelist="${filelist} KMGCSJSN"   
+                                # DEF TABLE  FOR JSON OPT
+                                filelist="${filelist} KMGCTJSN"   
+                                # EKMFWEB UPDATES
+                                filelist="${filelist} KMGUW310" 
+                                # SET CURRENT WEB VERSION  
+                                filelist="${filelist} KMGINWME"   
+
+                        fi
+
+                        echo $filelist > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.files
+                    </inlineTemplate>
+                    <submitAs>shell-JCL</submitAs>
+                </template>
+            </step>
+            
+            <step name="createDDLToV3R1M0part1" optional="false">
+                <title>Create DDL to upgrade to V3R1M0 part 1</title>
+                <description>Create the DDL to be executed</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M0 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M0"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>
+                <variableValue name="DB_DATASET_INSTALL_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+                <variableValue name="DB_NAME_UKO" scope="instance" noPromptIfSet="false" required="false"/>
+                <variableValue name="DB_NAME_DATASET_ENCRYPTION_STATUS" scope="instance" noPromptIfSet="false" required="false"/>
+                <variableValue name="DB_STOGROUP" scope="instance" noPromptIfSet="false" required="false"/>
+                <variableValue name="DB_BUFFERPOOL" scope="instance" noPromptIfSet="false" required="false"/>
+                <instructions substitution="true">Submit shell script to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">scripts/createDdl.sh</fileTemplate>
+                    <submitAs>shell-JCL</submitAs>
+                </template>
+            </step>
+
+            <step name="executeUpdateDDLToV3R1M0part1">
+                <title>Execute DDL to update to V3R1M0 part 1</title>
+                <description>Execute the list of DDLs that have ben created before</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M0 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M0"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>            
+                <variableValue name="DB2_TEMP_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+                <instructions substitution="true">Submit jcl to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">jcl/update-database.jcl</fileTemplate>
+                    <submitAs maxRc="4">JCL</submitAs>
+                    <maxLrecl>80</maxLrecl>
+                </template>
+            </step>
+
+        </step>
+
+        <step name="repairReorgV3R1M0">
+            <title>Repair and reorg after V3R1M0 upgrade part 1</title>
+            <description>This step issues commands to repair certain tables and to REORG the database after the V3R1M0 updates</description>
+            <prereqStep name="currentVersion"/>                
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <condition>
+                <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                <description>Current database version must be retrieved</description>
+                <targetStateSet>
+                    <description>Skip this step if we are on V3R1M0 or higher</description>
+                    <extendStateExpression>
+                        <description>Skip if the current version is already V3 or higher</description>
+                        <expression>${instance-UKO_DB_VERSION} >= "V3R1M0"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>            
+            <variableValue name="DB2_TEMP_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/update-repair-reorg.jcl</fileTemplate>
+                <submitAs maxRc="4">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+        <step name="updateDatabaseToV3R1M0part2">
+            <title>Update the database to V3R1M0 Part 2</title>
+            <description>Additional fixes that need to be applied after the previous updates when upgrading to version 3.1.0</description>
+
+            <step name="createDdlListToV3R1M0part2" optional="false">
+                <title>Create list of DDLs after V3R1M0 upgrade</title>
+                <description>Create the list of DDLs to be executed</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M0 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M0"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>
+                <instructions substitution="true">Submit shell script to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <inlineTemplate substitution="true">
+                        #backing up previous ddl
+                        if [ -f "${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl" ] 
+                        then
+                            mv ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_ToV3R1M0part1.ddl
+                        fi
+
+                        #UPDATE SCHEMA, SQLID
+                        filelist="KMGISQLI";
+                        filelist="${filelist} KMGUW31A"
+
+                        echo $filelist > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.files
+                    </inlineTemplate>
+                    <submitAs>shell-JCL</submitAs>
+                </template>
+            </step>
+            
+            <step name="createDDLToV3R1M0part2" optional="false">
+                <title>Create DDL after V3R1M0 upgrade</title>
+                <description>Create the DDL to be executed</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M0 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M0"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>
+                <instructions substitution="true">Submit shell script to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">scripts/createDdl.sh</fileTemplate>
+                    <submitAs>shell-JCL</submitAs>
+                </template>
+            </step>
+
+            <step name="ExecuteUpdateDDLToV3R1M0part2">
+                <title>Execute DDL after V3R1M0 upgrade</title>
+                <description>Execute the list of DDLs that have ben created before</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M0 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M0"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>            
+                <instructions substitution="true">Submit jcl to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">jcl/update-database.jcl</fileTemplate>
+                    <submitAs maxRc="4">JCL</submitAs>
+                    <maxLrecl>80</maxLrecl>
+                </template>
+            </step>
+
+        </step>
+
+    </step>
+
+    <step name="databaseUpdateToV3R1M1">
+		<title>Update the database to V3R1M1</title>
+		<description>Upgrading the UKO database to version 3.1.1</description>
+
+        <step name="databaseUpdateToV3R1M1part1">
+            <title>Update the database to 3.1.1 part 1</title>
+            <description>Upgrading the UKO database to version 3.1.1</description>
+    
+            <step name="createDdlListFromDatasetToV3R1M1part1" optional="false">
+                <title>Create list of DDLs for 3.1.1 update part 1</title>
+                <description>Create the list of DDLs to be executed</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M1 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M1"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>  
+                <instructions substitution="true">Submit shell script to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <inlineTemplate substitution="true">
+                        #backing up previous ddl
+                        if [ -f "${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl" ] 
+                        then
+                            mv ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_ToV3R1M0part2.ddl
+                        fi
+
+                        #UPDATE SCHEMA, SQLID
+                        filelist="KMGISQLI";
+                        if [[ "${instance-UKO_DB_VERSION}" &lt; "V3R1M0" ]]; then
+                            # If we are upgrading from EKMF V2.1.0.x to UKO 3.1.1, some definitions already exist.
+                            # That's why there is a separate script, otherwise there would be errors because of duplicates
+                            filelist="${filelist} KMGUW3AC"                    
+                        else
+                            filelist="${filelist} KMGUW3A1"
+                        fi
+
+                        echo $filelist > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.files
+                    </inlineTemplate>
+                    <submitAs>shell-JCL</submitAs>
+                </template>
+            </step>           
+
+            <step name="createDDLFromDatasetToV3R1M1part1" optional="false">
+                <title>Create DDL for 3.1.1 update part 1</title>
+                <description>Create the DDL to be executed</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M1 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M1"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>  
+                <variableValue name="DB_DATASET_INSTALL_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+                <variableValue name="DB_NAME_UKO" scope="instance" noPromptIfSet="false" required="false"/>
+                <variableValue name="DB_NAME_DATASET_ENCRYPTION_STATUS" scope="instance" noPromptIfSet="false" required="false"/>
+                <instructions substitution="true">Submit shell script to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">scripts/createDdl.sh</fileTemplate>
+                    <submitAs>shell-JCL</submitAs>
+                </template>
+            </step>
+
+            <step name="ExecuteUpdateDDLToV3R1M1part1">
+                <title>Execute DDL for 3.1.1 update part 1</title>
+                <description>Execute the list of DDLs that have ben created before</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M1 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M1"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>  
+                <variableValue name="DB2_TEMP_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+                <instructions substitution="true">Submit jcl to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">jcl/update-database.jcl</fileTemplate>
+                    <submitAs maxRc="4">JCL</submitAs>
+                    <maxLrecl>80</maxLrecl>
+                </template>
+            </step>
+        </step>
+
+        <step name="reorgV3R1M1">
+            <title>Reorg after V3R1M1 upgrade part 1</title>
+            <description>This step issues commands to REORG the database after the V3R1M1 updates</description>
+            <prereqStep name="currentVersion"/>                
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <condition>
+                <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                <description>Current database version must be retrieved</description>
+                <targetStateSet>
+                    <description>Skip this step if we are already V3R1M1 or higher</description>
+                    <extendStateExpression>
+                        <description>Skip if the current version is already V3 or higher</description>
+                        <expression>${instance-UKO_DB_VERSION} >= "V3R1M1"</expression>
+                        <targetState>skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>            
+            <variableValue name="DB2_TEMP_HLQ" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/update-reorg-311.jcl</fileTemplate>
+                <submitAs maxRc="4">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+        <step name="databaseUpdateToV3R1M1part2">
+            <title>Update the database to 3.1.1 part 2</title>
+            <description>Upgrading the UKO database to version 3.1.1</description>
+    
+            <step name="createDdlListFromDatasetToV3R1M1part2" optional="false">
+                <title>Create list of DDLs for 3.1.1 update part 2</title>
+                <description>Create the list of DDLs to be executed</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M1 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M1"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>  
+                <variableValue name="WORKSTATION_ACCESS_REQUIRED" scope="instance" noPromptIfSet="false" required="false"/>
+                <instructions substitution="true">Submit shell script to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <inlineTemplate substitution="true">
+                        #backing up previous ddl
+                        if [ -f "${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl" ] 
+                        then
+                            mv ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.ddl ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}_ToV3R1M1part1.ddl
+                        fi
+
+                        #UPDATE SCHEMA, SQLID
+                        filelist="KMGISQLI KMGUW3A2";
+                        if [[ "${instance-WORKSTATION_ACCESS_REQUIRED}" == "false" ]]; then
+                            # If the database is accessed by the EKMF Workstation as well, some views will aready exist. 
+                            # KMGUW3AV only needs to be executed, if those views have not been created yet. 
+                            filelist="${filelist} KMGUW3AV"
+                        fi
+                        filelist="${filelist} KMGINWME"
+
+                        echo $filelist > ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}.files
+                    </inlineTemplate>
+                    <submitAs>shell-JCL</submitAs>
+                </template>
+            </step>
+            
+            <step name="createDDLFromDatasetToV3R1M1part2" optional="false">
+                <title>Create DDL for 3.1.1 update part 2</title>
+                <description>Create the DDL to be executed</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M1 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M1"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>  
+                <instructions substitution="true">Submit shell script to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">scripts/createDdl.sh</fileTemplate>
+                    <submitAs>shell-JCL</submitAs>
+                </template>
+            </step>
+
+            <step name="ExecuteUpdateDDLToV3R1M1part2">
+                <title>Execute DDL for 3.1.1 update part 2</title>
+                <description>Execute the list of DDLs that have ben created before</description>
+                <prereqStep name="currentVersion"/>                
+                <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+                <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+                <condition>
+                    <expression><![CDATA[${currentVersion.stepState} == "Complete"]]></expression>
+                    <description>Current database version must be retrieved</description>
+                    <targetStateSet>
+                        <description>Skip this step if we are on V3R1M1 or higher</description>
+                        <extendStateExpression>
+                            <description>Skip if the current version is already V3 or higher</description>
+                            <expression>${instance-UKO_DB_VERSION} >= "V3R1M1"</expression>
+                            <targetState>skipped</targetState>
+                        </extendStateExpression>
+                    </targetStateSet>
+                </condition>  
+                <instructions substitution="true">Submit jcl to execute step</instructions>
+                <weight>1</weight>
+                <autoEnable>true</autoEnable>
+                <template>
+                    <fileTemplate substitution="true">jcl/update-database.jcl</fileTemplate>
+                    <submitAs maxRc="4">JCL</submitAs>
+                    <maxLrecl>80</maxLrecl>
+                </template>
+            </step>
+        </step>
+
+    </step>
+
+    <step name="configureDatabaseAccess">
+        <title>Configure Access to the Db2 database</title>
+        <description>Configure the new UKO server to be able to access the required tables</description>
+
+        <step name="configureDatabaseAccessServer">
+            <title>Configure db access for the server</title>
+            <description>Configure the new UKO server to be able to access the required tables</description>        
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <variableValue name="UKO_SERVER_STC_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/database-grant-access.jcl</fileTemplate>
+                <submitAs maxRc="8">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+        <step name="configureSystableAccess">
+            <title>Configure access to SYSIBM.SYSTABLES for system status</title>
+            <description>Configure access to the SYSIBM.SYSTABLES table which is required to run the system status checks</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <variableValue name="UKO_SERVER_STC_USER" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/database-grant-access-systable.jcl</fileTemplate>
+                <submitAs maxRc="8">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+        <step name="configureDatabaseAccessClient">
+            <title>Configure db access for the client user</title>
+            <description>Configure Access to the Db2 database for the client user</description>        
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_DB}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_DB}</approver>
+            <condition>
+                <expression>"1"=="1"</expression>
+                <description>Skip this step if no workstation access is required</description>
+                <targetStateSet>
+                    <description>Skip this step if no workstation access is required</description>
+                    <extendStateExpression>
+                        <description>Skip if no workstation access is required</description>
+                        <expression>${instance-WORKSTATION_ACCESS_REQUIRED} == "false"</expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <variableValue name="DB_CURRENT_SCHEMA" scope="instance" noPromptIfSet="false" required="false"/>
+            <variableValue name="UKO_AGENT_CLIENT_GROUP" scope="instance" noPromptIfSet="false" required="false"/>
+            <instructions substitution="true">Submit jcl to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <fileTemplate substitution="true">jcl/database-grant-access-client.jcl</fileTemplate>
+                <submitAs maxRc="4">JCL</submitAs>
+                <maxLrecl>80</maxLrecl>
+            </template>
+        </step>
+
+    </step>
+
+    <step name="optionalSteps">
+        <title>Optional steps</title>
+        <description>Additional steps you can execute</description>
+
+        <step name="cleanUpVariables">
+            <title>Clean up temp files and ddls</title>
+            <description>Submit script to clean up temp variables</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_SERVER}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_SERVER}</approver>
+            <instructions substitution="true">Submit shell script to execute step</instructions>
+            <weight>1</weight>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                
+                    # Remove temporary files created by the workflow
+                    rm ${instance-TEMP_DIR}/zosmf-${_workflow-workflowKey}*
+                    if [ $? -gt 0 ]; then 
+                        echo "no temp files needed to be deleted"
+                    fi
+                    
+                </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+    </step>
+	
+</workflow>
