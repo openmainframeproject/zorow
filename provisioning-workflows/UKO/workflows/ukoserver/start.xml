@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declare external file containing WAS variables referenced in the following steps -->
+<!DOCTYPE workflow [<!ENTITY variables SYSTEM "variable_imports.xml">
+                    ]> 
+                    
+<!--                                                        
+/***********************************************************************/
+/* Copyright Contributors to the zOS-Workflow Project.                 */
+/* SPDX-License-Identifier: Apache-2.0                                 */
+/***********************************************************************/                                            
+--> 
+<workflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../workflow/schemas/workflow_v1.xsd">
+    <!--  Note: The schema workflow_v1.xsd is shipped with z/OSMF. To use the schema
+          to validate this XML, modify the above schema location to point to the 
+          schema in z/OSMF, or copy the schema to an appropriate location.  -->
+
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    <!-- UKO Provisioning : Start server                             -->
+    <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+  <workflowInfo>
+      <workflowID>uko_Start</workflowID>
+      <workflowDescription>Start a UKO server.</workflowDescription>
+    <workflowVersion>1.0.0.0</workflowVersion>
+        <!-- Build timestamp 2021.05.09.21.03.24 -->
+      <vendor>IBM</vendor>
+      <Provisioning>
+          <productID>5655-EKM</productID>
+          <productName>UKO</productName>
+          <productVersion>V2R1+</productVersion>
+          <softwareType>UKO</softwareType>
+      </Provisioning>
+  </workflowInfo>
+  
+  	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	<!--     Include variables used by the following steps     -->
+	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+	&variables;
+	
+	
+    <!--+++++++++++++++++++++++-->
+    <!--   Start the Server    -->
+    <!--+++++++++++++++++++++++-->  
+    <step name="startServer">
+        <title>Start the server</title>
+        <description>Start the server</description>
+
+        <step name="checkIfServerAlreadyRunning" optional="false">
+            <title>Check if server running</title>
+            <description>Check whether the server is running already</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_CONSOLE}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_CONSOLE}</approver>
+            <instructions>Execute console API to check the server is running already</instructions>
+            <weight>1</weight>
+            <skills>z/OS administration</skills>
+            <autoEnable>true</autoEnable>
+            <rest>
+                <httpMethod>PUT</httpMethod>
+                <uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+                <requestBody substitution="true">
+                    { 
+                      "cmd" : "d a,${instance-UKO_SERVER_STC_NAME}",
+                      "sol-key" : "NOT FOUND",
+                      "system" : "${_workflow-systemName}"
+                      
+                    }
+                </requestBody>
+                <expectedStatusCode>200</expectedStatusCode>
+                <propertyMapping mapTo="UKO_REST_STATUS">["sol-key-detected"]</propertyMapping>
+            </rest>
+        </step>
+
+        <step name="RemountIfRequired" optional="false">
+            <title>Checking zFS is mounted</title>
+            <description>Check the zFS mount point and remount if not mounted</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+            <condition>
+                <expression><![CDATA["1" == "1"]]></expression>
+                <description>Should the step be executed based on the UKO_REST_STATUS setting</description>
+                <targetStateSet>
+                    <description>Check to see whether this step should be skipped</description>
+                    <extendStateExpression>
+                        <description>Only execute it UKO_REST_STATUS is not detected</description>
+                        <expression><![CDATA[ ${instance-UKO_REST_STATUS} == "false"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions>Remount the zFS for the server if needed</instructions>
+            <weight>1</weight>
+            <skills>UKO Administration</skills>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                    #set ( $d = "$")
+                    #set ($zfs = "${instance-UKO_FILE_SYSTEM_HLQ}.${instance-UKO_SERVER_STC_NAME}")
+                    if [ ! -d ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}/PROVISION_OK ];
+                    then
+						# Query information about the main mountpoint
+						df_out=${d}(df ${instance-WLP_USER_DIR})
+						
+						echo "df_out set to ${d}df_out"
+						
+						# Split to obtain the data set for the mount point
+						dataset=${d}(echo ${d}df_out | sed -e 's/.*(//' | sed -e 's/).*//')
+						
+						echo "dataset set to ${d}dataset"
+						
+						# Using the data set restrict using grep in the mount -qv comment
+						mount_info=${d}(mount -qv ${instance-WLP_USER_DIR} | grep ${d}dataset)
+						
+						echo "mount_info set to ${d}mount_info"
+						
+						# Look at the 5 byte to work out what to do next
+						parent_mount=${d}(expr substr "${d}mount_info" 5 1)
+						
+						echo "parent_mount set to ${d}parent_mount"
+						
+						# Decide the automount value
+						case ${d}parent_mount in
+						   "A")
+						       echo "Automount (yes)"
+						       mountvalue="yes"
+						       ;;
+						   "U")
+						       echo "Unmount (unmount)"
+						       mountvalue="unmount"
+						       ;;
+						   "-")
+						       echo "NoAutomount (no)"
+						       mountvalue="no"
+						       ;;
+						esac
+						
+						echo "mountvalue ${d}mountvalue"
+						
+						echo "Running command: mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}"
+						
+						mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-WLP_USER_DIR}/servers/${instance-UKO_SERVER_STC_NAME}
+						rc=${d}?
+						if [ ${d}rc -gt 0 ]; then
+						  echo "Failed to mount the directory see STDERR with RC ${d}rc"
+						  exit ${d}rc
+						fi
+                    else 
+                      echo "No mount required";
+                    fi
+                </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+
+        <step name="RemountOutputIfRequired" optional="false">
+            <title>Checking zFS output is mounted</title>
+            <description>Check the zFS mount point and remount if not mounted</description>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_ZFS}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_ZFS}</approver>
+            <condition>
+                <expression><![CDATA["1" == "1"]]></expression>
+                <description>Should the step be executed based on the UKO_REST_STATUS setting</description>
+                <targetStateSet>
+                    <description>Check to see whether this step should be skipped</description>
+                    <extendStateExpression>
+                        <description>Only execute it UKO_REST_STATUS is not detected</description>
+                        <expression><![CDATA[ ${instance-UKO_REST_STATUS} == "false"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+            <instructions>Remount the zFS for the server if needed</instructions>
+            <weight>1</weight>
+            <skills>UKO Administration</skills>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                    #set ( $d = "$")
+                    #set ($zfs = "${instance-UKO_FILE_SYSTEM_HLQ}.${instance-UKO_SERVER_STC_NAME}.OUTPUT")
+                    if [ ! -d ${instance-WLP_OUTPUT_DIR}/${instance-UKO_SERVER_STC_NAME}/PROVISION_OK ];
+                    then
+						# Query information about the main mountpoint
+						df_out=${d}(df ${instance-WLP_OUTPUT_DIR})
+						
+						echo "df_out set to ${d}df_out"
+						
+						# Split to obtain the data set for the mount point
+						dataset=${d}(echo ${d}df_out | sed -e 's/.*(//' | sed -e 's/).*//')
+						
+						echo "dataset set to ${d}dataset"
+						
+						# Using the data set restrict using grep in the mount -qv comment
+						mount_info=${d}(mount -qv ${instance-WLP_OUTPUT_DIR} | grep ${d}dataset)
+						
+						echo "mount_info set to ${d}mount_info"
+						
+						# Look at the 5 byte to work out what to do next
+						parent_mount=${d}(expr substr "${d}mount_info" 5 1)
+						
+						echo "parent_mount set to ${d}parent_mount"
+						
+						# Decide the automount value
+						case ${d}parent_mount in
+						   "A")
+						       echo "Automount (yes)"
+						       mountvalue="yes"
+						       ;;
+						   "U")
+						       echo "Unmount (unmount)"
+						       mountvalue="unmount"
+						       ;;
+						   "-")
+						       echo "NoAutomount (no)"
+						       mountvalue="no"
+						       ;;
+						esac
+						
+						echo "mountvalue ${d}mountvalue"
+						
+						echo "Running command: mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-WLP_OUTPUT_DIR}/${instance-UKO_SERVER_STC_NAME}"
+						
+						mount -t ZFS -a ${d}mountvalue -f ${zfs} ${instance-WLP_OUTPUT_DIR}/${instance-UKO_SERVER_STC_NAME}
+						rc=${d}?
+						if [ ${d}rc -gt 0 ]; then
+						  echo "Failed to mount the directory see STDERR with RC ${d}rc"
+						  exit ${d}rc
+						fi
+                    else 
+                      echo "No mount required";
+                    fi
+                </inlineTemplate>
+                <submitAs>shell-JCL</submitAs>
+            </template>
+        </step>
+ 
+
+        <step name="startServer_console">
+        	<title>Start the server from console</title>
+        	<description>Start the server from the console</description>
+        	<runAsUser substitution="true">$!{instance-UKO_ADMIN_CONSOLE}</runAsUser>
+	        <approver substitution="true">$!{instance-UKO_APPROVER_CONSOLE}</approver>
+            <condition>
+                <expression><![CDATA["1" == "1"]]></expression>
+                <description>Should the step be executed based on the UKO_REST_STATUS setting</description>
+                <targetStateSet>
+                    <description>Check to see whether this step should be skipped</description>
+                    <extendStateExpression>
+                        <description>Only execute it UKO_REST_STATUS is not detected</description>
+                        <expression><![CDATA[ ${instance-UKO_REST_STATUS} == "false"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                </targetStateSet>
+            </condition>
+     		<instructions substitution="false">Submitting script to start the server.</instructions>
+        	<weight>1</weight>
+        	<autoEnable>true</autoEnable>
+        	<rest>
+				<httpMethod>PUT</httpMethod>
+				<uriPath substitution="true">/zosmf/restconsoles/consoles/defcn</uriPath>
+				<requestBody substitution="true">
+				  {
+				    "cmd" : "START ${instance-UKO_SERVER_STC_NAME},PARMS='${instance-UKO_SERVER_STC_NAME}'",
+				    "unsol-key" : "CWWKF0011I: The ${instance-UKO_SERVER_STC_NAME} server is ready",
+				    "unsol-detect-sync" : "Y",
+				    "unsol-detect-timeout" : "120",
+				    "detect-time" : "120",
+				    "system" : "${_workflow-systemName}"
+				    
+				  }	
+				</requestBody>
+				<expectedStatusCode>200</expectedStatusCode>
+				<propertyMapping mapTo="UKO_REST_STATUS">["status"]</propertyMapping>
+			</rest>
+    	</step>
+
+    	<step name="CheckStartup" optional="false">
+            <title>Checking the rest status from the start command</title>
+            <description>Check the REST Status from the start command</description>
+            <prereqStep name="startServer_console"/>
+            <runAsUser substitution="true">$!{instance-UKO_ADMIN_TSO}</runAsUser>
+            <approver substitution="true">$!{instance-UKO_APPROVER_TSO}</approver>
+            <condition>
+                <expression><![CDATA[${startServer_console.stepState} == "Complete" || ${startServer_console.stepState} == "Skipped"]]></expression>
+                <description>Should the step be executed based on the UKO_REST_STATUS setting</description>
+                <targetStateSet>
+                    <description>Check to see whether this step should be skipped</description>
+                    <extendStateExpression>
+                        <description>Only execute it UKO_REST_STATUS is not detected</description>
+                        <expression><![CDATA[ ${instance-UKO_REST_STATUS} == "detected"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+                    <extendStateExpression>
+                        <description>Skip if server was already running</description>
+                      <expression><![CDATA[ ${startServer_console.stepState} == "Skipped"]]></expression>
+                        <targetState>Skipped</targetState>
+                    </extendStateExpression>
+             </targetStateSet>
+            </condition>
+            <instructions>Execute simple Rexx command to always return a bad returncode</instructions>
+            <weight>1</weight>
+            <skills>UKO Administration</skills>
+            <autoEnable>true</autoEnable>
+            <template>
+                <inlineTemplate substitution="true">
+                    exit 8
+                </inlineTemplate>
+                <submitAs maxRc="0">TSO-REXX-JCL</submitAs>
+            </template>
+        </step>
+    </step>
+
+</workflow>

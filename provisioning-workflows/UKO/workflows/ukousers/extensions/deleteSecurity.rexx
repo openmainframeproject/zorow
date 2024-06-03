@@ -1,0 +1,58 @@
+/* REXX */
+/*----------------------------------------------------------------*/
+/* Copyright Contributors to the zOS-Workflow Project.            */
+/* PDX-License-Identifier: Apache-2.0                             */
+/*----------------------------------------------------------------*/
+
+AGENT_STC_USER="${instance-UKO_AGENT_STC_USER}"
+AGENT_STC_GROUP="${instance-UKO_AGENT_STC_GROUP}"
+
+AGENT_CLIENT_USER="${instance-UKO_AGENT_CLIENT_USER}"
+AGENT_CLIENT_GROUP="${instance-UKO_AGENT_CLIENT_GROUP}"
+
+SERVER_STC_USER="${instance-UKO_SERVER_STC_USER}"
+SERVER_TASK_GROUP="${instance-UKO_SERVER_STC_GROUP}"
+
+SERVER_UNAUTHENTICATED_USER="${instance-UKO_UNAUTHENTICATED_USER}"
+SERVER_UNAUTHENTICATED_GROUP="${instance-UKO_UNAUTHENTICATED_GROUP}"
+
+KEY_ADMIN="${instance-UKO_KEY_ADMIN}"
+KEY_ADMIN_GROUP="${instance-UKO_KEY_ADMIN_GROUP}"
+
+DB_CURRENT_SCHEMA="${instance-DB_CURRENT_SCHEMA}"
+
+KEY_PREFIX="${instance-UKO_KEY_PREFIX}"
+
+
+#if($!{instance-UKO_CREATE_USERIDS} == "TRUE" ) 
+"DELUSER "||AGENT_STC_USER||" "
+"DELUSER "||AGENT_CLIENT_USER||" "
+"DELUSER "||SERVER_STC_USER||" "
+"DELUSER "||SERVER_UNAUTHENTICATED_USER||" "
+
+"REMOVE "||KEY_ADMIN||" GROUP(IZUUSER)"
+"DELUSER "||KEY_ADMIN||" "
+"PERMIT DEFAULT CL(ACCTNUM ) DELETE ID("||KEY_ADMIN||")" 
+"PERMIT  * CL(TSOPROC ) DELETE ID("||KEY_ADMIN||")" 
+"SETROPTS RACLIST(TSOPROC) REFRESH "
+
+"REMOVE  ${instance-UKO_ADMIN_DB} GROUP("||DB_CURRENT_SCHEMA||")"
+"DELGROUP "||DB_CURRENT_SCHEMA||" " 
+
+#end
+
+#if($!{instance-UKO_CREATE_GROUPS} == "TRUE" ) 
+"DELGROUP "||AGENT_STC_GROUP||" "
+"DELGROUP "||AGENT_CLIENT_GROUP||" "
+"DELGROUP "||SERVER_TASK_GROUP||" "
+"DELGROUP "||SERVER_UNAUTHENTICATED_GROUP||" "
+"DELGROUP "||KEY_ADMIN_GROUP||" "
+#end
+
+Say "Deleting "||KEY_PREFIX||".** entry in CSFKEYS class"
+"PERMIT "||KEY_PREFIX||".**   CLASS(CSFKEYS) DELETE ID(ACSPSGRP)"
+"RDELETE CSFKEYS "||KEY_PREFIX||".** "
+
+Say "Refreshing CSFKEYS"
+"SETROPTS RACLIST(CSFKEYS) REFRESH"
+
