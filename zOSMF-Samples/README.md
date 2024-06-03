@@ -47,3 +47,5 @@ More advanced concepts are illustrated in the following samples.
 |workflow_sample_load_image.xml| Shows the use of images that are encoded in Base64 string in a workflow.
 |workflow_sample_sca.xml| Shows how to invoke Security Configuration Assistant (SCA) REST APIs to validate security requirements in a JSON file (sca_sample_security.json) through Workflow.
 |sca_sample_security.json| Shows a sample security description JSON file, for use with workflow_sample_sca.xml.
+|zOSMF_workflow_sample_zTrial.xml| Is a sample workflow used in zTrial, which shows how to discover z/OS features and work with z/OS data sets.
+|discovery.txt| Shows how to discover z/OS features, for use with zOSMF_workflow_sample_zTrial.xml.
